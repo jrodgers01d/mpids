@@ -41,11 +41,15 @@ def __get_index(dict_len, procs, rank):
 def __groupfunction( item):
             global __comm, __lastrank 
             size = __comm.Get_size()
+            
 
             for i in range ( __lastrank, size ):
                 s, e = __get_index(float(712), size, i)
                 for j in range ( s, e):
                     itemstring = str(item[0])
+                    if itemstring.startswith(tuple('([{')):
+                            itemstring = itemstring[2:]
+
                     if  len(itemstring) == 1:
                         starting = itemstring
                     elif itemstring.startswith(tuple('0123456789')):
@@ -76,7 +80,7 @@ def Counter_all (tokens, comm=MPI.COMM_WORLD, tokens_per_iter=10000, tracing=Fal
                 num_iterations = num_iterations + 1
 
             if tracing and rank == 0: 
-                print(rank, "Processing documents in ", num_iterations," iterations" )
+                print(rank, "Processing documents in ", num_iterations," iterations")
 
             lastindex = 0  
             final_wcount={}
@@ -103,7 +107,7 @@ def Counter_all (tokens, comm=MPI.COMM_WORLD, tokens_per_iter=10000, tracing=Fal
                         __lastrank=0
                         for ranks, words in groupby(odd, lambda s: __groupfunction(s)):
                             wordcount_per_reducer[ranks]={ranks: list(words)}
-                                        
+
                         localwordcount={}
                         for step in range(0, size ):
                             found = 0
