@@ -10,16 +10,15 @@ if __name__ == "__main__":
     comm = MPI.COMM_WORLD
     rank = comm.Get_rank()
 
-    if len (sys.argv) < 4:
-        print("Usage: wordcount_mpi4py.py <input-directoryfile> <outputfile> <book directory>")
+    if len (sys.argv) < 3:
+        print("Usage: wordcount_mpi4py.py <input-directoryfile> <outputfile>")
         comm.Abort(1)
 
     inputfile  = sys.argv[1]
     outputfile = sys.argv[2]
-    bookpath   = sys.argv[3]
 
     starttime = MPI.Wtime()    
-    text = mpids.ParallelIO.read_all (inputfile, bookpath )
+    text = mpids.ParallelIO.read_all (inputfile)
     endreadtime = MPI.Wtime() - starttime
 
     starttokenizetime = MPI.Wtime()
