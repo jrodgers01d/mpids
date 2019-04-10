@@ -1,15 +1,12 @@
 from mpi4py import MPI
+from mpids.MPINpArray import MPINpArray
 import numpy as np
 
-class MPINpArray:
-    def __init__(self, np_array, comm = MPI.COMM_WORLD)
-        self.data = np_array.data
-        self.dtype = np_array.dtype
-        self.shape = np_array.shape
-        self.shape_global = None
-        self.strides = np_array.strides
-        self.comm = comm
+def array(object, dtype=None, comm=MPI.COMM_WORLD):
+        """
+        Create MPINpArray Object on all procs in comm.
+        Currently only supports duplication of object.
+        """
+        np_array = np.array(object, dtype)
 
-def dummy_function_for_commit_test():
-        """Still configuring environment"""
-        pass
+        return MPIArray(np_array, comm)
