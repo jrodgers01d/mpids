@@ -1,5 +1,5 @@
 from mpi4py import MPI
-from mpids.MPINpArray import MPINpArray
+from mpids.MPIArray import MPIArray
 import numpy as np
 
 def array(object, dtype=None, comm=MPI.COMM_WORLD):
