@@ -1,3 +1,5 @@
+from mpi4py import MPI
+
 class MPIArray:
         def __init__(self, np_array, comm=MPI.COMM_WORLD):
                 self.array = np_array
