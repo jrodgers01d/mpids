@@ -1,15 +1,21 @@
 class MPIArray:
         def __init__(self, np_array, comm=MPI.COMM_WORLD):
-                self.data = np_array.data
-                self.size = np_array.size
-                # self.size_global = None
-                self.dtype = np_array.dtype
-                self.shape = np_array.shape
-                # self.shape_global = None
-                self.strides = np_array.strides
+                self.array = np_array
+                self.size_global = None
+                self.shape_global = None
                 self.comm = comm
 
-        # def size(self):
-        #         rank = comm.Get_rank()
-        #         if rank == 0:
-        #                 return self.shape_global
+        def size(self):
+                return self.array.size
+
+        def data(self):
+                return self.array.data
+
+        def dtype(self):
+                return self.array.dtype
+
+        def shape(self):
+                return self.array.shape
+
+        def strides(self):
+                return self.array.strides
