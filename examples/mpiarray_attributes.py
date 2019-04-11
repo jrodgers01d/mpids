@@ -8,7 +8,7 @@ if __name__ == "__main__":
         rank = comm.Get_rank()
 
         data = list(range(100))
-        array = mpids.MPInumpy.array(data, dtype = 'i', comm)
+        array = mpids.MPInumpy.array(data, dtype = 'i', comm=comm)
 
         array_size = array.size()
         array_data = array.data()
@@ -16,4 +16,4 @@ if __name__ == "__main__":
         array_shape = array.shape()
         array_strides = array.strides()
 
-        print(f'Rank{rank} Array Attributes: {array_size} size, {array_data} data, {array_dtype} dtype, {array_shape} shape, {array_strides} strides')
+        print('Rank{} Array Attributes: {} size, {} data, {} dtype, {} shape, {} strides'.format(rank, array_size, array_data, array_dtype, array_shape, array_strides))
