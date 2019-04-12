@@ -8,7 +8,7 @@ if __name__ == "__main__":
         rank = comm.Get_rank()
 
         data = list(range(100))
-        array = mpids.MPInumpy.array(data, dtype = 'i', comm=comm)
+        array = mpids.MPInumpy.array(data, comm=comm)
 
         array_size = array.size()
         array_data = array.data()
