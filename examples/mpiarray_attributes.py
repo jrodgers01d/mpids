@@ -16,4 +16,11 @@ if __name__ == "__main__":
         array_shape = array.shape()
         array_strides = array.strides()
 
-        print('Rank{} Array Attributes: {} size, {} data, {} dtype, {} shape, {} strides'.format(rank, array_size, array_data, array_dtype, array_shape, array_strides))
+        #Print array attributes for each proc in comm
+        output = 'Rank {} Array Attributes: '.format(rank)
+        output = output + '{} size, '.format(array_size)
+        output = output + '{} data, '.format(array_data)
+        output = output + '{} dtype, '.format(array_dtype)
+        output = output + '{} shape, '.format(array_shape)
+        output = output + '{} strides, '.format(array_strides)
+        print(output)
