@@ -10,12 +10,6 @@ if __name__ == "__main__":
         data = list(range(100))
         array = mpids.MPInumpy.array(data, comm=comm)
 
-        # array_size = array.size()
-        # array_data = array.data()
-        # array_dtype = array.dtype()
-        # array_shape = array.shape()
-        # array_strides = array.strides()
-
         #Print array attributes for each proc in comm
         output = 'Rank {} Array Attributes: '.format(rank)
         output = output + '{} size, '.format(array.size)
@@ -23,5 +17,5 @@ if __name__ == "__main__":
         output = output + '{} dtype, '.format(array.dtype)
         output = output + '{} shape, '.format(array.shape)
         output = output + '{} strides, '.format(array.strides)
-        output = output + '{} strides, '.format(array.comm_size)
+        output = output + '{} comm_size'.format(array.comm_size)
         print(output)
