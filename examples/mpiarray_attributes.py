@@ -8,7 +8,7 @@ if __name__ == "__main__":
         comm = MPI.COMM_WORLD
         rank = comm.Get_rank()
 
-        data = list(range(100))
+        data = list(range(103))
         array = mpids.MPInumpy.array(data, comm=comm)
 
         #Print array attributes for each proc in comm
