@@ -10,10 +10,9 @@ class MPIArray:
                 self.dtype = np_array.dtype
                 self.shape = np_array.shape
                 self.strides = np_array.strides
-                self.comm_size = self.__find_comm_size()
-                self.comm_shape = None
+                self.global_size = self.__find_global_size()
 
-        def __find_comm_size(self):
+        def __find_global_size(self):
                 comm_size = np.array(0)
                 self.comm.Allreduce(np.array(self.size), comm_size, op=MPI.SUM)
                 return comm_size
