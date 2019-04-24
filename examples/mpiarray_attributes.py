@@ -1,4 +1,5 @@
 from mpi4py import MPI
+import platform
 
 import mpids
 
@@ -11,11 +12,11 @@ if __name__ == "__main__":
         array = mpids.MPInumpy.array(data, comm=comm)
 
         #Print array attributes for each proc in comm
-        output = 'Rank {} Array Attributes: '.format(rank)
-        output = output + '{} size, '.format(array.size)
-        output = output + '{} data, '.format(array.data)
-        output = output + '{} dtype, '.format(array.dtype)
-        output = output + '{} shape, '.format(array.shape)
-        output = output + '{} strides, '.format(array.strides)
-        output = output + '{} comm_size'.format(array.comm_size)
+        output = '{} Rank {} Array Attributes: '.format(platform.node(), rank)
+        output += '{} size, '.format(array.size)
+        output += '{} data, '.format(array.data)
+        output += '{} dtype, '.format(array.dtype)
+        output += '{} shape, '.format(array.shape)
+        output += '{} strides, '.format(array.strides)
+        output += '{} global_size'.format(array.global_size)
         print(output)
