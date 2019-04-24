@@ -14,7 +14,7 @@ def array(object, dtype=None, copy=True, order=None, subok=False, ndmin=0,
         rank = comm.Get_rank()
 
         scatter_size = __get_scatterv_size(len(np_array), size, rank)
-        np_array_recv = np.empty(scatter_size, dtype=dtype)
+        np_array_recv = np.empty(scatter_size, dtype=np_array.dtype)
 
         #Currently limited to just basic C-types
         ##Leveraging MPI datatype auto-discovery for Numpy arrays
