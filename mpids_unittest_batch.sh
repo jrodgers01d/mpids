@@ -8,4 +8,4 @@
 
 module load mpi4py;
 
-paver;
+mpiexec -n 4 paver;

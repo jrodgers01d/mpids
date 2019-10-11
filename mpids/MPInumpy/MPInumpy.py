@@ -2,8 +2,6 @@ from mpi4py import MPI
 from mpids.MPInumpy.MPIArray import MPIArray
 from mpids.MPInumpy.utils import get_local_data
 
-import numpy as np
-
 def array(array_data, dtype=None, copy=True, order=None, subok=False, ndmin=0,
           comm=MPI.COMM_WORLD, distribution='Equal'):
         """ Create MPINpArray Object on all procs in comm. """
