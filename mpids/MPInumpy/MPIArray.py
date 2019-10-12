@@ -18,22 +18,24 @@ class MPIArray(object):
         def __array__(self):
                 return np.array(self._data)
 
-
-        # def __find_global_size(self):
-        #         comm_size = np.zeros(1)
-        #         self.comm.Allreduce(np.array(self.size), comm_size, op=MPI.SUM)
-        #         return comm_size
-        #
-        # def __find_global_shape(self):
-        #         return -9999
-
-
         #Unique properties to MPIArray
         @property
         def comm(self):
-            return self._comm
+                return self._comm
 
-# TODO: global_size, global_nbytes, global_shape, global_strides
+        @property
+        def globalsize(self):
+                comm_size = np.zeros(1, dtype='int')
+                self.comm.Allreduce(np.array(self.size), comm_size, op=MPI.SUM)
+                return comm_size
+
+        @property
+        def globalnbytes(self):
+                comm_nbytes = np.zeros(1, dtype='int')
+                self.comm.Allreduce(np.array(self.nbytes), comm_nbytes, op=MPI.SUM)
+                return comm_nbytes
+
+# TODO:  global_shape, global_strides
 
         #Expected properties to numpy.ndarray
         @property

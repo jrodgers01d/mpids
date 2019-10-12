@@ -7,10 +7,10 @@ class MPIArrayTest(unittest.TestCase):
 
         def setUp(self):
                 self.comm = MPI.COMM_WORLD
+                self.comm_size = MPI.COMM_WORLD.Get_size()
                 self.data = list(range(4))
                 self.np_array = np.array(self.data)
                 self.mpi_array = MPIArray(self.data, self.comm)
-
 
         def test_dunder_methods(self):
                 self.assertEqual('MPIArray', self.mpi_array.__repr__())
@@ -20,6 +20,8 @@ class MPIArrayTest(unittest.TestCase):
         def test_properties(self):
                 #Unique properties to MPIArray
                 self.assertEqual(self.comm, self.mpi_array.comm)
+                self.assertEqual(self.comm_size * self.np_array.size, self.mpi_array.globalsize)
+                self.assertEqual(self.comm_size * self.np_array.nbytes, self.mpi_array.globalnbytes)
 
                 #Replicated numpy.ndarray properties
                 self.assertEqual(self.np_array.T.tolist(), self.mpi_array.T.tolist())
