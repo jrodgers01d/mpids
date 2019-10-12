@@ -5,13 +5,6 @@ class MPIArray(object):
         def __init__(self, array_data, comm=MPI.COMM_WORLD):
                 self._data = array_data
                 self._comm = comm
-                # self.size = np_array.size
-                # self.data = np_array.data
-                # self.dtype = np_array.dtype
-                # self.shape = np_array.shape
-                # self.strides = np_array.strides
-                # self.global_size = self.__find_global_size()
-                # self.global_shape = self.__find_global_shape()
 
         def __repr__(self):
                 return '{}'.format(self.__class__.__name__)
@@ -21,16 +14,10 @@ class MPIArray(object):
                 #                 self.global_shape,
                 #                 self.dtype)
 
+
         def __array__(self):
                 return np.array(self._data)
 
-        @property
-        def data(self):
-                return self._data
-
-        @property
-        def comm(self):
-                return self._comm
 
         # def __find_global_size(self):
         #         comm_size = np.zeros(1)
@@ -39,3 +26,76 @@ class MPIArray(object):
         #
         # def __find_global_shape(self):
         #         return -9999
+
+
+        #Unique properties to MPIArray
+        @property
+        def comm(self):
+            return self._comm
+
+# TODO: global_size, global_nbytes, global_shape, global_strides
+
+        #Expected properties to numpy.ndarray
+        @property
+        def T(self):
+                return np.array(self._data).T
+
+        @property
+        def data(self):
+                return np.array(self._data).data
+
+        @property
+        def dtype(self):
+                return np.array(self._data).dtype
+
+# TODO: Flags?
+        # @property
+        # def flags(self)
+        #         return None
+
+# TODO: Flat?
+        # @property
+        # def flat(self)
+        #         return None
+
+        @property
+        def imag(self):
+                return np.array(self._data).imag
+
+        @property
+        def real(self):
+                return np.array(self._data).real
+
+        @property
+        def size(self):
+                return np.array(self._data).size
+
+        @property
+        def itemsize(self):
+                return np.array(self._data).itemsize
+
+        @property
+        def nbytes(self):
+                return np.array(self._data).nbytes
+
+        @property
+        def ndim(self):
+                return np.array(self._data).ndim
+
+        @property
+        def shape(self):
+                return np.array(self._data).shape
+
+        @property
+        def strides(self):
+                return np.array(self._data).strides
+
+# TODO: ctypes?
+        # @property
+        # def ctypes(self)
+        #         return None
+
+# TODO: base?
+        # @property
+        # def base(self)
+        #         return None

@@ -2,7 +2,7 @@ import unittest
 from mpi4py import MPI
 from mpids.MPInumpy.MPInumpy import array
 
-class MPIArrayTest(unittest.TestCase):
+class MPInumpyTest(unittest.TestCase):
 
         def setUp(self):
                 self.comm = MPI.COMM_WORLD
@@ -20,7 +20,7 @@ class MPIArrayTest(unittest.TestCase):
                                  3: [7, 8, 9]}
 
                 mpi_np_array = array(self.data, comm=self.comm)
-                self.assertEqual(rank_data_map[rank], mpi_np_array.data)
+                self.assertEqual(rank_data_map[rank], mpi_np_array.data.tolist())
 
 
 if __name__ == '__main__':
