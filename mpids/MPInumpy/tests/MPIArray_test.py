@@ -12,10 +12,7 @@ class MPIArrayTest(unittest.TestCase):
                 self.np_array = np.array(self.data)
                 self.mpi_array = MPIArray(self.data, self.comm)
 
-        def test_dunder_methods(self):
-                self.assertEqual('MPIArray', self.mpi_array.__repr__())
-                self.assertEqual(self.np_array.tolist(),
-                                 self.mpi_array.__array__().tolist())
+
 
         def test_properties(self):
                 #Unique properties to MPIArray
@@ -35,6 +32,38 @@ class MPIArrayTest(unittest.TestCase):
                 self.assertEqual(self.np_array.ndim, self.mpi_array.ndim)
                 self.assertEqual(self.np_array.shape, self.mpi_array.shape)
                 self.assertEqual(self.np_array.strides, self.mpi_array.strides)
+
+        def test_dunder_methods(self):
+                self.assertEqual('MPIArray', self.mpi_array.__repr__())
+                self.assertEqual('[0 1 2 3]', self.mpi_array.__str__())
+                self.assertEqual(self.np_array.tolist(),
+                                 self.mpi_array.__array__().tolist())
+
+        def test_dunder_binary_operations(self):
+                self.assertEqual((self.np_array + 2).tolist(), (self.mpi_array + 2).tolist())
+                self.assertEqual((3 + self.np_array).tolist(), (3 + self.mpi_array).tolist())
+                self.assertEqual((self.np_array - 2).tolist(), (self.mpi_array - 2).tolist())
+                self.assertEqual((3 - self.np_array).tolist(), (3 - self.mpi_array).tolist())
+                self.assertEqual((self.np_array * 2).tolist(), (self.mpi_array * 2).tolist())
+                self.assertEqual((3 * self.np_array).tolist(), (3 * self.mpi_array).tolist())
+                self.assertEqual((self.np_array // 2).tolist(), (self.mpi_array // 2).tolist())
+                self.assertEqual((3 // self.np_array).tolist(), (3 // self.mpi_array).tolist())
+                self.assertEqual((self.np_array / 2).tolist(), (self.mpi_array / 2).tolist())
+                self.assertEqual((3 / self.np_array).tolist(), (3 / self.mpi_array).tolist())
+                self.assertEqual((self.np_array % 2).tolist(), (self.mpi_array % 2).tolist())
+                self.assertEqual((3 % self.np_array).tolist(), (3 % self.mpi_array).tolist())
+                self.assertEqual((self.np_array ** 2).tolist(), (self.mpi_array ** 2).tolist())
+                self.assertEqual((3 ** self.np_array).tolist(), (3 ** self.mpi_array).tolist())
+                self.assertEqual((self.np_array << 2).tolist(), (self.mpi_array << 2).tolist())
+                self.assertEqual((3 << self.np_array).tolist(), (3 << self.mpi_array).tolist())
+                self.assertEqual((self.np_array >> 2).tolist(), (self.mpi_array >> 2).tolist())
+                self.assertEqual((3 >> self.np_array).tolist(), (3 >> self.mpi_array).tolist())
+                self.assertEqual((self.np_array & 2).tolist(), (self.mpi_array & 2).tolist())
+                self.assertEqual((3 & self.np_array).tolist(), (3 & self.mpi_array).tolist())
+                self.assertEqual((self.np_array | 2).tolist(), (self.mpi_array | 2).tolist())
+                self.assertEqual((3 | self.np_array).tolist(), (3 | self.mpi_array).tolist())
+                self.assertEqual((self.np_array ^ 2).tolist(), (self.mpi_array ^ 2).tolist())
+                self.assertEqual((3 ^ self.np_array).tolist(), (3 ^ self.mpi_array).tolist())
 
 
 if __name__ == '__main__':
