@@ -105,78 +105,79 @@ class MPIArray(object):
         def __array__(self):
                 return self._array
 
+## NOTE: MAY BE POSSIBLE TO REMOVE THE BELOW IF WE TRUST '__array_ufunc__'
         #Binary Operations
-        def __add__(self, other):
-                return getattr(self._array, '__add__')(other)
+        def __add__(self, value):
+                return getattr(self._array, '__add__')(value)
 
-        def __radd__(self, other):
-                return getattr(self._array, '__radd__')(other)
+        def __radd__(self, value):
+                return getattr(self._array, '__radd__')(value)
 
-        def __sub__(self, other):
-                return getattr(self._array, '__sub__')(other)
+        def __sub__(self, value):
+                return getattr(self._array, '__sub__')(value)
 
-        def __rsub__(self, other):
-                return getattr(self._array, '__rsub__')(other)
+        def __rsub__(self, value):
+                return getattr(self._array, '__rsub__')(value)
 
-        def __mul__(self, other):
-                return getattr(self._array, '__mul__')(other)
+        def __mul__(self, value):
+                return getattr(self._array, '__mul__')(value)
 
-        def __rmul__(self, other):
-                return getattr(self._array, '__rmul__')(other)
+        def __rmul__(self, value):
+                return getattr(self._array, '__rmul__')(value)
 
-        def __floordiv__(self, other):
-                return getattr(self._array, '__floordiv__')(other)
+        def __floordiv__(self, value):
+                return getattr(self._array, '__floordiv__')(value)
 
-        def __rfloordiv__(self, other):
-                return getattr(self._array, '__rfloordiv__')(other)
+        def __rfloordiv__(self, value):
+                return getattr(self._array, '__rfloordiv__')(value)
 
-        def __truediv__(self, other):
-                return getattr(self._array, '__truediv__')(other)
+        def __truediv__(self, value):
+                return getattr(self._array, '__truediv__')(value)
 
-        def __rtruediv__(self, other):
-                return getattr(self._array, '__rtruediv__')(other)
+        def __rtruediv__(self, value):
+                return getattr(self._array, '__rtruediv__')(value)
 
-        def __mod__(self, other):
-                return getattr(self._array, '__mod__')(other)
+        def __mod__(self, value):
+                return getattr(self._array, '__mod__')(value)
 
-        def __rmod__(self, other):
-                return getattr(self._array, '__rmod__')(other)
+        def __rmod__(self, value):
+                return getattr(self._array, '__rmod__')(value)
 
-        def __pow__(self, other):
-                return getattr(self._array, '__pow__')(other)
+        def __pow__(self, value):
+                return getattr(self._array, '__pow__')(value)
 
-        def __rpow__(self, other):
-                return getattr(self._array, '__rpow__')(other)
+        def __rpow__(self, value):
+                return getattr(self._array, '__rpow__')(value)
 
-        def __lshift__(self, other):
-                return getattr(self._array, '__lshift__')(other)
+        def __lshift__(self, value):
+                return getattr(self._array, '__lshift__')(value)
 
-        def __rlshift__(self, other):
-                return getattr(self._array, '__rlshift__')(other)
+        def __rlshift__(self, value):
+                return getattr(self._array, '__rlshift__')(value)
 
-        def __rshift__(self, other):
-                return getattr(self._array, '__rshift__')(other)
+        def __rshift__(self, value):
+                return getattr(self._array, '__rshift__')(value)
 
-        def __rrshift__(self, other):
-                return getattr(self._array, '__rrshift__')(other)
+        def __rrshift__(self, value):
+                return getattr(self._array, '__rrshift__')(value)
 
-        def __and__(self, other):
-                return getattr(self._array, '__and__')(other)
+        def __and__(self, value):
+                return getattr(self._array, '__and__')(value)
 
-        def __rand__(self, other):
-                return getattr(self._array, '__rand__')(other)
+        def __rand__(self, value):
+                return getattr(self._array, '__rand__')(value)
 
-        def __or__(self, other):
-                return getattr(self._array, '__or__')(other)
+        def __or__(self, value):
+                return getattr(self._array, '__or__')(value)
 
-        def __ror__(self, other):
-                return getattr(self._array, '__ror__')(other)
+        def __ror__(self, value):
+                return getattr(self._array, '__ror__')(value)
 
-        def __xor__(self, other):
-                return getattr(self._array, '__xor__')(other)
+        def __xor__(self, value):
+                return getattr(self._array, '__xor__')(value)
 
-        def __rxor__(self, other):
-                return getattr(self._array, '__rxor__')(other)
+        def __rxor__(self, value):
+                return getattr(self._array, '__rxor__')(value)
 
         #Unary Operations
         def __neg__(self):
@@ -210,4 +211,21 @@ class MPIArray(object):
         # def __hex__(self):
         #         return getattr(self._array, '__hex__')()
 
-# TODO: comparison operators
+        #Comparison Operations
+        def __lt__(self, value):
+                return getattr(self._array, '__lt__')(value)
+
+        def __le__(self, value):
+                return getattr(self._array, '__le__')(value)
+
+        def __eq__(self, value):
+                return getattr(self._array, '__eq__')(value)
+
+        def __ne__(self, value):
+                return getattr(self._array, '__ne__')(value)
+
+        def __gt__(self, value):
+                return getattr(self._array, '__gt__')(value)
+
+        def __ge__(self, value):
+                return getattr(self._array, '__ge__')(value)

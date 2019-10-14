@@ -11,6 +11,9 @@ class MPIArrayTest(unittest.TestCase):
                 self.data = list(range(1,5))
                 self.np_array = np.array(self.data)
                 self.mpi_array = MPIArray(self.data, self.comm)
+                self.scalar_data = [1]
+                self.np_scalar = np.array(self.scalar_data)
+                self.mpi_scalar = MPIArray(self.scalar_data, self.comm)
 
         def test_properties(self):
                 #Unique properties to MPIArray
@@ -63,19 +66,30 @@ class MPIArrayTest(unittest.TestCase):
                 self.assertTrue(np.alltrue((3 ^ self.np_array) == (3 ^ self.mpi_array)))
 
         def test_dunder_unary_operations(self):
-                np_scalar = np.array([1])
-                mpi_scalar = MPIArray([1], self.comm)
-
                 self.assertTrue(np.alltrue((-self.np_array) == (-self.mpi_array)))
                 self.assertTrue(np.alltrue((+self.np_array) == (+self.mpi_array)))
                 self.assertTrue(np.alltrue(abs(self.np_array) == abs(self.mpi_array)))
                 self.assertTrue(np.alltrue((~self.np_array) == (~self.mpi_array)))
-                # self.assertEqual(complex(np_scalar), complex(mpi_scalar))
-                # self.assertEqual(int(np_scalar), int(mpi_scalar))
-                # self.assertEqual(long(np_scalar), long(mpi_scalar))
-                # self.assertEqual(float(np_scalar), float(mpi_scalar))
-                # self.assertEqual(oct(np_scalar), oct(mpi_scalar))
-                # self.assertEqual(hex(np_scalar), hex(mpi_scalar))
+                # self.assertEqual(complex(self.np_scalar), complex(self.mpi_scalar))
+                # self.assertEqual(int(self.np_scalar), int(self.mpi_scalar))
+                # self.assertEqual(long(self.np_scalar), long(self.mpi_scalar))
+                # self.assertEqual(float(self.np_scalar), float(self.mpi_scalar))
+                # self.assertEqual(oct(self.np_scalar), oct(self.mpi_scalar))
+                # self.assertEqual(hex(self.np_scalar), hex(self.mpi_scalar))
+
+        def test_dunder_comparison_operations(self):
+                self.assertTrue(np.alltrue((2 > self.np_array) == (2 > self.mpi_array)))
+                self.assertTrue(np.alltrue((self.np_array < 2) == (self.mpi_array < 2)))
+                self.assertTrue(np.alltrue((2 >= self.np_array) == (2 >= self.mpi_array)))
+                self.assertTrue(np.alltrue((self.np_array <= 2) == (self.mpi_array <= 2)))
+                self.assertTrue(np.alltrue((1 == self.np_scalar) == (1 == self.mpi_scalar)))
+                self.assertTrue(np.alltrue((self.np_scalar == 1) == (self.mpi_scalar == 1)))
+                self.assertTrue(np.alltrue((0 != self.np_scalar) == (0 != self.mpi_scalar)))
+                self.assertTrue(np.alltrue((self.np_scalar != 0) == (self.mpi_scalar != 0)))
+                self.assertTrue(np.alltrue((2 < self.np_array) == (2 < self.mpi_array)))
+                self.assertTrue(np.alltrue((self.np_array > 2) == (self.mpi_array > 2)))
+                self.assertTrue(np.alltrue((2 <= self.np_array) == (2 <= self.mpi_array)))
+                self.assertTrue(np.alltrue((self.np_array >= 2) == (self.mpi_array >= 2)))
 
 
 if __name__ == '__main__':
