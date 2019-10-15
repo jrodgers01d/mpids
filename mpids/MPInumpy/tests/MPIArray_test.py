@@ -71,9 +71,8 @@ class MPIArrayTest(unittest.TestCase):
                 self.assertTrue(np.alltrue(abs(self.np_array) == abs(self.mpi_array)))
                 self.assertTrue(np.alltrue((~self.np_array) == (~self.mpi_array)))
                 # self.assertEqual(complex(self.np_scalar), complex(self.mpi_scalar))
-                # self.assertEqual(int(self.np_scalar), int(self.mpi_scalar))
-                # self.assertEqual(long(self.np_scalar), long(self.mpi_scalar))
-                # self.assertEqual(float(self.np_scalar), float(self.mpi_scalar))
+                self.assertEqual(int(self.np_scalar), int(self.mpi_scalar))
+                self.assertEqual(float(self.np_scalar), float(self.mpi_scalar))
                 # self.assertEqual(oct(self.np_scalar), oct(self.mpi_scalar))
                 # self.assertEqual(hex(self.np_scalar), hex(self.mpi_scalar))
 

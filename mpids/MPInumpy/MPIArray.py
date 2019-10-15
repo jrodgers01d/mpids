@@ -196,15 +196,12 @@ class MPIArray(object):
         # def __complex__(self):
         #         return getattr(self._array, '__complex__')()
         #
-        # def __int__(self):
-        #         return getattr(self._array, '__int__')()
-        #
-        # def __long__(self):
-        #         return getattr(self._array, '__long__')()
-        #
-        # def __float__(self):
-        #         return getattr(self._array, '__float__')()
-        #
+        def __int__(self):
+                return getattr(self._array, '__int__')()
+
+        def __float__(self):
+                return getattr(self._array, '__float__')()
+        # 
         # def __oct__(self):
         #         return getattr(self._array, '__oct__')()
         #
