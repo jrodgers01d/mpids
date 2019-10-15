@@ -1,4 +1,4 @@
-import mpids.MPInumpy.MPInumpy
-import mpids.MPInumpy.MPIArray
+from mpids.MPInumpy.array import array
+from mpids.MPInumpy.MPIArray import MPIArray
 
-__all__ = ['MPIArray', 'MPInumpy']
+__all__ = ['MPIArray', 'array']

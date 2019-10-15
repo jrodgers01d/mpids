@@ -1,15 +1,15 @@
 import unittest
 from mpi4py import MPI
-from mpids.MPInumpy.MPInumpy import array
+import mpids.MPInumpy as mpi_np
 
-class MPInumpyTest(unittest.TestCase):
+class ArrayTest(unittest.TestCase):
 
         def setUp(self):
                 self.comm = MPI.COMM_WORLD
                 self.data = list(range(10))
 
         def test_array(self):
-                mpi_np_array = array(self.data, comm=self.comm, distribution='bananas')
+                mpi_np_array = mpi_np.array(self.data, comm=self.comm, distribution='bananas')
                 self.assertEqual(None, mpi_np_array)
 
 
@@ -19,7 +19,7 @@ class MPInumpyTest(unittest.TestCase):
                                  2: [5, 6],
                                  3: [7, 8, 9]}
 
-                mpi_np_array = array(self.data, comm=self.comm)
+                mpi_np_array = mpi_np.array(self.data, comm=self.comm)
                 self.assertEqual(rank_data_map[rank], mpi_np_array.data.tolist())
 
 

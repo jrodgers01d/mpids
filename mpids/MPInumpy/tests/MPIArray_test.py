@@ -1,7 +1,7 @@
 import unittest
 import numpy as np
 from mpi4py import MPI
-from mpids.MPInumpy.MPIArray import MPIArray
+import mpids.MPInumpy as mpi_np
 
 class MPIArrayTest(unittest.TestCase):
 
@@ -10,10 +10,10 @@ class MPIArrayTest(unittest.TestCase):
                 self.comm_size = MPI.COMM_WORLD.Get_size()
                 self.data = list(range(1,5))
                 self.np_array = np.array(self.data)
-                self.mpi_array = MPIArray(self.data, self.comm)
+                self.mpi_array = mpi_np.MPIArray(self.data, self.comm)
                 self.scalar_data = [1]
                 self.np_scalar = np.array(self.scalar_data)
-                self.mpi_scalar = MPIArray(self.scalar_data, self.comm)
+                self.mpi_scalar = mpi_np.MPIArray(self.scalar_data, self.comm)
 
         def test_properties(self):
                 #Unique properties to MPIArray
