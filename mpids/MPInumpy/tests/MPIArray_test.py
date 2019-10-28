@@ -8,7 +8,7 @@ class MPIArrayTest(unittest.TestCase):
         def setUp(self):
                 self.comm = MPI.COMM_WORLD
                 self.comm_size = MPI.COMM_WORLD.Get_size()
-                self.data = list(range(1,5))
+                self.data = [list(range(1,5)), list(range(5,9))]
                 self.np_array = np.array(self.data)
                 self.mpi_array = mpi_np.MPIArray(self.data, self.comm)
                 self.scalar_data = [1]
@@ -33,10 +33,11 @@ class MPIArrayTest(unittest.TestCase):
                 self.assertEqual(self.np_array.ndim, self.mpi_array.ndim)
                 self.assertEqual(self.np_array.shape, self.mpi_array.shape)
                 self.assertEqual(self.np_array.strides, self.mpi_array.strides)
+                self.assertEqual('[[1 2 3 4]\n [5 6 7 8]]', str(self.mpi_array.base))
 
         def test_dunder_methods(self):
                 self.assertEqual('MPIArray', self.mpi_array.__repr__())
-                self.assertEqual('[1 2 3 4]', self.mpi_array.__str__())
+                self.assertEqual('[[1 2 3 4]\n [5 6 7 8]]', self.mpi_array.__str__())
                 self.assertTrue(np.alltrue(self.np_array == self.mpi_array.__array__()))
 
         def test_dunder_binary_operations(self):
@@ -70,11 +71,11 @@ class MPIArrayTest(unittest.TestCase):
                 self.assertTrue(np.alltrue((+self.np_array) == (+self.mpi_array)))
                 self.assertTrue(np.alltrue(abs(self.np_array) == abs(self.mpi_array)))
                 self.assertTrue(np.alltrue((~self.np_array) == (~self.mpi_array)))
-                # self.assertEqual(complex(self.np_scalar), complex(self.mpi_scalar))
+                self.assertEqual(complex(self.np_scalar), complex(self.mpi_scalar))
                 self.assertEqual(int(self.np_scalar), int(self.mpi_scalar))
                 self.assertEqual(float(self.np_scalar), float(self.mpi_scalar))
-                # self.assertEqual(oct(self.np_scalar), oct(self.mpi_scalar))
-                # self.assertEqual(hex(self.np_scalar), hex(self.mpi_scalar))
+                self.assertEqual(oct(self.np_scalar), oct(self.mpi_scalar))
+                self.assertEqual(hex(self.np_scalar), hex(self.mpi_scalar))
 
         def test_dunder_comparison_operations(self):
                 self.assertTrue(np.alltrue((2 > self.np_array) == (2 > self.mpi_array)))
@@ -89,6 +90,8 @@ class MPIArrayTest(unittest.TestCase):
                 self.assertTrue(np.alltrue((self.np_array > 2) == (self.mpi_array > 2)))
                 self.assertTrue(np.alltrue((2 <= self.np_array) == (2 <= self.mpi_array)))
                 self.assertTrue(np.alltrue((self.np_array >= 2) == (self.mpi_array >= 2)))
+
+## TODO: Result capture tests
 
 
 if __name__ == '__main__':
