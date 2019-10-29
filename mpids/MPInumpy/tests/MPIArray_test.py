@@ -36,7 +36,10 @@ class MPIArrayTest(unittest.TestCase):
                 self.assertEqual('[[1 2 3 4]\n [5 6 7 8]]', str(self.mpi_array.base))
 
         def test_dunder_methods(self):
-                self.assertEqual('MPIArray', self.mpi_array.__repr__())
+                self.assertEqual('MPIArray(globalsize=[{}], dtype={})'\
+                                 .format(self.mpi_array.size * self.comm_size,
+                                         self.mpi_array.dtype), self.mpi_array.__repr__())
+                self.assertEqual(None, self.mpi_array.__array_finalize__(None))
                 self.assertEqual('[[1 2 3 4]\n [5 6 7 8]]', self.mpi_array.__str__())
                 self.assertTrue(np.alltrue(self.np_array == self.mpi_array.__array__()))
 
@@ -91,7 +94,60 @@ class MPIArrayTest(unittest.TestCase):
                 self.assertTrue(np.alltrue((2 <= self.np_array) == (2 <= self.mpi_array)))
                 self.assertTrue(np.alltrue((self.np_array >= 2) == (self.mpi_array >= 2)))
 
-## TODO: Result capture tests
+        def test_object_return_behavior(self):
+                returned_array = self.mpi_array
+
+                self.assertTrue(np.alltrue((returned_array) == (self.mpi_array)))
+                self.assertTrue(returned_array is self.mpi_array)
+                self.assertEqual(returned_array.comm, self.mpi_array.comm)
+                self.assertEqual(returned_array.globalsize, self.mpi_array.globalsize)
+                self.assertEqual(returned_array.globalnbytes, self.mpi_array.globalnbytes)
+
+        def test_object_slicing_behavior(self):
+                first_row = self.mpi_array[0]
+                last_row = self.mpi_array[self.mpi_array.shape[0] - 1]
+
+                self.assertTrue(first_row is not self.mpi_array)
+                self.assertTrue(isinstance(first_row, mpi_np.MPIArray))
+                self.assertTrue(first_row.base is self.mpi_array)
+                self.assertEqual(self.np_array[0].size * self.comm_size, first_row.globalsize)
+                self.assertEqual(self.np_array[0].nbytes * self.comm_size, first_row.globalnbytes)
+
+                self.assertTrue(last_row is not self.mpi_array)
+                self.assertTrue(last_row.base is self.mpi_array)
+                self.assertTrue(isinstance(last_row, mpi_np.MPIArray))
+                self.assertEqual(self.np_array[self.np_array.shape[0] - 1].size * self.comm_size, last_row.globalsize)
+                self.assertEqual(self.np_array[self.np_array.shape[0] - 1].nbytes * self.comm_size, first_row.globalnbytes)
+
+                first_half_first_row = first_row[:len(first_row) / 2]
+                second_half_last_row = last_row[len(last_row) / 2:]
+
+                self.assertTrue(first_half_first_row is not first_row)
+                self.assertTrue(first_half_first_row.base is self.mpi_array)
+                self.assertTrue(isinstance(first_half_first_row, mpi_np.MPIArray))
+                self.assertEqual(self.np_array[0, :len(self.np_array[0]) / 2].size * self.comm_size, first_half_first_row.globalsize)
+                self.assertEqual(self.np_array[0, :len(self.np_array[0]) / 2].nbytes * self.comm_size, first_half_first_row.globalnbytes)
+
+                self.assertTrue(second_half_last_row is not last_row)
+                self.assertTrue(second_half_last_row.base is self.mpi_array)
+                self.assertTrue(isinstance(second_half_last_row, mpi_np.MPIArray))
+                self.assertEqual(self.np_array[1, len(self.np_array[1]) / 2:].size * self.comm_size, second_half_last_row.globalsize)
+                self.assertEqual(self.np_array[1, len(self.np_array[1]) / 2:].nbytes * self.comm_size, second_half_last_row.globalnbytes)
+
+                first_column = self.mpi_array[:,[0]]
+                last_column = self.mpi_array[:,[self.mpi_array.shape[1] - 1]]
+
+                self.assertTrue(first_column is not self.mpi_array)
+                self.assertTrue(first_column.base is not self.mpi_array)
+                self.assertTrue(isinstance(first_column, mpi_np.MPIArray))
+                self.assertEqual(self.np_array[:,[0]].size * self.comm_size, first_column.globalsize)
+                self.assertEqual(self.np_array[:,[0]].nbytes * self.comm_size, first_column.globalnbytes)
+
+                self.assertTrue(last_column is not self.mpi_array)
+                self.assertTrue(last_column.base is not self.mpi_array)
+                self.assertTrue(isinstance(last_column, mpi_np.MPIArray))
+                self.assertEqual(self.np_array[:,[self.np_array.shape[1] - 1]].size * self.comm_size, last_column.globalsize)
+                self.assertEqual(self.np_array[:,[self.np_array.shape[1] - 1]].nbytes * self.comm_size, last_column.globalnbytes)
 
 
 if __name__ == '__main__':
