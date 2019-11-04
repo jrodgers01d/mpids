@@ -20,7 +20,7 @@ def get_local_data(array_data, dist, procs, rank):
                 Array data which is responsibility of process(rank).
         """
 
-        dims = MPI.Compute_dims(procs, len(dist))
+        dims = MPI.Compute_dims(procs, distribution_to_dimensions(dist, procs))
         coord = get_cart_coords(dims, procs, rank)
 
         if len(dims) == 1:
@@ -43,19 +43,19 @@ def get_local_data(array_data, dist, procs, rank):
 def get_block_index(axis_len, axis_size, axis_coord):
         """ Get start/end array index range along axis for data block.
 
-            Parameters
-            ----------
-            axis_len : int
-                    Length of array data along axis.
-            axis_size : int
-                    Number of processes along axis.
-            axis_coord : int
-                    Cartesian coorindate along axis for local process.
+        Parameters
+        ----------
+        axis_len : int
+                Length of array data along axis.
+        axis_size : int
+                Number of processes along axis.
+        axis_coord : int
+                Cartesian coorindate along axis for local process.
 
-            Returns
-            -------
-            [start_index, end_index) : tuple
-                    Index range along axis for data block.
+        Returns
+        -------
+        [start_index, end_index) : tuple
+                Index range along axis for data block.
         """
         axis_num = axis_len // axis_size
         axis_rem = axis_len % axis_size
@@ -76,19 +76,19 @@ def get_cart_coords(dims, procs, rank):
         """ Get coordinates of process placed on cartesian grid.
             Implementation based on OpenMPI.mca.topo.topo_base_cart_coords
 
-            Parameters
-            ----------
-            dims : list
-                    Division of processes in cartesian grid
-            procs: int
-                    Size/number of processes in communicator
-            rank : int
-                    Process rank in communicator
+        Parameters
+        ----------
+        dims : list
+                Division of processes in cartesian grid
+        procs: int
+                Size/number of processes in communicator
+        rank : int
+                Process rank in communicator
 
-            Returns
-            -------
-            coordinates : list
-                    Coordinates of rank in grid
+        Returns
+        -------
+        coordinates : list
+                Coordinates of rank in grid
         """
         coordinates = []
         rem_procs = procs
@@ -99,3 +99,39 @@ def get_cart_coords(dims, procs, rank):
                 rank = rank % rem_procs
 
         return coordinates
+
+
+def distribution_to_dimensions(distribution, procs):
+        """ Convert specified distribution to cartesian dimensions
+
+        Parameters
+        ----------
+        distribution : str, list, tuple
+                Specified distribution of data among processes.
+                Default value 'b' : Block, *
+                Supported types:
+                    'b' : Block, *
+                    ('b','b') : Block-Block
+        procs: int
+                Size/number of processes in communicator
+
+        Returns
+        -------
+        dimensions : int, list
+                Seed for determinging processes per cartesian coordinate
+                direction.
+        """
+        # Row-block
+        if len(distribution) == 1 or distribution[1] == '*':
+                return 1
+
+        # block-block
+        if distribution[0] == distribution[1] and len(distribution) == 2:
+                return len(distribution)
+
+        # Column-block
+        if distribution[0] == '*' and len(distribution) == 2:
+                return [1, procs]
+
+#TODO: Add exception for unsupported distributions
+        return None

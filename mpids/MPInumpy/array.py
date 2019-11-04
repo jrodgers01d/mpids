@@ -38,7 +38,7 @@ def array(array_data, dtype=None, copy=True, order=None, subok=False, ndmin=0,
         Returns
         -------
         MPIArray : numpy.ndarray sub class
-                Distributed amove processes.
+                Distributed among processes.
         """
 
         if [True for dist_type in dist if 'b' not in dist_type]:
