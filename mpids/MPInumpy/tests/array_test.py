@@ -9,17 +9,18 @@ class ArrayTest(unittest.TestCase):
                 self.data = list(range(10))
                 self.mpi_np_array = mpi_np.array(self.data, comm=self.comm)
 
+
         def test_unsupported_distribution(self):
-            mpi_np_array = mpi_np.array(self.data, comm=self.comm, distribution='bananas')
+            mpi_np_array = mpi_np.array(self.data, comm=self.comm, dist='bananas')
             self.assertEqual(None, mpi_np_array)
 
 
         def test_array(self):
                 rank = self.comm.Get_rank()
-                rank_data_map = {0: [0, 1],
-                                 1: [2, 3, 4],
-                                 2: [5, 6],
-                                 3: [7, 8, 9]}
+                rank_data_map = {0: [0, 1, 2],
+                                 1: [3, 4, 5],
+                                 2: [6, 7],
+                                 3: [8, 9]}
 
                 self.assertEqual(rank_data_map[rank], self.mpi_np_array.data.tolist())
 

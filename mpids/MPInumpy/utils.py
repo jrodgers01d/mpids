@@ -1,12 +1,101 @@
-def get_local_data(array_data, distribution, procs, rank):
-        data_length = len(array_data)
-        local_low_idx = low_block(data_length, procs, rank)
-        local_high_idx = high_block(data_length, procs, rank)
+from mpi4py import MPI
 
-        return array_data[local_low_idx: local_high_idx]
+def get_local_data(array_data, dist, procs, rank):
+        """ Determine array like data to be distributed among processes
 
-def low_block(length, procs, rank):
-        return (length * rank) // procs
+        Parameters
+        ----------
+        array_data : array_like
+                Array like data to be distributed among processes.
+        dist : str, list, tuple
+                Specified distribution of data among processes.
+        procs : int
+                Number of processes in communicator.
+        rank : int
+                Process rank(index) in communicator.
 
-def high_block(length, procs, rank):
-        return low_block(length, procs, rank + 1)
+        Returns
+        -------
+        local_data : array_like
+                Array data which is responsibility of process(rank).
+        """
+
+        dims = MPI.Compute_dims(procs, len(dist))
+        coord = get_cart_coords(dims, procs, rank)
+
+        if len(dims) == 1:
+            start, end = get_block_index(len(array_data), dims[0], coord[0])
+            return array_data[slice(start, end)]
+
+        for axis in range(len(dims)):
+                if axis == 0:
+                        row_start, row_end = get_block_index(len(array_data),
+                                                             dims[axis],
+                                                             coord[axis])
+                else:
+                        col_start, col_end = get_block_index(len(array_data[0]),
+                                                             dims[axis],
+                                                             coord[axis])
+
+        return [array_data[row][slice(col_start, col_end)] \
+                        for row in range(row_start, row_end)]
+
+def get_block_index(axis_len, axis_size, axis_coord):
+        """ Get start/end array index range along axis for data block.
+
+            Parameters
+            ----------
+            axis_len : int
+                    Length of array data along axis.
+            axis_size : int
+                    Number of processes along axis.
+            axis_coord : int
+                    Cartesian coorindate along axis for local process.
+
+            Returns
+            -------
+            [start_index, end_index) : tuple
+                    Index range along axis for data block.
+        """
+        axis_num = axis_len // axis_size
+        axis_rem = axis_len % axis_size
+
+        if axis_coord < axis_rem:
+                local_len = axis_num + 1
+                start_index = axis_coord * local_len
+        else:
+                local_len = axis_num
+                start_index = axis_rem * (axis_num + 1) + \
+                              (axis_coord - axis_rem) * axis_num
+        end_index = start_index + local_len
+
+        return (start_index, end_index)
+
+
+def get_cart_coords(dims, procs, rank):
+        """ Get coordinates of process placed on cartesian grid.
+            Implementation based on OpenMPI.mca.topo.topo_base_cart_coords
+
+            Parameters
+            ----------
+            dims : list
+                    Division of processes in cartesian grid
+            procs: int
+                    Size/number of processes in communicator
+            rank : int
+                    Process rank in communicator
+
+            Returns
+            -------
+            coordinates : list
+                    Coordinates of rank in grid
+        """
+        coordinates = []
+        rem_procs = procs
+
+        for dim in dims:
+                rem_procs = rem_procs // dim
+                coordinates.append(rank // rem_procs)
+                rank = rank % rem_procs
+
+        return coordinates

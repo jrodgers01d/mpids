@@ -7,17 +7,20 @@ class MPIArrayTest(unittest.TestCase):
 
         def setUp(self):
                 self.comm = MPI.COMM_WORLD
+                self.dist = 'b'
                 self.comm_size = MPI.COMM_WORLD.Get_size()
                 self.data = [list(range(1,5)), list(range(5,9))]
                 self.np_array = np.array(self.data)
-                self.mpi_array = mpi_np.MPIArray(self.data, self.comm)
+                self.mpi_array = mpi_np.MPIArray(self.data, comm=self.comm)
                 self.scalar_data = [1]
                 self.np_scalar = np.array(self.scalar_data)
-                self.mpi_scalar = mpi_np.MPIArray(self.scalar_data, self.comm)
+                self.mpi_scalar = mpi_np.MPIArray(self.scalar_data, comm=self.comm)
+
 
         def test_properties(self):
                 #Unique properties to MPIArray
                 self.assertEqual(self.comm, self.mpi_array.comm)
+                self.assertEqual(self.dist, self.mpi_array.dist)
                 self.assertEqual(self.comm_size * self.np_array.size, self.mpi_array.globalsize)
                 self.assertEqual(self.comm_size * self.np_array.nbytes, self.mpi_array.globalnbytes)
 
@@ -35,13 +38,15 @@ class MPIArrayTest(unittest.TestCase):
                 self.assertEqual(self.np_array.strides, self.mpi_array.strides)
                 self.assertEqual('[[1 2 3 4]\n [5 6 7 8]]', str(self.mpi_array.base))
 
+
         def test_dunder_methods(self):
-                self.assertEqual('MPIArray(globalsize=[{}], dtype={})'\
-                                 .format(self.mpi_array.size * self.comm_size,
+                self.assertEqual('MPIArray(globalsize=[{}], dist={}, dtype={})'\
+                                 .format(self.mpi_array.size * self.comm_size, self.dist,
                                          self.mpi_array.dtype), self.mpi_array.__repr__())
                 self.assertEqual(None, self.mpi_array.__array_finalize__(None))
                 self.assertEqual('[[1 2 3 4]\n [5 6 7 8]]', self.mpi_array.__str__())
                 self.assertTrue(np.alltrue(self.np_array == self.mpi_array.__array__()))
+
 
         def test_dunder_binary_operations(self):
                 self.assertTrue(np.alltrue((self.np_array + 2) == (self.mpi_array + 2)))
@@ -69,6 +74,7 @@ class MPIArrayTest(unittest.TestCase):
                 self.assertTrue(np.alltrue((self.np_array ^ 2) == (self.mpi_array ^ 2)))
                 self.assertTrue(np.alltrue((3 ^ self.np_array) == (3 ^ self.mpi_array)))
 
+
         def test_dunder_unary_operations(self):
                 self.assertTrue(np.alltrue((-self.np_array) == (-self.mpi_array)))
                 self.assertTrue(np.alltrue((+self.np_array) == (+self.mpi_array)))
@@ -79,6 +85,7 @@ class MPIArrayTest(unittest.TestCase):
                 self.assertEqual(float(self.np_scalar), float(self.mpi_scalar))
                 self.assertEqual(oct(self.np_scalar), oct(self.mpi_scalar))
                 self.assertEqual(hex(self.np_scalar), hex(self.mpi_scalar))
+
 
         def test_dunder_comparison_operations(self):
                 self.assertTrue(np.alltrue((2 > self.np_array) == (2 > self.mpi_array)))
@@ -94,6 +101,7 @@ class MPIArrayTest(unittest.TestCase):
                 self.assertTrue(np.alltrue((2 <= self.np_array) == (2 <= self.mpi_array)))
                 self.assertTrue(np.alltrue((self.np_array >= 2) == (self.mpi_array >= 2)))
 
+
         def test_object_return_behavior(self):
                 returned_array = self.mpi_array
 
@@ -102,6 +110,7 @@ class MPIArrayTest(unittest.TestCase):
                 self.assertEqual(returned_array.comm, self.mpi_array.comm)
                 self.assertEqual(returned_array.globalsize, self.mpi_array.globalsize)
                 self.assertEqual(returned_array.globalnbytes, self.mpi_array.globalnbytes)
+
 
         def test_object_slicing_behavior(self):
                 first_row = self.mpi_array[0]
