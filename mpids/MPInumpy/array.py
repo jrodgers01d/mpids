@@ -40,11 +40,6 @@ def array(array_data, dtype=None, copy=True, order=None, subok=False, ndmin=0,
         MPIArray : numpy.ndarray sub class
                 Distributed among processes.
         """
-
-        if [True for dist_type in dist if 'b' not in dist_type]:
-                print('Only blocked distributions currently supported.')
-                return None
-
         size = comm.Get_size()
         rank = comm.Get_rank()
 

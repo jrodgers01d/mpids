@@ -3,6 +3,7 @@ import numpy as np
 from mpi4py import MPI
 from mpids.MPInumpy.utils import distribution_to_dimensions, get_block_index, \
                                  get_cart_coords,  get_local_data
+from mpids.MPInumpy.errors import InvalidDistributionError
 
 class UtilsTest(unittest.TestCase):
 
@@ -58,11 +59,11 @@ class UtilsTest(unittest.TestCase):
                 self.assertEqual([1, self.procs],
                     distribution_to_dimensions(('*','b'), self.procs))
 
-#TODO: Add exception for unsupported distributions
-                self.assertEqual(None,
-                    distribution_to_dimensions(('b','b','x'), self.procs))
-                self.assertEqual(None,
-                    distribution_to_dimensions(('','b'), self.procs))
+                # Check unsupported distributions
+                with self.assertRaises(InvalidDistributionError):
+                        distribution_to_dimensions(('b','b','x'), self.procs)
+                with self.assertRaises(InvalidDistributionError):
+                        distribution_to_dimensions(('','b'), self.procs)
 
         def test_local_data_default_row_block_distribution(self):
                 local_data_rank0 = self.data[0:4]

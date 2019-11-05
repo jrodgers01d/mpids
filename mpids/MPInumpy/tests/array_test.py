@@ -1,6 +1,7 @@
 import unittest
 from mpi4py import MPI
 import mpids.MPInumpy as mpi_np
+from mpids.MPInumpy.errors import InvalidDistributionError
 
 class ArrayTest(unittest.TestCase):
 
@@ -11,8 +12,8 @@ class ArrayTest(unittest.TestCase):
 
 
         def test_unsupported_distribution(self):
-            mpi_np_array = mpi_np.array(self.data, comm=self.comm, dist='bananas')
-            self.assertEqual(None, mpi_np_array)
+            with self.assertRaises(InvalidDistributionError):
+                    mpi_np.array(self.data, comm=self.comm, dist='bananas')
 
 
         def test_array(self):

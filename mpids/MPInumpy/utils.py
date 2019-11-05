@@ -1,5 +1,7 @@
 from mpi4py import MPI
+from mpids.MPInumpy.errors import InvalidDistributionError
 
+#TODO: Potentially move MPI.Compute_dims to parameter, treating it as service
 def get_local_data(array_data, dist, procs, rank):
         """ Determine array like data to be distributed among processes
 
@@ -39,6 +41,7 @@ def get_local_data(array_data, dist, procs, rank):
 
         return [array_data[row][slice(col_start, col_end)] \
                         for row in range(row_start, row_end)]
+
 
 def get_block_index(axis_len, axis_size, axis_coord):
         """ Get start/end array index range along axis for data block.
@@ -133,5 +136,5 @@ def distribution_to_dimensions(distribution, procs):
         if distribution[0] == '*' and len(distribution) == 2:
                 return [1, procs]
 
-#TODO: Add exception for unsupported distributions
-        return None
+        raise InvalidDistributionError(
+                'Invalid distribution encountered: {}'.format(distribution))

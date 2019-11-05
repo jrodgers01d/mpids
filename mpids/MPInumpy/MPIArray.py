@@ -50,10 +50,12 @@ class MPIArray(np.ndarray):
                 obj.dist = dist
                 return obj
 
+
         def __array_finalize__(self, obj):
                 if obj is None: return
                 self.comm = getattr(obj, 'comm', None)
                 self.dist = getattr(obj, 'dist', None)
+
 
         def __repr__(self):
                 return '{}(globalsize={}, dist={}, dtype={})' \
@@ -68,12 +70,14 @@ class MPIArray(np.ndarray):
                 #                 self.global_shape,
                 #                 self.dtype)
 
+
         # #Unique properties to MPIArray
         @property
         def globalsize(self):
                 comm_size = np.zeros(1, dtype='int')
                 self.comm.Allreduce(np.array(self.size), comm_size, op=MPI.SUM)
                 return comm_size
+
 
         @property
         def globalnbytes(self):
