@@ -114,6 +114,7 @@ def distribution_to_dimensions(distribution, procs):
                 Default value 'b' : Block, *
                 Supported types:
                     'b' : Block, *
+                    ('*', 'b') : *, Block
                     ('b','b') : Block-Block
         procs: int
                 Size/number of processes in communicator

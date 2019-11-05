@@ -34,6 +34,7 @@ class MPIArray(np.ndarray):
                         Default value 'b' : Block, *
                         Supported types:
                             'b' : Block, *
+                            ('*', 'b') : *, Block
                             ('b','b') : Block-Block
 
                 Returns

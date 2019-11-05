@@ -12,8 +12,8 @@ class ArrayTest(unittest.TestCase):
 
 
         def test_unsupported_distribution(self):
-            with self.assertRaises(InvalidDistributionError):
-                    mpi_np.array(self.data, comm=self.comm, dist='bananas')
+                with self.assertRaises(InvalidDistributionError):
+                        mpi_np.array(self.data, comm=self.comm, dist='bananas')
 
 
         def test_array(self):
