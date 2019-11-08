@@ -2,7 +2,7 @@ import unittest
 import numpy as np
 from mpi4py import MPI
 from mpids.MPInumpy.utils import distribution_to_dimensions, get_block_index, \
-                                 get_cart_coords,  get_local_data
+                                 get_cart_coords,  determine_local_data
 from mpids.MPInumpy.errors import InvalidDistributionError
 
 class UtilsTest(unittest.TestCase):
@@ -64,23 +64,25 @@ class UtilsTest(unittest.TestCase):
                         distribution_to_dimensions(('b','b','x'), self.procs)
                 with self.assertRaises(InvalidDistributionError):
                         distribution_to_dimensions(('','b'), self.procs)
+                with self.assertRaises(InvalidDistributionError):
+                        distribution_to_dimensions(('u','u'), self.procs)
 
         def test_local_data_default_row_block_distribution(self):
                 local_data_rank0 = self.data[0:4]
                 local_data_rank1 = self.data[4:7]
                 local_data_rank2 = self.data[7:10]
 
-                self.assertEqual(local_data_rank0, get_local_data(self.data,
+                self.assertEqual(local_data_rank0, determine_local_data(self.data,
                                                                   self.default_dist,
                                                                   self.procs,
                                                                   self.ranks[0]))
 
-                self.assertEqual(local_data_rank1, get_local_data(self.data,
+                self.assertEqual(local_data_rank1, determine_local_data(self.data,
                                                                   self.default_dist,
                                                                   self.procs,
                                                                   self.ranks[1]))
 
-                self.assertEqual(local_data_rank2, get_local_data(self.data,
+                self.assertEqual(local_data_rank2, determine_local_data(self.data,
                                                                   self.default_dist,
                                                                   self.procs,
                                                                   self.ranks[2]))
@@ -94,13 +96,13 @@ class UtilsTest(unittest.TestCase):
                 local_data_rank2 = self.data_2d[[slice(3, 5), slice(0, 2)]]
                 local_data_rank3 = self.data_2d[[slice(3, 5), slice(2, 4)]]
                 self.assertTrue(np.alltrue(
-                    local_data_rank0 == get_local_data(self.data_2d, dist, procs, 0)))
+                    local_data_rank0 == determine_local_data(self.data_2d, dist, procs, 0)))
                 self.assertTrue(np.alltrue(
-                    local_data_rank1 == get_local_data(self.data_2d, dist, procs, 1)))
+                    local_data_rank1 == determine_local_data(self.data_2d, dist, procs, 1)))
                 self.assertTrue(np.alltrue(
-                    local_data_rank2 == get_local_data(self.data_2d, dist, procs, 2)))
+                    local_data_rank2 == determine_local_data(self.data_2d, dist, procs, 2)))
                 self.assertTrue(np.alltrue(
-                    local_data_rank3 == get_local_data(self.data_2d, dist, procs, 3)))
+                    local_data_rank3 == determine_local_data(self.data_2d, dist, procs, 3)))
 
 
         def test_local_data_col_block_distribution(self):
@@ -111,13 +113,45 @@ class UtilsTest(unittest.TestCase):
                 local_data_rank2 = self.data_2d[:, slice(2, 3)]
                 local_data_rank3 = self.data_2d[:, slice(4, 4)]
                 self.assertTrue(np.alltrue(
-                    local_data_rank0 == get_local_data(self.data_2d, dist, procs, 0)))
+                    local_data_rank0 == determine_local_data(self.data_2d, dist, procs, 0)))
                 self.assertTrue(np.alltrue(
-                    local_data_rank1 == get_local_data(self.data_2d, dist, procs, 1)))
+                    local_data_rank1 == determine_local_data(self.data_2d, dist, procs, 1)))
                 self.assertTrue(np.alltrue(
-                    local_data_rank2 == get_local_data(self.data_2d, dist, procs, 2)))
+                    local_data_rank2 == determine_local_data(self.data_2d, dist, procs, 2)))
                 self.assertTrue(np.alltrue(
-                    local_data_rank3 == get_local_data(self.data_2d, dist, procs, 3)))
+                    local_data_rank3 == determine_local_data(self.data_2d, dist, procs, 3)))
+
+        def test_local_data_undistributed_distribution(self):
+                procs = 4
+                dist = 'u'
+
+                # 1-D Data
+                local_data_rank0 = self.data
+                local_data_rank1 = self.data
+                local_data_rank2 = self.data
+                local_data_rank3 = self.data
+                self.assertTrue(np.alltrue(
+                    local_data_rank0 == determine_local_data(self.data, dist, procs, 0)))
+                self.assertTrue(np.alltrue(
+                    local_data_rank1 == determine_local_data(self.data, dist, procs, 1)))
+                self.assertTrue(np.alltrue(
+                    local_data_rank2 == determine_local_data(self.data, dist, procs, 2)))
+                self.assertTrue(np.alltrue(
+                    local_data_rank3 == determine_local_data(self.data, dist, procs, 3)))
+
+                # 2-D Data
+                local_data_rank0 = self.data_2d
+                local_data_rank1 = self.data_2d
+                local_data_rank2 = self.data_2d
+                local_data_rank3 = self.data_2d
+                self.assertTrue(np.alltrue(
+                    local_data_rank0 == determine_local_data(self.data_2d, dist, procs, 0)))
+                self.assertTrue(np.alltrue(
+                    local_data_rank1 == determine_local_data(self.data_2d, dist, procs, 1)))
+                self.assertTrue(np.alltrue(
+                    local_data_rank2 == determine_local_data(self.data_2d, dist, procs, 2)))
+                self.assertTrue(np.alltrue(
+                    local_data_rank3 == determine_local_data(self.data_2d, dist, procs, 3)))
 
 
 if __name__ == '__main__':

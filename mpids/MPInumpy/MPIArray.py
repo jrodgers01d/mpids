@@ -36,6 +36,7 @@ class MPIArray(np.ndarray):
                             'b' : Block, *
                             ('*', 'b') : *, Block
                             ('b','b') : Block-Block
+                            'u' : Undistributed
 
                 Returns
                 -------

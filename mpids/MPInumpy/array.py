@@ -1,6 +1,6 @@
 from mpi4py import MPI
 from mpids.MPInumpy.MPIArray import MPIArray
-from mpids.MPInumpy.utils import get_local_data
+from mpids.MPInumpy.utils import determine_local_data
 
 def array(array_data, dtype=None, copy=True, order=None, subok=False, ndmin=0,
           comm=MPI.COMM_WORLD, dist='b'):
@@ -35,6 +35,7 @@ def array(array_data, dtype=None, copy=True, order=None, subok=False, ndmin=0,
                     'b' : Block, *
                     ('*', 'b') : *, Block
                     ('b','b') : Block-Block
+                    'u' : Undistributed
 
         Returns
         -------
@@ -44,7 +45,7 @@ def array(array_data, dtype=None, copy=True, order=None, subok=False, ndmin=0,
         size = comm.Get_size()
         rank = comm.Get_rank()
 
-        local_data = get_local_data(array_data, dist, size, rank)
+        local_data = determine_local_data(array_data, dist, size, rank)
 
         return MPIArray(local_data,
                         dtype=dtype,
