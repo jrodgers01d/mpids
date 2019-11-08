@@ -1,5 +1,6 @@
 from mpi4py import MPI
 import numpy as np
+from mpids.MPInumpy.errors import ValueError, NotSupportedError
 
 class MPIArray(np.ndarray):
         """ MPIArray subclass of numpy.ndarray """
@@ -73,7 +74,7 @@ class MPIArray(np.ndarray):
                 #                 self.dtype)
 
 
-        # #Unique properties to MPIArray
+        #Unique properties to MPIArray
         @property
         def globalsize(self):
                 comm_size = np.zeros(1, dtype='int')
@@ -88,3 +89,43 @@ class MPIArray(np.ndarray):
                 return comm_nbytes
 
 # TODO:  global_shape, global_strides
+        # Custom method implementations
+        def sum(self, axis=None, dtype=None, out=None):
+                if dtype is None: dtype = self.dtype
+                if axis is not None and axis > self.ndim - 1:
+                        raise ValueError("'axis' entry is out of bounds")
+                if out is not None:
+                        raise NotSupportedError("'out' field not supported")
+
+                # Compute local sum with specified parms on local base array
+                local_sum = np.asarray(self.base.sum(axis=axis, dtype=dtype))
+                global_sum = np.zeros(local_sum.size, dtype=dtype)
+                self.comm.Allreduce(local_sum, global_sum, op=MPI.SUM)
+
+                return MPIArray(global_sum, global_sum.dtype, dist='u')
+
+        def min(self, axis=None, out=None):
+                if axis is not None and axis > self.ndim - 1:
+                        raise ValueError("'axis' entry is out of bounds")
+                if out is not None:
+                        raise NotSupportedError("'out' field not supported")
+
+                # Compute local sum with specified parms on local base array
+                local_min = np.asarray(self.base.min(axis=axis))
+                global_min = np.zeros(local_min.size, dtype=self.dtype)
+                self.comm.Allreduce(local_min, global_min, op=MPI.MIN)
+
+                return MPIArray(global_min, global_min.dtype, dist='u')
+
+        def max(self, axis=None, out=None):
+                if axis is not None and axis > self.ndim - 1:
+                        raise ValueError("'axis' entry is out of bounds")
+                if out is not None:
+                        raise NotSupportedError("'out' field not supported")
+
+                # Compute local sum with specified parms on local base array
+                local_max = np.asarray(self.base.max(axis=axis))
+                global_max = np.zeros(local_max.size, dtype=self.dtype)
+                self.comm.Allreduce(local_max, global_max, op=MPI.MAX)
+
+                return MPIArray(global_max, global_max.dtype, dist='u')

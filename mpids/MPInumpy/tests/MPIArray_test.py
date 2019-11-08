@@ -2,6 +2,7 @@ import unittest
 import numpy as np
 from mpi4py import MPI
 import mpids.MPInumpy as mpi_np
+from mpids.MPInumpy.errors import ValueError, NotSupportedError
 
 class MPIArrayTest(unittest.TestCase):
 
@@ -157,6 +158,60 @@ class MPIArrayTest(unittest.TestCase):
                 self.assertTrue(isinstance(last_column, mpi_np.MPIArray))
                 self.assertEqual(self.np_array[:,[self.np_array.shape[1] - 1]].size * self.comm_size, last_column.globalsize)
                 self.assertEqual(self.np_array[:,[self.np_array.shape[1] - 1]].nbytes * self.comm_size, last_column.globalnbytes)
+
+
+        def test_custom_sum_method(self):
+                #Default sum of entire array contents
+                self.assertEqual(self.np_array.sum() * self.comm_size, self.mpi_array.sum())
+
+                #Modified output datatype
+                self.assertEqual(self.np_array.sum(dtype=np.dtype(int)) * self.comm_size, self.mpi_array.sum(dtype=np.dtype(int)))
+                self.assertEqual(self.np_array.sum(dtype=np.dtype(float)) * self.comm_size, self.mpi_array.sum(dtype=np.dtype(float)))
+                self.assertEqual(self.np_array.sum(dtype=np.dtype(complex)) * self.comm_size, self.mpi_array.sum(dtype=np.dtype(complex)))
+                self.assertEqual(self.np_array.sum(dtype=np.dtype('f8')) * self.comm_size, self.mpi_array.sum(dtype=np.dtype('f8')))
+                self.assertEqual(self.np_array.sum(dtype=np.dtype('c16')) * self.comm_size, self.mpi_array.sum(dtype=np.dtype('c16')))
+
+                #Sum along specified axies
+                self.assertTrue(np.alltrue(self.np_array.sum(axis=0) * self.comm_size == self.mpi_array.sum(axis=0)))
+                self.assertTrue(np.alltrue(self.np_array.sum(axis=1) * self.comm_size == self.mpi_array.sum(axis=1)))
+                with self.assertRaises(ValueError):
+                        self.mpi_array.sum(axis=self.mpi_array.ndim)
+
+                #Use of 'out' field
+                mpi_out = np.zeros(())
+                with self.assertRaises(NotSupportedError):
+                        self.mpi_array.sum(out=mpi_out)
+
+
+        def test_custom_min_method(self):
+                #Default min of entire array contents
+                self.assertEqual(self.np_array.min(), self.mpi_array.min())
+
+                #Min along specified axies
+                self.assertTrue(np.alltrue(self.np_array.min(axis=0) == self.mpi_array.min(axis=0)))
+                self.assertTrue(np.alltrue(self.np_array.min(axis=1) == self.mpi_array.min(axis=1)))
+                with self.assertRaises(ValueError):
+                        self.mpi_array.min(axis=self.mpi_array.ndim)
+
+                #Use of 'out' field
+                mpi_out = np.zeros(())
+                with self.assertRaises(NotSupportedError):
+                        self.mpi_array.min(out=mpi_out)
+
+        def test_custom_max_method(self):
+                #Default max of entire array contents
+                self.assertEqual(self.np_array.max(), self.mpi_array.max())
+
+                #Max along specified axies
+                self.assertTrue(np.alltrue(self.np_array.max(axis=0) == self.mpi_array.max(axis=0)))
+                self.assertTrue(np.alltrue(self.np_array.max(axis=1) == self.mpi_array.max(axis=1)))
+                with self.assertRaises(ValueError):
+                        self.mpi_array.max(axis=self.mpi_array.ndim)
+
+                #Use of 'out' field
+                mpi_out = np.zeros(())
+                with self.assertRaises(NotSupportedError):
+                        self.mpi_array.max(out=mpi_out)
 
 
 if __name__ == '__main__':
