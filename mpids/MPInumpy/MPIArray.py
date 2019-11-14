@@ -61,18 +61,12 @@ class MPIArray(np.ndarray):
 
 
         def __repr__(self):
-                return '{}(globalsize={}, dist={}, dtype={})' \
+                return '{}(globalsize={}, globalshape={}, dist={}, dtype={})' \
                        .format(self.__class__.__name__,
                                getattr(self, 'globalsize', None),
+                               list(getattr(self, 'globalshape', None)),
                                getattr(self, 'dist', None),
                                getattr(self, 'dtype', None))
-                # return '{}(global_size={}, global_shape={}, distribution={}, dtype={})' \
-                #         .format(self.__class__.__name__,
-                #                 self.global_size,
-                #                 self.dist,
-                #                 self.global_shape,
-                #                 self.dtype)
-
 
         #Unique properties to MPIArray
         @property
@@ -88,7 +82,12 @@ class MPIArray(np.ndarray):
                 self.comm.Allreduce(np.array(self.nbytes), comm_nbytes, op=MPI.SUM)
                 return comm_nbytes
 
-# TODO:  global_shape, global_strides
+        @property
+        def globalshape(self):
+                comm_shape = np.zeros(self.ndim, dtype='int')
+                self.comm.Allreduce(np.array(self.shape), comm_shape, op=MPI.SUM)
+                return comm_shape.tolist()
+
         # Custom method implementations
         def sum(self, axis=None, dtype=None, out=None):
                 if dtype is None: dtype = self.dtype
@@ -110,7 +109,7 @@ class MPIArray(np.ndarray):
                 if out is not None:
                         raise NotSupportedError("'out' field not supported")
 
-                # Compute local sum with specified parms on local base array
+                # Compute local min with specified parms on local base array
                 local_min = np.asarray(self.base.min(axis=axis))
                 global_min = np.zeros(local_min.size, dtype=self.dtype)
                 self.comm.Allreduce(local_min, global_min, op=MPI.MIN)
@@ -123,7 +122,7 @@ class MPIArray(np.ndarray):
                 if out is not None:
                         raise NotSupportedError("'out' field not supported")
 
-                # Compute local sum with specified parms on local base array
+                # Compute local max with specified parms on local base array
                 local_max = np.asarray(self.base.max(axis=axis))
                 global_max = np.zeros(local_max.size, dtype=self.dtype)
                 self.comm.Allreduce(local_max, global_max, op=MPI.MAX)
