@@ -8,4 +8,5 @@
 
 module load mpi4py;
 
-mpiexec -n 4 paver;
+paver clean;
+mpiexec -n 4 paver test_mpinumpy;

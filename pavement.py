@@ -13,11 +13,15 @@ def test_mpinumpy():
 
 @task
 def clean():
+  for pycfile in glob.glob("*/*/*/*/*.pyc"): os.remove(pycfile)
+  for pycache in glob.glob("*/*/*/__pycache__"): os.removedirs(pycache)
+  for pycfile in glob.glob("*/*/*/*.pyc"): os.remove(pycfile)
+  for pycache in glob.glob("*/*/__pycache__"): os.removedirs(pycache)
   for pycfile in glob.glob("*/*/*.pyc"): os.remove(pycfile)
   for pycache in glob.glob("*/__pycache__"): os.removedirs(pycache)
   for pycache in glob.glob("./__pycache__"): shutil.rmtree(pycache)
-  for report in glob.glob('./*.report'):
-    os.remove(report)
+  for coverfile in glob.glob(".coverage"): os.remove(coverfile)
+  for outfile in glob.glob("mpids*.out"): os.remove(outfile)
   try:
     shutil.rmtree(os.getcwd() + "/cover")
   except:
