@@ -91,10 +91,10 @@ class UtilsTest(unittest.TestCase):
         def test_local_data_block_block_distribution(self):
                 procs = 4
                 dist = ('b', 'b')
-                local_data_rank0 = self.data_2d[[slice(0, 3), slice(0, 2)]]
-                local_data_rank1 = self.data_2d[[slice(0, 3), slice(2, 4)]]
-                local_data_rank2 = self.data_2d[[slice(3, 5), slice(0, 2)]]
-                local_data_rank3 = self.data_2d[[slice(3, 5), slice(2, 4)]]
+                local_data_rank0 = self.data_2d[0:3, 0:2]
+                local_data_rank1 = self.data_2d[0:3, 2:4]
+                local_data_rank2 = self.data_2d[3:5, 0:2]
+                local_data_rank3 = self.data_2d[3:5, 2:4]
                 self.assertTrue(np.alltrue(
                     local_data_rank0 == determine_local_data(self.data_2d, dist, procs, 0)))
                 self.assertTrue(np.alltrue(
