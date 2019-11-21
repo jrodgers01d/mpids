@@ -7,4 +7,7 @@ def matmul(a, b, out=None, comm=MPI.COMM_WORLD, dist='b'):
         if out is not None:
                 raise NotSupportedError("'out' field not supported")
 
-        return MPIArray(np_matmul(a, b, out=out), comm=comm, dist=dist)
+        if not isinstance(a, MPIArray) and not isinstance(b, MPIArray):
+                return MPIArray(np_matmul(a, b), comm=comm, dist=dist)
+
+        return MPIArray(np_matmul(a, b), comm=comm, dist=dist)
