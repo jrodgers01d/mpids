@@ -1,4 +1,5 @@
-from mpids.MPInumpy.array import array
-from mpids.MPInumpy.MPIArray import MPIArray
+from .array import *
+from .MPIArray import *
+from ._linalg import *
 
-__all__ = ['MPIArray', 'array']
+__all__ = ['MPIArray', 'array', 'matmul']

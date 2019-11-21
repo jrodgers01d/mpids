@@ -202,6 +202,7 @@ class MPIArrayTest(unittest.TestCase):
                 with self.assertRaises(NotSupportedError):
                         self.mpi_array.min(out=mpi_out)
 
+
         def test_custom_max_method(self):
                 #Default max of entire array contents
                 self.assertEqual(self.np_array.max(), self.mpi_array.max())

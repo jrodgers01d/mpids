@@ -72,23 +72,31 @@ class MPIArray(np.ndarray):
         @property
         def globalsize(self):
                 comm_size = np.zeros(1, dtype='int')
-                self.comm.Allreduce(np.array(self.size), comm_size, op=MPI.SUM)
+                self.comm.Allreduce(np.array(self.size),
+                                    comm_size,
+                                    op=MPI.SUM)
                 return comm_size
 
 
         @property
         def globalnbytes(self):
                 comm_nbytes = np.zeros(1, dtype='int')
-                self.comm.Allreduce(np.array(self.nbytes), comm_nbytes, op=MPI.SUM)
+                self.comm.Allreduce(np.array(self.nbytes),
+                                    comm_nbytes,
+                                    op=MPI.SUM)
                 return comm_nbytes
+
 
         @property
         def globalshape(self):
                 comm_shape = np.zeros(self.ndim, dtype='int')
-                self.comm.Allreduce(np.array(self.shape), comm_shape, op=MPI.SUM)
+                self.comm.Allreduce(np.array(self.shape),
+                                    comm_shape,
+                                    op=MPI.SUM)
                 return comm_shape.tolist()
 
-        # Custom method implementations
+
+        #Custom reduction method implementations
         def sum(self, axis=None, dtype=None, out=None):
                 if dtype is None: dtype = self.dtype
                 if axis is not None and axis > self.ndim - 1:
@@ -101,7 +109,10 @@ class MPIArray(np.ndarray):
                 global_sum = np.zeros(local_sum.size, dtype=dtype)
                 self.comm.Allreduce(local_sum, global_sum, op=MPI.SUM)
 
-                return MPIArray(global_sum, global_sum.dtype, dist='u')
+                return self.__class__(global_sum,
+                                      dtype=global_sum.dtype,
+                                      dist='u')
+
 
         def min(self, axis=None, out=None):
                 if axis is not None and axis > self.ndim - 1:
@@ -114,7 +125,10 @@ class MPIArray(np.ndarray):
                 global_min = np.zeros(local_min.size, dtype=self.dtype)
                 self.comm.Allreduce(local_min, global_min, op=MPI.MIN)
 
-                return MPIArray(global_min, global_min.dtype, dist='u')
+                return self.__class__(global_min,
+                                      dtype=global_min.dtype,
+                                      dist='u')
+
 
         def max(self, axis=None, out=None):
                 if axis is not None and axis > self.ndim - 1:
@@ -127,4 +141,6 @@ class MPIArray(np.ndarray):
                 global_max = np.zeros(local_max.size, dtype=self.dtype)
                 self.comm.Allreduce(local_max, global_max, op=MPI.MAX)
 
-                return MPIArray(global_max, global_max.dtype, dist='u')
+                return self.__class__(global_max,
+                                      dtype=global_max.dtype,
+                                      dist='u')

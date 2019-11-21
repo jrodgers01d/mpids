@@ -49,6 +49,7 @@ class UtilsTest(unittest.TestCase):
                 self.assertEqual((4, 7), get_block_index(self.data_length, 3, 1))
                 self.assertEqual((7, 10), get_block_index(self.data_length, 3, 2))
 
+
         def test_distribution_to_dimensions(self):
                 self.assertEqual(1,
                     distribution_to_dimensions(self.default_dist, self.procs))
@@ -66,6 +67,7 @@ class UtilsTest(unittest.TestCase):
                         distribution_to_dimensions(('','b'), self.procs)
                 with self.assertRaises(InvalidDistributionError):
                         distribution_to_dimensions(('u','u'), self.procs)
+
 
         def test_local_data_default_row_block_distribution(self):
                 local_data_rank0 = self.data[0:4]
@@ -120,6 +122,7 @@ class UtilsTest(unittest.TestCase):
                     local_data_rank2 == determine_local_data(self.data_2d, dist, procs, 2)))
                 self.assertTrue(np.alltrue(
                     local_data_rank3 == determine_local_data(self.data_2d, dist, procs, 3)))
+
 
         def test_local_data_undistributed_distribution(self):
                 procs = 4
