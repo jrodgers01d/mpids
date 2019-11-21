@@ -53,4 +53,5 @@ def array(array_data, dtype=None, copy=True, order=None, subok=False, ndmin=0,
                         order=order,
                         subok=subok,
                         ndmin=ndmin,
-                        comm=comm)
+                        comm=comm,
+                        dist=dist)
