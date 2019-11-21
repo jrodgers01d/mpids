@@ -12,6 +12,11 @@ def test_mpinumpy():
   pass
 
 @task
+def test_mpinumpy_html():
+  sh('nosetests --exe --with-coverage --cover-erase --cover-branches --cover-html --cover-package=mpids.MPInumpy mpids.MPInumpy.tests')
+  pass
+
+@task
 def clean():
   for pycfile in glob.glob("*/*/*/*/*.pyc"): os.remove(pycfile)
   for pycache in glob.glob("*/*/*/__pycache__"): os.removedirs(pycache)
@@ -31,4 +36,9 @@ def clean():
 @task
 @needs(['clean', 'test_mpinumpy'])
 def default():
+  pass
+
+@task
+@needs(['clean', 'test_mpinumpy_html'])
+def html_coverage_report():
   pass
