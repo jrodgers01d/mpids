@@ -37,15 +37,22 @@ def determine_local_data(array_data, dist, procs, rank):
                 start, end = get_block_index(len(array_data), dims[0], coord[0])
                 return array_data[slice(start, end)]
 
-        for axis in range(len(dims)):
-                if axis == 0:
-                        row_start, row_end = get_block_index(len(array_data),
-                                                             dims[axis],
-                                                             coord[axis])
-                else:
-                        col_start, col_end = get_block_index(len(array_data[0]),
-                                                             dims[axis],
-                                                             coord[axis])
+        try:
+                for axis in range(len(dims)):
+                        if axis == 0:
+                                row_start, row_end = \
+                                        get_block_index(len(array_data),
+                                                        dims[axis],
+                                                        coord[axis])
+                        else:
+                                col_start, col_end =  \
+                                        get_block_index(len(array_data[0]),
+                                                        dims[axis],
+                                                        coord[axis])
+#TODO: Find more elegant solution than try catch
+        except TypeError: # Case when dim of specified dist != dim input array 
+                raise InvalidDistributionError(
+                        'Invalid distribution encountered: {}'.format(dist))
 
         return [array_data[row][slice(col_start, col_end)] \
                         for row in range(row_start, row_end)]

@@ -106,6 +106,15 @@ class UtilsTest(unittest.TestCase):
                 self.assertTrue(np.alltrue(
                     local_data_rank3 == determine_local_data(self.data_2d, dist, procs, 3)))
 
+                # Test cases where dim input data != dim distribution
+                with self.assertRaises(InvalidDistributionError):
+                        determine_local_data(self.data, dist, procs, 0)
+                with self.assertRaises(InvalidDistributionError):
+                        determine_local_data(self.data, dist, procs, 1)
+                with self.assertRaises(InvalidDistributionError):
+                        determine_local_data(self.data, dist, procs, 2)
+                with self.assertRaises(InvalidDistributionError):
+                        determine_local_data(self.data, dist, procs, 3)
 
         def test_local_data_col_block_distribution(self):
                 procs = 4
@@ -122,6 +131,16 @@ class UtilsTest(unittest.TestCase):
                     local_data_rank2 == determine_local_data(self.data_2d, dist, procs, 2)))
                 self.assertTrue(np.alltrue(
                     local_data_rank3 == determine_local_data(self.data_2d, dist, procs, 3)))
+
+                # Test cases where dim input data != dim distribution
+                with self.assertRaises(InvalidDistributionError):
+                        determine_local_data(self.data, dist, procs, 0)
+                with self.assertRaises(InvalidDistributionError):
+                        determine_local_data(self.data, dist, procs, 1)
+                with self.assertRaises(InvalidDistributionError):
+                        determine_local_data(self.data, dist, procs, 2)
+                with self.assertRaises(InvalidDistributionError):
+                        determine_local_data(self.data, dist, procs, 3)
 
 
         def test_local_data_undistributed_distribution(self):
