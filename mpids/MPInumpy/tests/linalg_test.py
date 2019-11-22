@@ -26,11 +26,21 @@ class LinAlgTest(unittest.TestCase):
                         mpi_np.matmul(self.np_array_a, self.np_array_b), mpi_np.MPIArray))
                 self.assertTrue(isinstance(
                         mpi_np.matmul(mpi_array_a, mpi_array_b), mpi_np.MPIArray))
+                self.assertTrue(isinstance(
+                        mpi_np.matmul(mpi_array_a, self.np_array_b), mpi_np.MPIArray))
+                self.assertTrue(isinstance(
+                        mpi_np.matmul(self.np_array_a, mpi_array_b), mpi_np.MPIArray))
 
                 #Check result consistent with numpy
                 self.assertTrue(np.alltrue(
                         np.matmul(self.np_array_a, self.np_array_b) == \
                         mpi_np.matmul(mpi_array_a, mpi_array_b)))
+                self.assertTrue(np.alltrue(
+                        np.matmul(self.np_array_a, self.np_array_b) == \
+                        mpi_np.matmul(self.np_array_a, mpi_array_b)))
+                self.assertTrue(np.alltrue(
+                        np.matmul(self.np_array_a, self.np_array_b) == \
+                        mpi_np.matmul(mpi_array_a, self.np_array_b)))
 
 
 if __name__ == '__main__':
