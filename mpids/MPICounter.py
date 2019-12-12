@@ -93,39 +93,39 @@ def Counter_all (tokens, comm=MPI.COMM_WORLD, tokens_per_iter=10000, tracing=Fal
                 firstindex = lastindex
                 if firstindex < length:
                     lastindex = (iter+1) * tokens_per_iter
-                    if lastindex > length:
-                        lastindex = length
+                if lastindex > length:
+                    lastindex = length
                 
-                        partial_tokens = tokens[firstindex:lastindex]
-                        word_count = Counter(partial_tokens)
+                partial_tokens = tokens[firstindex:lastindex]
+                word_count = Counter(partial_tokens)
+                
+                od = OrderedDict(sorted(word_count.items(), key=lambda t: t[0]))
+                __lastrank = 0
+                odd = sorted(od.items(), key=__groupfunction)
     
-                        od = OrderedDict(sorted(word_count.items(), key=lambda t: t[0]))
-                        __lastrank = 0
-                        odd = sorted(od.items(), key=__groupfunction)
-    
-                        wordcount_per_reducer=defaultdict(list)
-                        __lastrank=0
-                        for ranks, words in groupby(odd, lambda s: __groupfunction(s)):
-                            wordcount_per_reducer[ranks]={ranks: list(words)}
+                wordcount_per_reducer=defaultdict(list)
+                __lastrank=0
+                for ranks, words in groupby(odd, lambda s: __groupfunction(s)):
+                    wordcount_per_reducer[ranks]={ranks: list(words)}
 
-                        localwordcount={}
-                        for step in range(0, size ):
-                            found = 0
-                            sendto = ( rank + step ) % size
-                            recvfrom = ( rank + size - step) % size
-                            
-                            sreq = comm.isend (wordcount_per_reducer[sendto], dest=sendto, tag=478)
-                            localwordcount[recvfrom] = comm.recv ( source=recvfrom, tag=478 )
-                            sreq.wait()
+                localwordcount={}
+                for step in range(0, size ):
+                    found = 0
+                    sendto = ( rank + step ) % size
+                    recvfrom = ( rank + size - step) % size
+                        
+                    sreq = comm.isend (wordcount_per_reducer[sendto], dest=sendto, tag=478)
+                    localwordcount[recvfrom] = comm.recv ( source=recvfrom, tag=478 )
+                    sreq.wait()
                     
-                        for key,value  in localwordcount.iteritems():
-                            if value: 
-                                for k, v in value.iteritems():
-                                    for j in v:
-                                        if j[0] not in final_wcount:
-                                            final_wcount[j[0]] = int(j[1])
-                                        else:
-                                            final_wcount[j[0]] += int(j[1])
+                for key,value  in localwordcount.iteritems():
+                    if value: 
+                        for k, v in value.iteritems():
+                            for j in v:
+                                if j[0] not in final_wcount:
+                                    final_wcount[j[0]] = int(j[1])
+                                else:
+                                    final_wcount[j[0]] += int(j[1])
 
 
             return final_wcount
