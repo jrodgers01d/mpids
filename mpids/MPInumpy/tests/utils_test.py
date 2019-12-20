@@ -45,9 +45,11 @@ class UtilsTest(unittest.TestCase):
 
 
         def test_get_block_index(self):
-                self.assertEqual((0, 4), get_block_index(self.data_length, 3, 0))
-                self.assertEqual((4, 7), get_block_index(self.data_length, 3, 1))
-                self.assertEqual((7, 10), get_block_index(self.data_length, 3, 2))
+                ranks = [0, 1, 2]
+                num_procs = len(ranks)
+                self.assertEqual((0, 4), get_block_index(self.data_length, num_procs, ranks[0]))
+                self.assertEqual((4, 7), get_block_index(self.data_length, num_procs, ranks[1]))
+                self.assertEqual((7, 10), get_block_index(self.data_length, num_procs, ranks[2]))
 
 
         def test_distribution_to_dimensions(self):
