@@ -3,6 +3,8 @@ import numpy as np
 from mpi4py import MPI
 from mpids.MPInumpy.utils import distribution_to_dimensions, get_block_index, \
                                  get_cart_coords,  determine_local_data
+from mpids.MPInumpy.utils import is_undistributed, is_row_block_distributed, \
+                                 is_column_block_distributed, is_block_block_distributed
 from mpids.MPInumpy.errors import InvalidDistributionError
 
 class UtilsTest(unittest.TestCase):
@@ -14,6 +16,38 @@ class UtilsTest(unittest.TestCase):
                 self.data_2d = np.array(list(range(20))).reshape(5,4)
                 self.data_length = len(self.data)
                 self.default_dist = 'b'
+
+
+        def test_distribution_checks(self):
+                undist = 'u'
+                row_block = 'b'
+                row_block_alt = ('b', '*')
+                col_block = ('*', 'b')
+                block_block = ('b', 'b')
+
+                self.assertTrue(is_undistributed(undist))
+                self.assertFalse(is_undistributed(row_block))
+                self.assertFalse(is_undistributed(row_block_alt))
+                self.assertFalse(is_undistributed(col_block))
+                self.assertFalse(is_undistributed(block_block))
+
+                self.assertTrue(is_row_block_distributed(row_block))
+                self.assertTrue(is_row_block_distributed(row_block_alt))
+                self.assertFalse(is_row_block_distributed(undist))
+                self.assertFalse(is_row_block_distributed(col_block))
+                self.assertFalse(is_row_block_distributed(block_block))
+
+                self.assertTrue(is_column_block_distributed(col_block))
+                self.assertFalse(is_column_block_distributed(undist))
+                self.assertFalse(is_column_block_distributed(row_block))
+                self.assertFalse(is_column_block_distributed(row_block_alt))
+                self.assertFalse(is_column_block_distributed(block_block))
+
+                self.assertTrue(is_block_block_distributed(block_block))
+                self.assertFalse(is_block_block_distributed(undist))
+                self.assertFalse(is_block_block_distributed(row_block))
+                self.assertFalse(is_block_block_distributed(row_block_alt))
+                self.assertFalse(is_block_block_distributed(col_block))
 
 
         def test_get_cart_coords(self):

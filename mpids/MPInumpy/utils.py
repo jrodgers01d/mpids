@@ -27,7 +27,7 @@ def determine_local_data(array_data, dist, procs, rank):
         local_data : array_like
                 Array data which is responsibility of process(rank).
         """
-        if dist[0] == 'u':
+        if is_undistributed(dist):
                 return array_data
 
         dims = MPI.Compute_dims(procs, distribution_to_dimensions(dist, procs))
@@ -50,7 +50,7 @@ def determine_local_data(array_data, dist, procs, rank):
                                                         dims[axis],
                                                         coord[axis])
 #TODO: Find more elegant solution than try catch
-        except TypeError: # Case when dim of specified dist != dim input array 
+        except TypeError: # Case when dim of specified dist != dim input array
                 raise InvalidDistributionError(
                         'Invalid distribution encountered: {}'.format(dist))
 
@@ -141,19 +141,102 @@ def distribution_to_dimensions(distribution, procs):
                 Seed for determinging processes per cartesian coordinate
                 direction.
         """
-        # Row-block
-        if len(distribution) == 1 or distribution[1] == '*':
+        if is_row_block_distributed(distribution):
                 return 1
-
-        # Two Dim
-        if len(distribution) == 2:
-                # block-block
-                if distribution[0] == distribution[1] == 'b':
-                        return len(distribution)
-
-                # column-block
-                if distribution[0] == '*' and distribution[1] == 'b':
-                        return [1, procs]
+        if is_column_block_distributed(distribution):
+                return [1, procs]
+        if is_block_block_distributed(distribution):
+                return len(distribution)
 
         raise InvalidDistributionError(
                 'Invalid distribution encountered: {}'.format(distribution))
+
+
+def is_undistributed(distribution):
+        """ Check if distribution is of type undistributed
+
+        Parameters
+        ----------
+        distribution : str, list, tuple
+                Specified distribution of data among processes.
+                Default value 'b' : Block, *
+                Supported types:
+                    'b' : Block, *
+                    ('*', 'b') : *, Block
+                    ('b','b') : Block-Block
+                    'u' : Undistributed
+
+        Returns
+        -------
+        result : boolean
+        """
+        return distribution == 'u'
+
+
+def is_row_block_distributed(distribution):
+        """ Check if distribution is of type row block
+
+        Parameters
+        ----------
+        distribution : str, list, tuple
+                Specified distribution of data among processes.
+                Default value 'b' : Block, *
+                Supported types:
+                    'b' : Block, *
+                    ('*', 'b') : *, Block
+                    ('b','b') : Block-Block
+                    'u' : Undistributed
+
+        Returns
+        -------
+        result : boolean
+        """
+        if distribution[0] != 'b':
+                return False
+        return len(distribution) == 1 or distribution[1] == '*'
+
+
+def is_column_block_distributed(distribution):
+        """ Check if distribution is of type column block
+
+        Parameters
+        ----------
+        distribution : str, list, tuple
+                Specified distribution of data among processes.
+                Default value 'b' : Block, *
+                Supported types:
+                    'b' : Block, *
+                    ('*', 'b') : *, Block
+                    ('b','b') : Block-Block
+                    'u' : Undistributed
+
+        Returns
+        -------
+        result : boolean
+        """
+        if len(distribution) != 2:
+                return False
+        return distribution[0] == '*' and distribution[1] == 'b'
+
+
+def is_block_block_distributed(distribution):
+        """ Check if distribution is of type block-block
+
+        Parameters
+        ----------
+        distribution : str, list, tuple
+                Specified distribution of data among processes.
+                Default value 'b' : Block, *
+                Supported types:
+                    'b' : Block, *
+                    ('*', 'b') : *, Block
+                    ('b','b') : Block-Block
+                    'u' : Undistributed
+
+        Returns
+        -------
+        result : boolean
+        """
+        if len(distribution) != 2:
+                return False
+        return distribution[0] == distribution[1] == 'b'
