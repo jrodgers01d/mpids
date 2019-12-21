@@ -1,7 +1,10 @@
 from mpi4py import MPI
 
 from mpids.MPInumpy.MPIArray import MPIArray
-from mpids.MPInumpy.utils import determine_local_data
+from mpids.MPInumpy.utils import determine_local_data, \
+                                 get_comm_dims,\
+                                 get_cart_coords
+
 
 def array(array_data, dtype=None, copy=True, order=None, subok=False, ndmin=0,
           comm=MPI.COMM_WORLD, dist='b'):
@@ -46,7 +49,10 @@ def array(array_data, dtype=None, copy=True, order=None, subok=False, ndmin=0,
         size = comm.Get_size()
         rank = comm.Get_rank()
 
-        local_data = determine_local_data(array_data, dist, size, rank)
+        comm_dims = get_comm_dims(size, dist)
+        comm_coord = get_cart_coords(comm_dims, size, rank)
+
+        local_data = determine_local_data(array_data, dist, comm_dims, comm_coord)
 
         return MPIArray(local_data,
                         dtype=dtype,
@@ -55,4 +61,6 @@ def array(array_data, dtype=None, copy=True, order=None, subok=False, ndmin=0,
                         subok=subok,
                         ndmin=ndmin,
                         comm=comm,
-                        dist=dist)
+                        dist=dist,
+                        comm_dims=comm_dims,
+                        comm_coord=comm_coord)
