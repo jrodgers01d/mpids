@@ -29,9 +29,6 @@ def determine_local_data(array_data, dist, comm_dims, comm_coord):
         if is_undistributed(dist):
                 return array_data
 
-        # dims = MPI.Compute_dims(procs, distribution_to_dimensions(dist, procs))
-        # coord = get_cart_coords(dims, procs, rank)
-
         if len(comm_dims) == 1:
                 start, end = get_block_index(len(array_data), comm_dims[0], comm_coord[0])
                 return array_data[slice(start, end)]
