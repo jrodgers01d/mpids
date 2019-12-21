@@ -1,8 +1,7 @@
 from mpi4py import MPI
 from mpids.MPInumpy.errors import InvalidDistributionError
 
-#TODO: Potentially move MPI.Compute_dims to parameter, treating it as service
-def determine_local_data(array_data, dist, procs, rank):
+def determine_local_data(array_data, dist, comm_dims, comm_coord):
         """ Determine array like data to be distributed among processes
 
         Parameters
@@ -17,10 +16,10 @@ def determine_local_data(array_data, dist, procs, rank):
                     ('*', 'b') : *, Block
                     ('b','b') : Block-Block
                     'u' : Undistributed
-        procs : int
-                Number of processes in communicator.
-        rank : int
-                Process rank(index) in communicator.
+        comm_dims : list
+                Division of processes in cartesian grid
+        comm_coord : list
+                Coordinates of rank in grid
 
         Returns
         -------
@@ -30,25 +29,25 @@ def determine_local_data(array_data, dist, procs, rank):
         if is_undistributed(dist):
                 return array_data
 
-        dims = MPI.Compute_dims(procs, distribution_to_dimensions(dist, procs))
-        coord = get_cart_coords(dims, procs, rank)
+        # dims = MPI.Compute_dims(procs, distribution_to_dimensions(dist, procs))
+        # coord = get_cart_coords(dims, procs, rank)
 
-        if len(dims) == 1:
-                start, end = get_block_index(len(array_data), dims[0], coord[0])
+        if len(comm_dims) == 1:
+                start, end = get_block_index(len(array_data), comm_dims[0], comm_coord[0])
                 return array_data[slice(start, end)]
 
         try:
-                for axis in range(len(dims)):
+                for axis in range(len(comm_dims)):
                         if axis == 0:
                                 row_start, row_end = \
                                         get_block_index(len(array_data),
-                                                        dims[axis],
-                                                        coord[axis])
+                                                        comm_dims[axis],
+                                                        comm_coord[axis])
                         else:
                                 col_start, col_end =  \
                                         get_block_index(len(array_data[0]),
-                                                        dims[axis],
-                                                        coord[axis])
+                                                        comm_dims[axis],
+                                                        comm_coord[axis])
 #TODO: Find more elegant solution than try catch
         except TypeError: # Case when dim of specified dist != dim input array
                 raise InvalidDistributionError(
@@ -90,13 +89,13 @@ def get_block_index(axis_len, axis_size, axis_coord):
         return (start_index, end_index)
 
 
-def get_cart_coords(dims, procs, rank):
+def get_cart_coords(comm_dims, procs, rank):
         """ Get coordinates of process placed on cartesian grid.
             Implementation based on OpenMPI.mca.topo.topo_base_cart_coords
 
         Parameters
         ----------
-        dims : list
+        comm_dims : list
                 Division of processes in cartesian grid
         procs: int
                 Size/number of processes in communicator
@@ -108,15 +107,45 @@ def get_cart_coords(dims, procs, rank):
         coordinates : list
                 Coordinates of rank in grid
         """
+        if comm_dims == None:
+                return None
+
         coordinates = []
         rem_procs = procs
 
-        for dim in dims:
+        for dim in comm_dims:
                 rem_procs = rem_procs // dim
                 coordinates.append(rank // rem_procs)
                 rank = rank % rem_procs
 
         return coordinates
+
+
+def get_comm_dims(procs, dist):
+        """ Get dimensions of cartesian grid as determined by specified
+            distribution.
+
+        Parameters
+        ----------
+        procs: int
+                Size/number of processes in communicator
+        dist : str, list, tuple
+                Specified distribution of data among processes.
+                Default value 'b' : Block, *
+                Supported types:
+                    'b' : Block, *
+                    ('*', 'b') : *, Block
+                    ('b','b') : Block-Block
+                    'u' : Undistributed
+
+        Returns
+        -------
+        comm_dims : list
+                Dimensions of cartesian grid
+        """
+        if is_undistributed(dist):
+                return None
+        return MPI.Compute_dims(procs, distribution_to_dimensions(dist, procs))
 
 
 def distribution_to_dimensions(distribution, procs):
