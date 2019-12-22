@@ -105,19 +105,18 @@ class MPIArray(np.ndarray):
 
         @property
         def globalshape(self):
+                local_shape = self.shape
                 if is_undistributed(self.dist):
-                        return self.shape
+                        return local_shape
 
-                comm_shape = np.zeros(self.ndim, dtype='int')
-                self.comm.Allreduce(np.array(self.shape), comm_shape, op=MPI.SUM)
-
-                if is_row_block_distributed(self.dist):
-                        comm_shape[1] = self.shape[1]
-                if is_column_block_distributed(self.dist):
-                        comm_shape[0] = self.shape[0]
-# TODO below behavior questionable for non-mulitiple of comm_dims shapes
-                if is_block_block_distributed(self.dist):
-                        comm_shape = comm_shape / self.comm_dims
+                comm_shape = []
+                axis = 0
+                for axis_dim in local_shape:
+                    axis_length = self._custom_reduction(MPI.SUM,
+                                                         np.asarray(local_shape[axis]),
+                                                         axis = axis)
+                    comm_shape.append(axis_length[0])
+                    axis += 1
 
                 return comm_shape
 
@@ -142,7 +141,11 @@ class MPIArray(np.ndarray):
                 """
                 self._check_reduction_parms(**kwargs)
                 local_sum = np.asarray(self.base.sum(**kwargs))
-                return self._custom_reduction(MPI.SUM, local_sum, **kwargs)
+                global_sum = self._custom_reduction(MPI.SUM, local_sum, **kwargs)
+                return self.__class__(global_sum,
+                                      dtype=global_sum.dtype,
+                                      comm=self.comm,
+                                      dist='u')
 
         def min(self, **kwargs):
                 """ Min of array elements in distributed matrix over a
@@ -164,7 +167,11 @@ class MPIArray(np.ndarray):
                 """
                 self._check_reduction_parms(**kwargs)
                 local_min = np.asarray(self.base.min(**kwargs))
-                return self._custom_reduction(MPI.MIN, local_min, **kwargs)
+                global_min = self._custom_reduction(MPI.MIN, local_min, **kwargs)
+                return self.__class__(global_min,
+                                      dtype=global_min.dtype,
+                                      comm=self.comm,
+                                      dist='u')
 
         def max(self, **kwargs):
                 """ Max of array elements in distributed matrix over a
@@ -186,7 +193,11 @@ class MPIArray(np.ndarray):
                 """
                 self._check_reduction_parms(**kwargs)
                 local_max = np.asarray(self.base.max(**kwargs))
-                return self._custom_reduction(MPI.MAX, local_max, **kwargs)
+                global_max = self._custom_reduction(MPI.MAX, local_max, **kwargs)
+                return self.__class__(global_max,
+                                      dtype=global_max.dtype,
+                                      comm=self.comm,
+                                      dist='u')
 
         def _check_reduction_parms(self, axis=None, dtype=None, out=None):
                 if axis is not None and axis > self.ndim - 1:
@@ -245,7 +256,4 @@ class MPIArray(np.ndarray):
                                                       dtype=dtype)
                                 col_comm.Allgather(row_red, global_red)
 
-                return self.__class__(global_red,
-                                      dtype=global_red.dtype,
-                                      comm=self.comm,
-                                      dist='u')
+                return global_red
