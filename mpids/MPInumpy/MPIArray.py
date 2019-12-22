@@ -120,6 +120,7 @@ class MPIArray(np.ndarray):
 
                 return comm_shape
 
+
         #Custom reduction method implementations
         def sum(self, **kwargs):
                 """ Sum of array elements in distributed matrix over a
@@ -147,6 +148,7 @@ class MPIArray(np.ndarray):
                                       comm=self.comm,
                                       dist='u')
 
+
         def min(self, **kwargs):
                 """ Min of array elements in distributed matrix over a
                 given axis.
@@ -173,6 +175,7 @@ class MPIArray(np.ndarray):
                                       comm=self.comm,
                                       dist='u')
 
+
         def max(self, **kwargs):
                 """ Max of array elements in distributed matrix over a
                 given axis.
@@ -198,6 +201,7 @@ class MPIArray(np.ndarray):
                                       dtype=global_max.dtype,
                                       comm=self.comm,
                                       dist='u')
+
 
         def _check_reduction_parms(self, axis=None, dtype=None, out=None):
                 if axis is not None and axis > self.ndim - 1:
