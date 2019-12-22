@@ -117,46 +117,113 @@ class MPIArray(np.ndarray):
                         comm_shape[0] = self.shape[0]
 # TODO below behavior questionable for non-mulitiple of comm_dims shapes
                 if is_block_block_distributed(self.dist):
-                        comm_dims = MPI.Compute_dims(self.comm.size, 2)
-                        comm_shape = comm_shape / comm_dims
+                        comm_shape = comm_shape / self.comm_dims
 
                 return comm_shape
 
         #Custom reduction method implementations
-        def sum(self, axis=None, dtype=None, out=None):
+        def sum(self, **kwargs):
+                """ Sum of array elements in distributed matrix over a
+                given axis.
+
+                Parameters
+                ----------
+                axis : None or int
+                        Axis or axes along which the sum is performed.
+                dtype : dtype, optional
+                        Specified data type of returned array and of the
+                        accumulator in which the elements are summed.
+
+                Returns
+                -------
+                MPIArray : numpy.ndarray sub class
+                        MPIArray with sum values along specified axis with
+                        undistributed(copies on all procs) distribution.
+                """
+                self._check_reduction_parms(**kwargs)
+                local_sum = np.asarray(self.base.sum(**kwargs))
+                return self._custom_reduction(MPI.SUM, local_sum, **kwargs)
+
+        def min(self, **kwargs):
+                """ Min of array elements in distributed matrix over a
+                given axis.
+
+                Parameters
+                ----------
+                axis : None or int
+                        Axis or axes along which the sum is performed.
+                dtype : dtype, optional
+                        Specified data type of returned array and of the
+                        accumulator in which the elements are summed.
+
+                Returns
+                -------
+                MPIArray : numpy.ndarray sub class
+                        MPIArray with min values along specified axis with
+                        undistributed(copies on all procs) distribution.
+                """
+                self._check_reduction_parms(**kwargs)
+                local_min = np.asarray(self.base.min(**kwargs))
+                return self._custom_reduction(MPI.MIN, local_min, **kwargs)
+
+        def max(self, **kwargs):
+                """ Max of array elements in distributed matrix over a
+                given axis.
+
+                Parameters
+                ----------
+                axis : None or int
+                        Axis or axes along which the sum is performed.
+                dtype : dtype, optional
+                        Specified data type of returned array and of the
+                        accumulator in which the elements are summed.
+
+                Returns
+                -------
+                MPIArray : numpy.ndarray sub class
+                        MPIArray with max values along specified axis with
+                        undistributed(copies on all procs) distribution.
+                """
+                self._check_reduction_parms(**kwargs)
+                local_max = np.asarray(self.base.max(**kwargs))
+                return self._custom_reduction(MPI.MAX, local_max, **kwargs)
+
+        def _check_reduction_parms(self, axis=None, dtype=None, out=None):
+                if axis is not None and axis > self.ndim - 1:
+                        raise ValueError("'axis' entry is out of bounds")
+                if out is not None:
+                        raise NotSupportedError("'out' field not supported")
+                return
+
+
+        def _custom_reduction(self, operation, local_red, axis=None,
+                              dtype=None, out=None):
                 if dtype is None: dtype = self.dtype
-                if axis is not None and axis > self.ndim - 1:
-                        raise ValueError("'axis' entry is out of bounds")
-                if out is not None:
-                        raise NotSupportedError("'out' field not supported")
-
-                # Compute local sum with specified parms on local base array
-                local_sum = np.asarray(self.base.sum(axis=axis, dtype=dtype))
 
                 if is_undistributed(self.dist):
-                        global_sum = local_sum
+                        global_red = local_red
 
                 if axis is None and not is_undistributed(self.dist):
-                        global_sum = np.zeros(local_sum.size, dtype=dtype)
-                        self.comm.Allreduce(local_sum, global_sum, op=MPI.SUM)
+                        global_red = np.zeros(local_red.size, dtype=dtype)
+                        self.comm.Allreduce(local_red, global_red, op=operation)
 
                 if is_row_block_distributed(self.dist):
                         if axis == 0:
-                                global_sum = np.zeros(local_sum.size, dtype=dtype)
-                                self.comm.Allreduce(local_sum, global_sum, op=MPI.SUM)
+                                global_red = np.zeros(local_red.size, dtype=dtype)
+                                self.comm.Allreduce(local_red, global_red, op=operation)
                         if axis == 1:
-                                global_sum = np.zeros(local_sum.size * self.comm.size,
+                                global_red = np.zeros(local_red.size * self.comm.size,
                                                       dtype=dtype)
-                                self.comm.Allgather(local_sum, global_sum)
+                                self.comm.Allgather(local_red, global_red)
 
                 if is_column_block_distributed(self.dist):
                         if axis == 0:
-                                global_sum = np.zeros(local_sum.size * self.comm.size,
+                                global_red = np.zeros(local_red.size * self.comm.size,
                                                       dtype=dtype)
-                                self.comm.Allgather(local_sum, global_sum)
+                                self.comm.Allgather(local_red, global_red)
                         if axis == 1:
-                                global_sum = np.zeros(local_sum.size, dtype=dtype)
-                                self.comm.Allreduce(local_sum, global_sum, op=MPI.SUM)
+                                global_red = np.zeros(local_red.size, dtype=dtype)
+                                self.comm.Allreduce(local_red, global_red, op=operation)
 
                 if is_block_block_distributed(self.dist):
                         row_comm = self.comm.Split(color = self.comm_coord[0],
@@ -165,138 +232,20 @@ class MPIArray(np.ndarray):
                                                    key = self.comm.Get_rank())
 
                         if axis == 0:
-                                col_sum = np.zeros(local_sum.size, dtype=dtype)
-                                col_comm.Allreduce(local_sum, col_sum, op=MPI.SUM)
-                                global_sum = np.zeros(local_sum.size * self.comm_dims[1],
+                                col_red = np.zeros(local_red.size, dtype=dtype)
+                                col_comm.Allreduce(local_red, col_red, op=operation)
+                                global_red = np.zeros(local_red.size * self.comm_dims[1],
                                                       dtype=dtype)
-                                row_comm.Allgather(col_sum, global_sum)
+                                row_comm.Allgather(col_red, global_red)
 
                         if axis == 1:
-                                row_sum = np.zeros(local_sum.size, dtype=dtype)
-                                row_comm.Allreduce(local_sum, row_sum, op=MPI.SUM)
-                                global_sum = np.zeros(local_sum.size * self.comm_dims[0],
+                                row_red = np.zeros(local_red.size, dtype=dtype)
+                                row_comm.Allreduce(local_red, row_red, op=operation)
+                                global_red = np.zeros(local_red.size * self.comm_dims[0],
                                                       dtype=dtype)
-                                col_comm.Allgather(row_sum, global_sum)
+                                col_comm.Allgather(row_red, global_red)
 
-                return self.__class__(global_sum,
-                                      dtype=global_sum.dtype,
-                                      comm=self.comm,
-                                      dist='u')
-
-
-        def min(self, axis=None, out=None):
-                if axis is not None and axis > self.ndim - 1:
-                        raise ValueError("'axis' entry is out of bounds")
-                if out is not None:
-                        raise NotSupportedError("'out' field not supported")
-
-                # Compute local min with specified parms on local base array
-                local_min = np.asarray(self.base.min(axis=axis))
-
-                if is_undistributed(self.dist):
-                        global_min = local_min
-
-                if axis is None and not is_undistributed(self.dist):
-                        global_min = np.zeros(local_min.size, dtype=self.dtype)
-                        self.comm.Allreduce(local_min, global_min, op=MPI.MIN)
-
-                if is_row_block_distributed(self.dist):
-                        if axis == 0:
-                                global_min = np.zeros(local_min.size, dtype=self.dtype)
-                                self.comm.Allreduce(local_min, global_min, op=MPI.MIN)
-                        if axis == 1:
-                                global_min = np.zeros(local_min.size * self.comm.size,
-                                                      dtype=self.dtype)
-                                self.comm.Allgather(local_min, global_min)
-
-                if is_column_block_distributed(self.dist):
-                        if axis == 0:
-                                global_min = np.zeros(local_min.size * self.comm.size,
-                                                      dtype=self.dtype)
-                                self.comm.Allgather(local_min, global_min)
-                        if axis == 1:
-                                global_min = np.zeros(local_min.size, dtype=self.dtype)
-                                self.comm.Allreduce(local_min, global_min, op=MPI.MIN)
-
-                if is_block_block_distributed(self.dist):
-                        row_comm = self.comm.Split(color = self.comm_coord[0],
-                                                   key = self.comm.Get_rank())
-                        col_comm = self.comm.Split(color = self.comm_coord[1],
-                                                   key = self.comm.Get_rank())
-                        if axis == 0:
-                                col_min = np.zeros(local_min.size, dtype=self.dtype)
-                                col_comm.Allreduce(local_min, col_min, op=MPI.MIN)
-                                global_min = np.zeros(local_min.size * self.comm_dims[1],
-                                                      dtype=self.dtype)
-                                row_comm.Allgather(col_min, global_min)
-
-                        if axis == 1:
-                                row_min = np.zeros(local_min.size, dtype=self.dtype)
-                                row_comm.Allreduce(local_min, row_min, op=MPI.MIN)
-                                global_min = np.zeros(local_min.size * self.comm_dims[0],
-                                                      dtype=self.dtype)
-                                col_comm.Allgather(row_min, global_min)
-
-                return self.__class__(global_min,
-                                      dtype=global_min.dtype,
-                                      comm=self.comm,
-                                      dist='u')
-
-
-        def max(self, axis=None, out=None):
-                if axis is not None and axis > self.ndim - 1:
-                        raise ValueError("'axis' entry is out of bounds")
-                if out is not None:
-                        raise NotSupportedError("'out' field not supported")
-
-                # Compute local max with specified parms on local base array
-                local_max = np.asarray(self.base.max(axis=axis))
-
-                if is_undistributed(self.dist):
-                        global_max = local_max
-
-                if axis is None and not is_undistributed(self.dist):
-                        global_max = np.zeros(local_max.size, dtype=self.dtype)
-                        self.comm.Allreduce(local_max, global_max, op=MPI.MAX)
-
-                if is_row_block_distributed(self.dist):
-                        if axis == 0:
-                                global_max = np.zeros(local_max.size, dtype=self.dtype)
-                                self.comm.Allreduce(local_max, global_max, op=MPI.MAX)
-                        if axis == 1:
-                                global_max = np.zeros(local_max.size * self.comm.size,
-                                                      dtype=self.dtype)
-                                self.comm.Allgather(local_max, global_max)
-
-                if is_column_block_distributed(self.dist):
-                        if axis == 0:
-                                global_max = np.zeros(local_max.size * self.comm.size,
-                                                      dtype=self.dtype)
-                                self.comm.Allgather(local_max, global_max)
-                        if axis == 1:
-                                global_max = np.zeros(local_max.size, dtype=self.dtype)
-                                self.comm.Allreduce(local_max, global_max, op=MPI.MAX)
-
-                if is_block_block_distributed(self.dist):
-                        row_comm = self.comm.Split(color = self.comm_coord[0],
-                                                   key = self.comm.Get_rank())
-                        col_comm = self.comm.Split(color = self.comm_coord[1],
-                                                   key = self.comm.Get_rank())
-                        if axis == 0:
-                                col_max = np.zeros(local_max.size, dtype=self.dtype)
-                                col_comm.Allreduce(local_max, col_max, op=MPI.MAX)
-                                global_max = np.zeros(local_max.size * self.comm_dims[1],
-                                                      dtype=self.dtype)
-                                row_comm.Allgather(col_max, global_max)
-
-                        if axis == 1:
-                                row_max = np.zeros(local_max.size, dtype=self.dtype)
-                                row_comm.Allreduce(local_max, row_max, op=MPI.MAX)
-                                global_max = np.zeros(local_max.size * self.comm_dims[0],
-                                                      dtype=self.dtype)
-                                col_comm.Allgather(row_max, global_max)
-
-                return self.__class__(global_max,
-                                      dtype=global_max.dtype,
+                return self.__class__(global_red,
+                                      dtype=global_red.dtype,
                                       comm=self.comm,
                                       dist='u')
