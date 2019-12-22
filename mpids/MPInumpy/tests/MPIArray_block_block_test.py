@@ -14,11 +14,12 @@ class MPIArrayBlockBlockTest(MPIArray_default_test.MPIArrayDefaultTest):
                 # Block block distribution
                 parms['dist'] = ('b', 'b')
                 #Add 1 to avoid divide by zero errors/warnings
-                parms['data'] = (np.array(list(range(16))).reshape(4,4) + 1).tolist()
-                local_data_map = {0: (np.array(list(range(16))).reshape(4,4) + 1)[:2,:2],
-                                  1: (np.array(list(range(16))).reshape(4,4) + 1)[:2,2:],
-                                  2: (np.array(list(range(16))).reshape(4,4) + 1)[2:,:2],
-                                  3: (np.array(list(range(16))).reshape(4,4) + 1)[2:,2:]}
+                np_data = (np.array(list(range(16))).reshape(4,4) + 1)
+                parms['data'] = np_data.tolist()
+                local_data_map = {0: np_data[:2,:2],
+                                  1: np_data[:2,2:],
+                                  2: np_data[2:,:2],
+                                  3: np_data[2:,2:]}
                 parms['local_data'] = local_data_map[parms['rank']].tolist()
                 parms['comm_dims'] = [2, 2]
                 rank_coord_map = {0: [0, 0],

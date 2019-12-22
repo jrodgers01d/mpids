@@ -112,7 +112,7 @@ class MPIArray(np.ndarray):
                 comm_shape = []
                 axis = 0
                 for axis_dim in local_shape:
-                    axis_length = self._custom_reduction(MPI.SUM,
+                    axis_length = self.__custom_reduction(MPI.SUM,
                                                          np.asarray(local_shape[axis]),
                                                          axis = axis)
                     comm_shape.append(axis_length[0])
@@ -140,9 +140,9 @@ class MPIArray(np.ndarray):
                         MPIArray with sum values along specified axis with
                         undistributed(copies on all procs) distribution.
                 """
-                self._check_reduction_parms(**kwargs)
+                self.__check_reduction_parms(**kwargs)
                 local_sum = np.asarray(self.base.sum(**kwargs))
-                global_sum = self._custom_reduction(MPI.SUM, local_sum, **kwargs)
+                global_sum = self.__custom_reduction(MPI.SUM, local_sum, **kwargs)
                 return self.__class__(global_sum,
                                       dtype=global_sum.dtype,
                                       comm=self.comm,
@@ -167,9 +167,9 @@ class MPIArray(np.ndarray):
                         MPIArray with min values along specified axis with
                         undistributed(copies on all procs) distribution.
                 """
-                self._check_reduction_parms(**kwargs)
+                self.__check_reduction_parms(**kwargs)
                 local_min = np.asarray(self.base.min(**kwargs))
-                global_min = self._custom_reduction(MPI.MIN, local_min, **kwargs)
+                global_min = self.__custom_reduction(MPI.MIN, local_min, **kwargs)
                 return self.__class__(global_min,
                                       dtype=global_min.dtype,
                                       comm=self.comm,
@@ -194,16 +194,16 @@ class MPIArray(np.ndarray):
                         MPIArray with max values along specified axis with
                         undistributed(copies on all procs) distribution.
                 """
-                self._check_reduction_parms(**kwargs)
+                self.__check_reduction_parms(**kwargs)
                 local_max = np.asarray(self.base.max(**kwargs))
-                global_max = self._custom_reduction(MPI.MAX, local_max, **kwargs)
+                global_max = self.__custom_reduction(MPI.MAX, local_max, **kwargs)
                 return self.__class__(global_max,
                                       dtype=global_max.dtype,
                                       comm=self.comm,
                                       dist='u')
 
 
-        def _check_reduction_parms(self, axis=None, dtype=None, out=None):
+        def __check_reduction_parms(self, axis=None, dtype=None, out=None):
                 if axis is not None and axis > self.ndim - 1:
                         raise ValueError("'axis' entry is out of bounds")
                 if out is not None:
@@ -211,7 +211,7 @@ class MPIArray(np.ndarray):
                 return
 
 
-        def _custom_reduction(self, operation, local_red, axis=None,
+        def __custom_reduction(self, operation, local_red, axis=None,
                               dtype=None, out=None):
                 if dtype is None: dtype = self.dtype
 
