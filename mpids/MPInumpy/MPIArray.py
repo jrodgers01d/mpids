@@ -122,8 +122,8 @@ class MPIArray(np.ndarray):
 
 
         #Custom reduction method implementations
-        def sum(self, **kwargs):
-                """ Sum of array elements in distributed matrix over a
+        def max(self, **kwargs):
+                """ Max of array elements in distributed matrix over a
                 given axis.
 
                 Parameters
@@ -137,14 +137,45 @@ class MPIArray(np.ndarray):
                 Returns
                 -------
                 MPIArray : numpy.ndarray sub class
-                        MPIArray with sum values along specified axis with
+                        MPIArray with max values along specified axis with
                         undistributed(copies on all procs) distribution.
                 """
                 self.__check_reduction_parms(**kwargs)
-                local_sum = np.asarray(self.base.sum(**kwargs))
-                global_sum = self.__custom_reduction(MPI.SUM, local_sum, **kwargs)
-                return self.__class__(global_sum,
-                                      dtype=global_sum.dtype,
+                local_max = np.asarray(self.base.max(**kwargs))
+                global_max = self.__custom_reduction(MPI.MAX, local_max, **kwargs)
+                return self.__class__(global_max,
+                                      dtype=global_max.dtype,
+                                      comm=self.comm,
+                                      dist='u')
+
+
+        def mean(self, **kwargs):
+                """ Mean of array elements in distributed matrix over a
+                given axis.
+
+                Parameters
+                ----------
+                axis : None or int
+                        Axis or axes along which the sum is performed.
+                dtype : dtype, optional
+                        Specified data type of returned array and of the
+                        accumulator in which the elements are summed.
+
+                Returns
+                -------
+                MPIArray : numpy.ndarray sub class
+                        MPIArray with max values along specified axis with
+                        undistributed(copies on all procs) distribution.
+                """
+                global_sum = self.sum(**kwargs)
+                axis = kwargs.get('axis')
+                if axis is not None:
+                        global_mean = global_sum * 1. / self.globalshape[axis]
+                else:
+                        global_mean = global_sum * 1. / self.globalsize
+
+                return self.__class__(global_mean,
+                                      dtype=global_mean.dtype,
                                       comm=self.comm,
                                       dist='u')
 
@@ -176,8 +207,8 @@ class MPIArray(np.ndarray):
                                       dist='u')
 
 
-        def max(self, **kwargs):
-                """ Max of array elements in distributed matrix over a
+        def sum(self, **kwargs):
+                """ Sum of array elements in distributed matrix over a
                 given axis.
 
                 Parameters
@@ -191,14 +222,14 @@ class MPIArray(np.ndarray):
                 Returns
                 -------
                 MPIArray : numpy.ndarray sub class
-                        MPIArray with max values along specified axis with
+                        MPIArray with sum values along specified axis with
                         undistributed(copies on all procs) distribution.
                 """
                 self.__check_reduction_parms(**kwargs)
-                local_max = np.asarray(self.base.max(**kwargs))
-                global_max = self.__custom_reduction(MPI.MAX, local_max, **kwargs)
-                return self.__class__(global_max,
-                                      dtype=global_max.dtype,
+                local_sum = np.asarray(self.base.sum(**kwargs))
+                global_sum = self.__custom_reduction(MPI.SUM, local_sum, **kwargs)
+                return self.__class__(global_sum,
+                                      dtype=global_sum.dtype,
                                       comm=self.comm,
                                       dist='u')
 

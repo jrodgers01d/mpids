@@ -31,7 +31,7 @@ class MPIArrayDefaultTest(unittest.TestCase):
                 self.local_data = parms.get('local_data')
                 self.comm_dims = parms.get('comm_dims')
                 self.comm_coords = parms.get('comm_coords')
-                
+
                 self.np_array = np.array(self.data)
                 self.np_local_array = np.array(self.local_data)
                 self.mpi_array = mpi_np.array(self.data, comm=self.comm, dist=self.dist)
@@ -185,6 +185,56 @@ class MPIArrayDefaultTest(unittest.TestCase):
                 self.assertEqual(np_last_column.nbytes, last_column.nbytes)
 
 
+        def test_custom_max_method(self):
+                #Default max of entire array contents
+                self.assertEqual(self.np_array.max(), self.mpi_array.max())
+
+                #Max along specified axies
+                self.assertTrue(np.alltrue(self.np_array.max(axis=0) == self.mpi_array.max(axis=0)))
+                self.assertTrue(np.alltrue(self.np_array.max(axis=1) == self.mpi_array.max(axis=1)))
+                with self.assertRaises(ValueError):
+                        self.mpi_array.max(axis=self.mpi_array.ndim)
+
+                #Use of 'out' field
+                mpi_out = np.zeros(())
+                with self.assertRaises(NotSupportedError):
+                        self.mpi_array.max(out=mpi_out)
+
+
+        def test_custom_mean_method(self):
+                #Default mean of entire array contents
+                self.assertEqual(self.np_array.mean(), self.mpi_array.mean())
+
+                #Mean along specified axies
+                print(self.np_array.mean(axis=0))
+                print(self.mpi_array.mean(axis=0))
+                self.assertTrue(np.alltrue(self.np_array.mean(axis=0) == self.mpi_array.mean(axis=0)))
+                self.assertTrue(np.alltrue(self.np_array.mean(axis=1) == self.mpi_array.mean(axis=1)))
+                with self.assertRaises(ValueError):
+                        self.mpi_array.mean(axis=self.mpi_array.ndim)
+
+                #Use of 'out' field
+                mpi_out = np.zeros(())
+                with self.assertRaises(NotSupportedError):
+                        self.mpi_array.mean(out=mpi_out)
+
+
+        def test_custom_min_method(self):
+                #Default min of entire array contents
+                self.assertEqual(self.np_array.min(), self.mpi_array.min())
+
+                #Min along specified axies
+                self.assertTrue(np.alltrue(self.np_array.min(axis=0) == self.mpi_array.min(axis=0)))
+                self.assertTrue(np.alltrue(self.np_array.min(axis=1) == self.mpi_array.min(axis=1)))
+                with self.assertRaises(ValueError):
+                        self.mpi_array.min(axis=self.mpi_array.ndim)
+
+                #Use of 'out' field
+                mpi_out = np.zeros(())
+                with self.assertRaises(NotSupportedError):
+                        self.mpi_array.min(out=mpi_out)
+
+
         def test_custom_sum_method(self):
                 #Default sum of entire array contents
                 self.assertEqual(self.np_array.sum(), self.mpi_array.sum())
@@ -206,38 +256,6 @@ class MPIArrayDefaultTest(unittest.TestCase):
                 mpi_out = np.zeros(())
                 with self.assertRaises(NotSupportedError):
                         self.mpi_array.sum(out=mpi_out)
-
-
-        def test_custom_min_method(self):
-                #Default min of entire array contents
-                self.assertEqual(self.np_array.min(), self.mpi_array.min())
-
-                #Min along specified axies
-                self.assertTrue(np.alltrue(self.np_array.min(axis=0) == self.mpi_array.min(axis=0)))
-                self.assertTrue(np.alltrue(self.np_array.min(axis=1) == self.mpi_array.min(axis=1)))
-                with self.assertRaises(ValueError):
-                        self.mpi_array.min(axis=self.mpi_array.ndim)
-
-                #Use of 'out' field
-                mpi_out = np.zeros(())
-                with self.assertRaises(NotSupportedError):
-                        self.mpi_array.min(out=mpi_out)
-
-
-        def test_custom_max_method(self):
-                #Default max of entire array contents
-                self.assertEqual(self.np_array.max(), self.mpi_array.max())
-
-                #Max along specified axies
-                self.assertTrue(np.alltrue(self.np_array.max(axis=0) == self.mpi_array.max(axis=0)))
-                self.assertTrue(np.alltrue(self.np_array.max(axis=1) == self.mpi_array.max(axis=1)))
-                with self.assertRaises(ValueError):
-                        self.mpi_array.max(axis=self.mpi_array.ndim)
-
-                #Use of 'out' field
-                mpi_out = np.zeros(())
-                with self.assertRaises(NotSupportedError):
-                        self.mpi_array.max(out=mpi_out)
 
 
 if __name__ == '__main__':
