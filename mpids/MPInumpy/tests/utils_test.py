@@ -1,10 +1,7 @@
 import unittest
 import numpy as np
 from mpi4py import MPI
-from mpids.MPInumpy.utils import distribution_to_dimensions, get_block_index, \
-                                 get_cart_coords, get_comm_dims, determine_local_data
-from mpids.MPInumpy.utils import is_undistributed, is_row_block_distributed, \
-                                 is_column_block_distributed, is_block_block_distributed
+from mpids.MPInumpy.utils import *
 from mpids.MPInumpy.errors import InvalidDistributionError
 
 
@@ -150,7 +147,6 @@ class UtilsDistributionDependentDefaultTest(unittest.TestCase):
                                                                    self.comm_coord)))
 
 
-
 class UtilsUndistributedTest(UtilsDistributionDependentDefaultTest):
 
         def create_setUp_parms(self):
@@ -167,6 +163,7 @@ class UtilsUndistributedTest(UtilsDistributionDependentDefaultTest):
                 parms['local_data'] = parms['data']
                 parms['local_data_2d'] = parms['data_2d']
                 return parms
+
 
 class UtilsAltRowBlockTest(UtilsDistributionDependentDefaultTest):
 

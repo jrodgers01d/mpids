@@ -1,6 +1,11 @@
 from mpi4py import MPI
 from mpids.MPInumpy.errors import InvalidDistributionError
 
+__all__ = ['determine_local_data', 'get_block_index', 'get_cart_coords',
+           'get_comm_dims', 'distribution_to_dimensions',
+           'is_undistributed', 'is_row_block_distributed',
+           'is_column_block_distributed', 'is_block_block_distributed']
+
 def determine_local_data(array_data, dist, comm_dims, comm_coord):
         """ Determine array like data to be distributed among processes
 
