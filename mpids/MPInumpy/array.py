@@ -52,7 +52,8 @@ def array(array_data, dtype=None, copy=True, order=None, subok=False, ndmin=0,
         comm_dims = get_comm_dims(size, dist)
         comm_coord = get_cart_coords(comm_dims, size, rank)
 
-        local_data = determine_local_data(array_data, dist, comm_dims, comm_coord)
+        local_data, local_to_global = \
+                determine_local_data(array_data, dist, comm_dims, comm_coord)
 
         return MPIArray(local_data,
                         dtype=dtype,
@@ -63,4 +64,5 @@ def array(array_data, dtype=None, copy=True, order=None, subok=False, ndmin=0,
                         comm=comm,
                         dist=dist,
                         comm_dims=comm_dims,
-                        comm_coord=comm_coord)
+                        comm_coord=comm_coord,
+                        local_to_global=local_to_global)
