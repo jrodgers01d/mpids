@@ -7,16 +7,8 @@ from mpids.MPInumpy.utils import is_undistributed, is_row_block_distributed, \
                                  is_column_block_distributed, is_block_block_distributed
 from mpids.MPInumpy.errors import InvalidDistributionError
 
-class UtilsTest(unittest.TestCase):
 
-        def setUp(self):
-                self.procs = 3
-                self.ranks = [0, 1, 2]
-                self.data = list(range(10))
-                self.data_2d = np.array(list(range(20))).reshape(5,4)
-                self.data_length = len(self.data)
-                self.default_dist = 'b'
-
+class UtilsDistributionIndependentTest(unittest.TestCase):
 
         def test_distribution_checks(self):
                 undist = 'u'
@@ -50,190 +42,216 @@ class UtilsTest(unittest.TestCase):
                 self.assertFalse(is_block_block_distributed(col_block))
 
 
+        def test_get_block_index(self):
+                data_length = 10
+                rank = MPI.COMM_WORLD.Get_rank()
+                num_procs = 3
+                rank_block_map = {0: (0, 4),
+                                  1: (4, 7),
+                                  2: (7, 10)}
+                if rank < num_procs:
+                    self.assertEqual(rank_block_map[rank],
+                                     get_block_index(data_length, num_procs, rank))
+
+
+        def test_distribution_to_dimensions_with_invalid_distributions(self):
+                procs = 4
+                # Check unsupported distributions
+                with self.assertRaises(InvalidDistributionError):
+                        distribution_to_dimensions(('b','b','x'), procs)
+                with self.assertRaises(InvalidDistributionError):
+                        distribution_to_dimensions(('','b'), procs)
+                with self.assertRaises(InvalidDistributionError):
+                        distribution_to_dimensions(('u','u'), procs)
+
+
+class UtilsDistributionDependentDefaultTest(unittest.TestCase):
+
+        def create_setUp_parms(self):
+                parms = {}
+                parms['procs'] = MPI.COMM_WORLD.Get_size()
+                parms['rank'] = MPI.COMM_WORLD.Get_rank()
+                parms['data'] = list(range(10))
+                parms['data_2d'] = np.array(list(range(20))).reshape(5,4)
+                # Default distribution
+                parms['dist'] = 'b'
+                parms['comm_dims'] = [parms['procs']]
+                parms['comm_coord'] = [parms['rank']]
+                parms['dist_to_dims'] = 1
+                parms['single_dim_support'] = True
+                rank_local_data_map = {0 : parms['data'][0:3],
+                                       1 : parms['data'][3:6],
+                                       2 : parms['data'][6:8],
+                                       3 : parms['data'][8:10]}
+                parms['local_data'] = rank_local_data_map[parms['rank']]
+                rank_local_data_2d_map = {0 : parms['data_2d'][0:2],
+                                          1 : parms['data_2d'][2:3],
+                                          2 : parms['data_2d'][3:4],
+                                          3 : parms['data_2d'][4:5]}
+                parms['local_data_2d'] = rank_local_data_2d_map[parms['rank']]
+                return parms
+
+
+        def setUp(self):
+                parms = self.create_setUp_parms()
+                self.procs = parms.get('procs')
+                self.rank = parms.get('rank')
+                self.data = parms.get('data')
+                self.data_2d = parms.get('data_2d')
+                self.dist = parms.get('dist')
+                self.comm_dims = parms.get('comm_dims')
+                self.comm_coord = parms.get('comm_coord')
+                self.dist_to_dims = parms.get('dist_to_dims')
+                self.single_dim_support = parms.get('single_dim_support')
+                self.local_data = parms.get('local_data')
+                self.local_data_2d = parms.get('local_data_2d')
+
+
         def test_get_comm_dims(self):
-                self.assertEqual(None, get_comm_dims(self.procs, 'u'))
-                self.assertEqual([self.procs], get_comm_dims(self.procs, self.default_dist))
-                self.assertEqual([1, self.procs], get_comm_dims(self.procs, ('*', 'b')))
-                self.assertEqual([self.procs, 1], get_comm_dims(self.procs, ('b', 'b')))
-                self.assertEqual([2, 2], get_comm_dims(4, ('b', 'b')))
+                self.assertEqual(self.comm_dims, get_comm_dims(self.procs, self.dist))
 
 
         def test_get_cart_coords(self):
-                procs = 2
-                dist = 'u'
-                dims = get_comm_dims(procs, dist)
-                self.assertEqual(None, get_cart_coords(dims, procs, 0))
-                self.assertEqual(None, get_cart_coords(dims, procs, 0))
-
-                procs = 4
-                dist = 'b'
-                dims = get_comm_dims(procs, dist)
-                self.assertEqual([4], dims)
-                self.assertEqual([0], get_cart_coords(dims, procs, 0))
-                self.assertEqual([1], get_cart_coords(dims, procs, 1))
-                self.assertEqual([2], get_cart_coords(dims, procs, 2))
-                self.assertEqual([3], get_cart_coords(dims, procs, 3))
-
-                procs = 4
-                dist = ('b', 'b')
-                dims = get_comm_dims(procs, dist)
-                self.assertEqual([2, 2], dims)
-                self.assertEqual([0, 0], get_cart_coords(dims, procs, 0))
-                self.assertEqual([0, 1], get_cart_coords(dims, procs, 1))
-                self.assertEqual([1, 0], get_cart_coords(dims, procs, 2))
-                self.assertEqual([1, 1], get_cart_coords(dims, procs, 3))
-
-                procs = 3
-                dist = ('b', 'b')
-                dims = get_comm_dims(procs, dist)
-                self.assertEqual([3, 1], dims)
-                self.assertEqual([0, 0], get_cart_coords(dims, procs, 0))
-                self.assertEqual([1, 0], get_cart_coords(dims, procs, 1))
-                self.assertEqual([2, 0], get_cart_coords(dims, procs, 2))
-
-
-        def test_get_block_index(self):
-                ranks = [0, 1, 2]
-                num_procs = len(ranks)
-                self.assertEqual((0, 4), get_block_index(self.data_length, num_procs, ranks[0]))
-                self.assertEqual((4, 7), get_block_index(self.data_length, num_procs, ranks[1]))
-                self.assertEqual((7, 10), get_block_index(self.data_length, num_procs, ranks[2]))
+                self.assertEqual(self.comm_coord,
+                                 get_cart_coords(self.comm_dims, self.procs, self.rank))
 
 
         def test_distribution_to_dimensions(self):
-                self.assertEqual(1,
-                    distribution_to_dimensions(self.default_dist, self.procs))
-                self.assertEqual(1,
-                    distribution_to_dimensions(('b','*'), self.procs))
-                self.assertEqual(2, distribution_to_dimensions(('b', 'b'), self.procs))
-                self.assertEqual(2, distribution_to_dimensions(['b', 'b'], self.procs))
-                self.assertEqual([1, self.procs],
-                    distribution_to_dimensions(('*','b'), self.procs))
-
-                # Check unsupported distributions
-                with self.assertRaises(InvalidDistributionError):
-                        distribution_to_dimensions(('b','b','x'), self.procs)
-                with self.assertRaises(InvalidDistributionError):
-                        distribution_to_dimensions(('','b'), self.procs)
-                with self.assertRaises(InvalidDistributionError):
-                        distribution_to_dimensions(('u','u'), self.procs)
+                #Does not apply to undistributed
+                if is_undistributed(self.dist):
+                        return
+                self.assertEqual(self.dist_to_dims,
+                                 distribution_to_dimensions(self.dist, self.procs))
 
 
-        def test_local_data_default_row_block_distribution(self):
-                procs = 3
-                dist = 'b'
-                dims = get_comm_dims(procs, dist)
-                coord = lambda rank: get_cart_coords(dims, procs, rank)
-                local_data_rank0 = self.data[0:4]
-                local_data_rank1 = self.data[4:7]
-                local_data_rank2 = self.data[7:10]
-
-                self.assertEqual(local_data_rank0, determine_local_data(self.data,
-                                                                  self.default_dist,
-                                                                  dims,
-                                                                  coord(0)))
-
-                self.assertEqual(local_data_rank1, determine_local_data(self.data,
-                                                                  self.default_dist,
-                                                                  dims,
-                                                                  coord(1)))
-
-                self.assertEqual(local_data_rank2, determine_local_data(self.data,
-                                                                  self.default_dist,
-                                                                  dims,
-                                                                  coord(2)))
-
-
-        def test_local_data_block_block_distribution(self):
-                procs = 4
-                dist = ('b', 'b')
-                dims = get_comm_dims(procs, dist)
-                coord = lambda rank: get_cart_coords(dims, procs, rank)
-                local_data_rank0 = self.data_2d[0:3, 0:2]
-                local_data_rank1 = self.data_2d[0:3, 2:4]
-                local_data_rank2 = self.data_2d[3:5, 0:2]
-                local_data_rank3 = self.data_2d[3:5, 2:4]
-                self.assertTrue(np.alltrue(
-                    local_data_rank0 == determine_local_data(self.data_2d, dist, dims, coord(0))))
-                self.assertTrue(np.alltrue(
-                    local_data_rank1 == determine_local_data(self.data_2d, dist, dims, coord(1))))
-                self.assertTrue(np.alltrue(
-                    local_data_rank2 == determine_local_data(self.data_2d, dist, dims, coord(2))))
-                self.assertTrue(np.alltrue(
-                    local_data_rank3 == determine_local_data(self.data_2d, dist, dims, coord(3))))
-
-                # Test cases where dim input data != dim distribution
-                with self.assertRaises(InvalidDistributionError):
-                        determine_local_data(self.data, dist, dims, coord(0))
-                with self.assertRaises(InvalidDistributionError):
-                        determine_local_data(self.data, dist, dims, coord(1))
-                with self.assertRaises(InvalidDistributionError):
-                        determine_local_data(self.data, dist, dims, coord(2))
-                with self.assertRaises(InvalidDistributionError):
-                        determine_local_data(self.data, dist, dims, coord(3))
-
-        def test_local_data_col_block_distribution(self):
-                procs = 4
-                dist = ('*', 'b')
-                dims = get_comm_dims(procs, dist)
-                coord = lambda rank: get_cart_coords(dims, procs, rank)
-                local_data_rank0 = self.data_2d[:, slice(0, 1)]
-                local_data_rank1 = self.data_2d[:, slice(1, 2)]
-                local_data_rank2 = self.data_2d[:, slice(2, 3)]
-                local_data_rank3 = self.data_2d[:, slice(4, 4)]
-                self.assertTrue(np.alltrue(
-                    local_data_rank0 == determine_local_data(self.data_2d, dist, dims, coord(0))))
-                self.assertTrue(np.alltrue(
-                    local_data_rank1 == determine_local_data(self.data_2d, dist, dims, coord(1))))
-                self.assertTrue(np.alltrue(
-                    local_data_rank2 == determine_local_data(self.data_2d, dist, dims, coord(2))))
-                self.assertTrue(np.alltrue(
-                    local_data_rank3 == determine_local_data(self.data_2d, dist, dims, coord(3))))
-
-                # Test cases where dim input data != dim distribution
-                with self.assertRaises(InvalidDistributionError):
-                        determine_local_data(self.data, dist, dims, coord(0))
-                with self.assertRaises(InvalidDistributionError):
-                        determine_local_data(self.data, dist, dims, coord(1))
-                with self.assertRaises(InvalidDistributionError):
-                        determine_local_data(self.data, dist, dims, coord(2))
-                with self.assertRaises(InvalidDistributionError):
-                        determine_local_data(self.data, dist, dims, coord(3))
-
-
-        def test_local_data_undistributed_distribution(self):
-                procs = 4
-                dist = 'u'
-                dims = get_comm_dims(procs, dist)
-                coord = lambda rank: get_cart_coords(dims, procs, rank)
-
+        def test_determine_local_data(self):
                 # 1-D Data
-                local_data_rank0 = self.data
-                local_data_rank1 = self.data
-                local_data_rank2 = self.data
-                local_data_rank3 = self.data
-                self.assertTrue(np.alltrue(
-                    local_data_rank0 == determine_local_data(self.data, dist, dims, coord(0))))
-                self.assertTrue(np.alltrue(
-                    local_data_rank1 == determine_local_data(self.data, dist, dims, coord(1))))
-                self.assertTrue(np.alltrue(
-                    local_data_rank2 == determine_local_data(self.data, dist, dims, coord(2))))
-                self.assertTrue(np.alltrue(
-                    local_data_rank3 == determine_local_data(self.data, dist, dims, coord(3))))
+                if self.single_dim_support:
+                        self.assertEqual(self.local_data,
+                                         determine_local_data(self.data,
+                                                              self.dist,
+                                                              self.comm_dims,
+                                                              self.comm_coord))
+                else:
+                        # Test cases where dim input data != dim distribution
+                        with self.assertRaises(InvalidDistributionError):
+                                determine_local_data(self.data,
+                                                     self.dist,
+                                                     self.comm_dims,
+                                                     self.comm_coord)
 
                 # 2-D Data
-                local_data_rank0 = self.data_2d
-                local_data_rank1 = self.data_2d
-                local_data_rank2 = self.data_2d
-                local_data_rank3 = self.data_2d
                 self.assertTrue(np.alltrue(
-                    local_data_rank0 == determine_local_data(self.data_2d, dist, dims, coord(0))))
-                self.assertTrue(np.alltrue(
-                    local_data_rank1 == determine_local_data(self.data_2d, dist, dims, coord(1))))
-                self.assertTrue(np.alltrue(
-                    local_data_rank2 == determine_local_data(self.data_2d, dist, dims, coord(2))))
-                self.assertTrue(np.alltrue(
-                    local_data_rank3 == determine_local_data(self.data_2d, dist, dims, coord(3))))
+                        self.local_data_2d == determine_local_data(self.data_2d,
+                                                                   self.dist,
+                                                                   self.comm_dims,
+                                                                   self.comm_coord)))
+
+
+
+class UtilsUndistributedTest(UtilsDistributionDependentDefaultTest):
+
+        def create_setUp_parms(self):
+                parms = {}
+                parms['procs'] = MPI.COMM_WORLD.Get_size()
+                parms['rank'] = MPI.COMM_WORLD.Get_rank()
+                parms['data'] = list(range(10))
+                parms['data_2d'] = np.array(list(range(20))).reshape(5,4)
+                # Undistributed distribution
+                parms['dist'] = 'u'
+                parms['comm_dims'] = None
+                parms['comm_coord'] = None
+                parms['single_dim_support'] = True
+                parms['local_data'] = parms['data']
+                parms['local_data_2d'] = parms['data_2d']
+                return parms
+
+class UtilsAltRowBlockTest(UtilsDistributionDependentDefaultTest):
+
+        def create_setUp_parms(self):
+                parms = {}
+                parms['procs'] = MPI.COMM_WORLD.Get_size()
+                parms['rank'] = MPI.COMM_WORLD.Get_rank()
+                parms['data'] = list(range(10))
+                parms['data_2d'] = np.array(list(range(20))).reshape(5,4)
+                # Alternate row block distribution
+                parms['dist'] = ('b', '*')
+                parms['comm_dims'] = [parms['procs']]
+                parms['comm_coord'] = [parms['rank']]
+                parms['dist_to_dims'] = 1
+                parms['single_dim_support'] = True
+                rank_local_data_map = {0 : parms['data'][0:3],
+                                       1 : parms['data'][3:6],
+                                       2 : parms['data'][6:8],
+                                       3 : parms['data'][8:10]}
+                parms['local_data'] = rank_local_data_map[parms['rank']]
+                rank_local_data_2d_map = {0 : parms['data_2d'][0:2],
+                                          1 : parms['data_2d'][2:3],
+                                          2 : parms['data_2d'][3:4],
+                                          3 : parms['data_2d'][4:5]}
+                parms['local_data_2d'] = rank_local_data_2d_map[parms['rank']]
+                return parms
+
+
+class UtilsColBlockTest(UtilsDistributionDependentDefaultTest):
+
+        def create_setUp_parms(self):
+                parms = {}
+                parms['procs'] = MPI.COMM_WORLD.Get_size()
+                parms['rank'] = MPI.COMM_WORLD.Get_rank()
+                parms['data'] = list(range(10))
+                parms['data_2d'] = np.array(list(range(20))).reshape(5,4)
+                # Column block distribution
+                parms['dist'] = ('*', 'b')
+                parms['comm_dims'] = [1, parms['procs']]
+                parms['comm_coord'] = [0, parms['rank']]
+                parms['dist_to_dims'] = [1, parms['procs']]
+                parms['single_dim_support'] = False
+                rank_local_data_2d_map = {0 : parms['data_2d'][:, slice(0, 1)],
+                                          1 : parms['data_2d'][:, slice(1, 2)],
+                                          2 : parms['data_2d'][:, slice(2, 3)],
+                                          3 : parms['data_2d'][:, slice(3, 4)]}
+                parms['local_data_2d'] = rank_local_data_2d_map[parms['rank']]
+                return parms
+
+
+class UtilsBlockBlockTest(UtilsDistributionDependentDefaultTest):
+
+        def create_setUp_parms(self):
+                parms = {}
+                parms['procs'] = MPI.COMM_WORLD.Get_size()
+                parms['rank'] = MPI.COMM_WORLD.Get_rank()
+                parms['data'] = list(range(10))
+                parms['data_2d'] = np.array(list(range(20))).reshape(5,4)
+                # Block block distribution
+                parms['dist'] = ('b', 'b')
+                parms['comm_dims'] = [2, 2]
+                rank_coord_map = {0: [0, 0],
+                                  1: [0, 1],
+                                  2: [1, 0],
+                                  3: [1, 1]}
+                parms['comm_coord'] = rank_coord_map[parms['rank']]
+                parms['dist_to_dims'] = 2
+                parms['single_dim_support'] = False
+                rank_local_data_2d_map = {0 : parms['data_2d'][0:3, 0:2],
+                                          1 : parms['data_2d'][0:3, 2:4],
+                                          2 : parms['data_2d'][3:5, 0:2],
+                                          3 : parms['data_2d'][3:5, 2:4]}
+                parms['local_data_2d'] = rank_local_data_2d_map[parms['rank']]
+                return parms
+
+
+        def test_get_comm_non_square_result(self):
+            procs = 3
+            self.assertEqual([procs, 1], get_comm_dims(procs, self.dist))
+
+            rank_coord_map = {0: [0, 0],
+                              1: [1, 0],
+                              2: [2, 0]}
+            dims = get_comm_dims(procs, self.dist)
+            if self.rank < procs:
+                self.assertEqual(rank_coord_map[self.rank],
+                                 get_cart_coords(dims, procs, self.rank))
 
 
 if __name__ == '__main__':
