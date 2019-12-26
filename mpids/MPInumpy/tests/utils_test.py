@@ -64,7 +64,7 @@ class UtilsDistributionIndependentTest(unittest.TestCase):
                         distribution_to_dimensions(('u','u'), procs)
 
 
-class UtilsDistributionDependentDefaultTest(unittest.TestCase):
+class UtilsDefaultTest(unittest.TestCase):
 
         def create_setUp_parms(self):
                 parms = {}
@@ -88,6 +88,16 @@ class UtilsDistributionDependentDefaultTest(unittest.TestCase):
                                           2 : parms['data_2d'][3:4],
                                           3 : parms['data_2d'][4:5]}
                 parms['local_data_2d'] = rank_local_data_2d_map[parms['rank']]
+                local_to_global_map = {0 : {0 : (0, 3)},
+                                       1 : {0 : (3, 6)},
+                                       2 : {0 : (6, 8)},
+                                       3 : {0 : (8, 10)}}
+                parms['local_to_global'] = local_to_global_map[parms['rank']]
+                local_to_global_2d_map = {0 : {0 : (0, 2)},
+                                          1 : {0 : (2, 3)},
+                                          2 : {0 : (3, 4)},
+                                          3 : {0 : (4, 5)}}
+                parms['local_to_global_2d'] = local_to_global_2d_map[parms['rank']]
                 return parms
 
 
@@ -104,6 +114,8 @@ class UtilsDistributionDependentDefaultTest(unittest.TestCase):
                 self.single_dim_support = parms.get('single_dim_support')
                 self.local_data = parms.get('local_data')
                 self.local_data_2d = parms.get('local_data_2d')
+                self.local_to_global = parms.get('local_to_global')
+                self.local_to_global_2d = parms.get('local_to_global_2d')
 
 
         def test_get_comm_dims(self):
@@ -126,7 +138,7 @@ class UtilsDistributionDependentDefaultTest(unittest.TestCase):
         def test_determine_local_data(self):
                 # 1-D Data
                 if self.single_dim_support:
-                        self.assertEqual(self.local_data,
+                        self.assertEqual((self.local_data, self.local_to_global),
                                          determine_local_data(self.data,
                                                               self.dist,
                                                               self.comm_dims,
@@ -140,14 +152,18 @@ class UtilsDistributionDependentDefaultTest(unittest.TestCase):
                                                      self.comm_coord)
 
                 # 2-D Data
-                self.assertTrue(np.alltrue(
-                        self.local_data_2d == determine_local_data(self.data_2d,
-                                                                   self.dist,
-                                                                   self.comm_dims,
-                                                                   self.comm_coord)))
+                local_data_2d, local_to_global = \
+                        determine_local_data(self.data_2d,
+                                             self.dist,
+                                             self.comm_dims,
+                                             self.comm_coord)
+
+                self.assertTrue(np.alltrue(self.local_data_2d == local_data_2d))
+                self.assertEqual(self.local_to_global_2d, local_to_global)
 
 
-class UtilsUndistributedTest(UtilsDistributionDependentDefaultTest):
+
+class UtilsUndistributedTest(UtilsDefaultTest):
 
         def create_setUp_parms(self):
                 parms = {}
@@ -162,10 +178,12 @@ class UtilsUndistributedTest(UtilsDistributionDependentDefaultTest):
                 parms['single_dim_support'] = True
                 parms['local_data'] = parms['data']
                 parms['local_data_2d'] = parms['data_2d']
+                parms['local_to_global'] = None
+                parms['local_to_global_2d'] = None
                 return parms
 
 
-class UtilsAltRowBlockTest(UtilsDistributionDependentDefaultTest):
+class UtilsAltRowBlockTest(UtilsDefaultTest):
 
         def create_setUp_parms(self):
                 parms = {}
@@ -189,10 +207,20 @@ class UtilsAltRowBlockTest(UtilsDistributionDependentDefaultTest):
                                           2 : parms['data_2d'][3:4],
                                           3 : parms['data_2d'][4:5]}
                 parms['local_data_2d'] = rank_local_data_2d_map[parms['rank']]
+                local_to_global_map = {0 : {0 : (0, 3)},
+                                       1 : {0 : (3, 6)},
+                                       2 : {0 : (6, 8)},
+                                       3 : {0 : (8, 10)}}
+                parms['local_to_global'] = local_to_global_map[parms['rank']]
+                local_to_global_2d_map = {0 : {0 : (0, 2)},
+                                          1 : {0 : (2, 3)},
+                                          2 : {0 : (3, 4)},
+                                          3 : {0 : (4, 5)}}
+                parms['local_to_global_2d'] = local_to_global_2d_map[parms['rank']]
                 return parms
 
 
-class UtilsColBlockTest(UtilsDistributionDependentDefaultTest):
+class UtilsColBlockTest(UtilsDefaultTest):
 
         def create_setUp_parms(self):
                 parms = {}
@@ -211,10 +239,17 @@ class UtilsColBlockTest(UtilsDistributionDependentDefaultTest):
                                           2 : parms['data_2d'][:, slice(2, 3)],
                                           3 : parms['data_2d'][:, slice(3, 4)]}
                 parms['local_data_2d'] = rank_local_data_2d_map[parms['rank']]
+                parms['local_to_global'] = None
+                local_to_global_2d_map = {0 : {0 : (0, 5), 1 : (0, 1)},
+                                          1 : {0 : (0, 5), 1 : (1, 2)},
+                                          2 : {0 : (0, 5), 1 : (2, 3)},
+                                          3 : {0 : (0, 5), 1 : (3, 4)}}
+                parms['local_to_global_2d'] = local_to_global_2d_map[parms['rank']]
+
                 return parms
 
 
-class UtilsBlockBlockTest(UtilsDistributionDependentDefaultTest):
+class UtilsBlockBlockTest(UtilsDefaultTest):
 
         def create_setUp_parms(self):
                 parms = {}
@@ -237,6 +272,13 @@ class UtilsBlockBlockTest(UtilsDistributionDependentDefaultTest):
                                           2 : parms['data_2d'][3:5, 0:2],
                                           3 : parms['data_2d'][3:5, 2:4]}
                 parms['local_data_2d'] = rank_local_data_2d_map[parms['rank']]
+                parms['local_to_global'] = None
+                local_to_global_2d_map = {0 : {0 : (0, 3), 1 : (0, 2)},
+                                          1 : {0 : (0, 3), 1 : (2, 4)},
+                                          2 : {0 : (3, 5), 1 : (0, 2)},
+                                          3 : {0 : (3, 5), 1 : (2, 4)}}
+                parms['local_to_global_2d'] = local_to_global_2d_map[parms['rank']]
+
                 return parms
 
 

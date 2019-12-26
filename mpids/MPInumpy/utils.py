@@ -30,13 +30,22 @@ def determine_local_data(array_data, dist, comm_dims, comm_coord):
         -------
         local_data : array_like
                 Array data which is responsibility of process(rank).
+        local_to_global : dictionary
+                Dictionary specifying global index start/end of data by axis.
+                Format:
+                        key, value = axis, (inclusive start, exclusive end)
+                        {0: [start_index, end_index),
+                         1: [start_index, end_index),
+                         ...}
         """
         if is_undistributed(dist):
-                return array_data
+                return array_data, None
 
+        local_to_global = {}
         if len(comm_dims) == 1:
                 start, end = get_block_index(len(array_data), comm_dims[0], comm_coord[0])
-                return array_data[slice(start, end)]
+                local_to_global[0] = (start, end)
+                return array_data[slice(start, end)], local_to_global
 
         try:
                 for axis in range(len(comm_dims)):
@@ -45,18 +54,20 @@ def determine_local_data(array_data, dist, comm_dims, comm_coord):
                                         get_block_index(len(array_data),
                                                         comm_dims[axis],
                                                         comm_coord[axis])
+                                local_to_global[axis] = (row_start, row_end)
                         else:
                                 col_start, col_end =  \
                                         get_block_index(len(array_data[0]),
                                                         comm_dims[axis],
                                                         comm_coord[axis])
+                                local_to_global[axis] = (col_start, col_end)
 #TODO: Find more elegant solution than try catch
         except TypeError: # Case when dim of specified dist != dim input array
                 raise InvalidDistributionError(
                         'Invalid distribution encountered: {}'.format(dist))
 
         return [array_data[row][slice(col_start, col_end)] \
-                        for row in range(row_start, row_end)]
+                        for row in range(row_start, row_end)], local_to_global
 
 
 def get_block_index(axis_len, axis_size, axis_coord):
