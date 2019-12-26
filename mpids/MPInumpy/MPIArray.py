@@ -10,7 +10,7 @@ class MPIArray(np.ndarray):
 
         def __new__(cls, array_data, dtype=None, copy=True, order=None,
                     subok=False, ndmin=0, comm=MPI.COMM_WORLD, dist='b',
-                    comm_dims=None, comm_coord=None):
+                    comm_dims=None, comm_coord=None, local_to_global=None):
                 """ Create MPIArray from process local array data.
 
                 Parameters
@@ -48,6 +48,13 @@ class MPIArray(np.ndarray):
                 comm_coord : list
                         Rank/Procses cartesian coordinate in communicator
                         process grid.
+                local_to_global: dict, None
+                        Dictionary specifying global index start/end of data by axis.
+                        Format:
+                                key, value = axis, (inclusive start, exclusive end)
+                                {0: [start_index, end_index),
+                                 1: [start_index, end_index),
+                                 ...}
 
                 Returns
                 -------
@@ -63,6 +70,7 @@ class MPIArray(np.ndarray):
                 obj.dist = dist
                 obj.comm_dims = comm_dims
                 obj.comm_coord = comm_coord
+                obj.local_to_global = local_to_global
                 return obj
 
 
@@ -72,6 +80,7 @@ class MPIArray(np.ndarray):
                 self.dist = getattr(obj, 'dist', None)
                 self.comm_dims = getattr(obj, 'comm_dims', None)
                 self.comm_coord = getattr(obj, 'comm_coord', None)
+                self.local_to_global = getattr(obj, 'local_to_global', None)
 
 
         def __repr__(self):
@@ -164,7 +173,7 @@ class MPIArray(np.ndarray):
                 Returns
                 -------
                 MPIArray : numpy.ndarray sub class
-                        MPIArray with max values along specified axis with
+                        MPIArray with mean values along specified axis with
                         undistributed(copies on all procs) distribution.
                 """
                 global_sum = self.sum(**kwargs)
@@ -207,6 +216,50 @@ class MPIArray(np.ndarray):
                                       dist='u')
 
 
+        def std(self, **kwargs):
+                """ Standard deviation of array elements in distributed matrix
+                over a given axis.
+
+                Parameters
+                ----------
+                axis : None or int
+                        Axis or axes along which the sum is performed.
+                dtype : dtype, optional
+                        Specified data type of returned array and of the
+                        accumulator in which the elements are summed.
+
+                Returns
+                -------
+                MPIArray : numpy.ndarray sub class
+                        MPIArray with std values along specified axis with
+                        undistributed(copies on all procs) distribution.
+                """
+                axis = kwargs.get('axis')
+                local_mean = self.mean(**kwargs)
+                if axis == 1: #Force a transpose
+                        local_mean = local_mean.reshape(self.shape[1], 1)
+
+                local_square_diff = (self - local_mean)**2
+                local_sum_square_diff = \
+                        np.asarray(local_square_diff.base.sum(**kwargs))
+                global_sum_square_diff = \
+                        self.__custom_reduction(MPI.SUM,
+                                                local_sum_square_diff,
+                                                dtype = local_sum_square_diff.dtype,
+                                                **kwargs)
+                if axis is not None:
+                        global_std = np.sqrt(
+                                global_sum_square_diff * 1. / self.globalshape[axis])
+                else:
+                        global_std = np.sqrt(
+                                global_sum_square_diff * 1. / self.globalsize)
+
+                return self.__class__(global_std,
+                                      dtype=global_std.dtype,
+                                      comm=self.comm,
+                                      dist='u')
+
+
         def sum(self, **kwargs):
                 """ Sum of array elements in distributed matrix over a
                 given axis.
@@ -243,7 +296,7 @@ class MPIArray(np.ndarray):
 
 
         def __custom_reduction(self, operation, local_red, axis=None,
-                              dtype=None, out=None):
+                               dtype=None, out=None):
                 if dtype is None: dtype = self.dtype
 
                 if is_undistributed(self.dist):

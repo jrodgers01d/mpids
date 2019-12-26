@@ -18,6 +18,11 @@ class MPIArrayDefaultTest(unittest.TestCase):
                 parms['local_data'] = [parms['data'][parms['rank']]]
                 parms['comm_dims'] = [parms['comm_size']]
                 parms['comm_coords'] = [parms['rank']]
+                local_to_global_map = {0 : {0 : (0, 1)},
+                                       1 : {0 : (1, 2)},
+                                       2 : {0 : (2, 3)},
+                                       3 : {0 : (3, 4)}}
+                parms['local_to_global'] = local_to_global_map[parms['rank']]
                 return parms
 
 
@@ -31,6 +36,7 @@ class MPIArrayDefaultTest(unittest.TestCase):
                 self.local_data = parms.get('local_data')
                 self.comm_dims = parms.get('comm_dims')
                 self.comm_coords = parms.get('comm_coords')
+                self.local_to_global = parms.get('local_to_global')
 
                 self.np_array = np.array(self.data)
                 self.np_local_array = np.array(self.local_data)
@@ -54,6 +60,7 @@ class MPIArrayDefaultTest(unittest.TestCase):
                 self.assertEqual(self.dist, self.mpi_array.dist)
                 self.assertEqual(self.comm_dims, self.mpi_array.comm_dims)
                 self.assertEqual(self.comm_coords, self.mpi_array.comm_coord)
+                self.assertEqual(self.local_to_global, self.mpi_array.local_to_global)
                 self.assertEqual(self.np_array.size, self.mpi_array.globalsize)
                 self.assertEqual(self.np_array.nbytes, self.mpi_array.globalnbytes)
                 self.assertEqual(self.np_array.shape,  tuple(self.mpi_array.globalshape))
@@ -233,22 +240,6 @@ class MPIArrayDefaultTest(unittest.TestCase):
                         self.mpi_array.min(out=mpi_out)
 
 
-        # def test_custom_std_method(self):
-        #         #Default std of entire array contents
-        #         self.assertEqual(self.np_array.std(), self.mpi_array.std())
-        #
-        #         #Std along specified axies
-        #         self.assertTrue(np.alltrue(self.np_array.std(axis=0) == self.mpi_array.std(axis=0)))
-        #         self.assertTrue(np.alltrue(self.np_array.std(axis=1) == self.mpi_array.std(axis=1)))
-        #         with self.assertRaises(ValueError):
-        #                 self.mpi_array.std(axis=self.mpi_array.ndim)
-        #
-        #         #Use of 'out' field
-        #         mpi_out = np.zeros(())
-        #         with self.assertRaises(NotSupportedError):
-        #                 self.mpi_array.std(out=mpi_out)
-
-
         def test_custom_sum_method(self):
                 #Default sum of entire array contents
                 self.assertEqual(self.np_array.sum(), self.mpi_array.sum())
@@ -286,7 +277,23 @@ class MPIArrayUndistributedTest(MPIArrayDefaultTest):
                 parms['local_data'] = parms['data']
                 parms['comm_dims'] = None
                 parms['comm_coords'] = None
+                parms['local_to_global'] = None
                 return parms
+
+        def test_custom_std_method(self):
+                #Default std of entire array contents
+                self.assertEqual(self.np_array.std(), self.mpi_array.std())
+
+                #Std along specified axies
+                self.assertTrue(np.alltrue(self.np_array.std(axis=0) == self.mpi_array.std(axis=0)))
+                self.assertTrue(np.alltrue(self.np_array.std(axis=1) == self.mpi_array.std(axis=1)))
+                with self.assertRaises(ValueError):
+                        self.mpi_array.std(axis=self.mpi_array.ndim)
+
+                #Use of 'out' field
+                mpi_out = np.zeros(())
+                with self.assertRaises(NotSupportedError):
+                        self.mpi_array.std(out=mpi_out)
 
         def test_scalar_dunder_unary_operations(self):
                 scalar_data = 1
@@ -314,7 +321,27 @@ class MPIArrayAltRowBlockTest(MPIArrayDefaultTest):
                 parms['local_data'] = [parms['data'][parms['rank']]]
                 parms['comm_dims'] = [parms['comm_size']]
                 parms['comm_coords'] = [parms['rank']]
+                local_to_global_map = {0 : {0 : (0, 1)},
+                                       1 : {0 : (1, 2)},
+                                       2 : {0 : (2, 3)},
+                                       3 : {0 : (3, 4)}}
+                parms['local_to_global'] = local_to_global_map[parms['rank']]
                 return parms
+
+        def test_custom_std_method(self):
+                #Default std of entire array contents
+                self.assertEqual(self.np_array.std(), self.mpi_array.std())
+
+                #Std along specified axies
+                self.assertTrue(np.alltrue(self.np_array.std(axis=0) == self.mpi_array.std(axis=0)))
+        #         self.assertTrue(np.alltrue(self.np_array.std(axis=1) == self.mpi_array.std(axis=1)))
+        #         # with self.assertRaises(ValueError):
+        #         #         self.mpi_array.std(axis=self.mpi_array.ndim)
+        #         #
+        #         # #Use of 'out' field
+        #         # mpi_out = np.zeros(())
+        #         # with self.assertRaises(NotSupportedError):
+        #         #         self.mpi_array.std(out=mpi_out)
 
 
 class MPIArrayColBlockTest(MPIArrayDefaultTest):
@@ -332,6 +359,11 @@ class MPIArrayColBlockTest(MPIArrayDefaultTest):
                     (np.array(list(range(16))).reshape(4,4) + 1)[:,parms['rank']].reshape(4,1).tolist()
                 parms['comm_dims'] = [1, parms['comm_size']]
                 parms['comm_coords'] = [0, parms['rank']]
+                local_to_global_map = {0 : {0 : (0, 4), 1 : (0, 1)},
+                                       1 : {0 : (0, 4), 1 : (1, 2)},
+                                       2 : {0 : (0, 4), 1 : (2, 3)},
+                                       3 : {0 : (0, 4), 1 : (3, 4)}}
+                parms['local_to_global'] = local_to_global_map[parms['rank']]
                 return parms
 
 
@@ -358,6 +390,11 @@ class MPIArrayBlockBlockTest(MPIArrayDefaultTest):
                                   2: [1, 0],
                                   3: [1, 1]}
                 parms['comm_coords'] = rank_coord_map[parms['rank']]
+                local_to_global_map = {0 : {0 : (0, 2), 1 : (0, 2)},
+                                       1 : {0 : (0, 2), 1 : (2, 4)},
+                                       2 : {0 : (2, 4), 1 : (0, 2)},
+                                       3 : {0 : (2, 4), 1 : (2, 4)}}
+                parms['local_to_global'] = local_to_global_map[parms['rank']]
                 return parms
 
 
