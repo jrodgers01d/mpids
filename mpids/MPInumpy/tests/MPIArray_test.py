@@ -206,8 +206,6 @@ class MPIArrayDefaultTest(unittest.TestCase):
                 self.assertEqual(self.np_array.mean(), self.mpi_array.mean())
 
                 #Mean along specified axies
-                print(self.np_array.mean(axis=0))
-                print(self.mpi_array.mean(axis=0))
                 self.assertTrue(np.alltrue(self.np_array.mean(axis=0) == self.mpi_array.mean(axis=0)))
                 self.assertTrue(np.alltrue(self.np_array.mean(axis=1) == self.mpi_array.mean(axis=1)))
                 with self.assertRaises(ValueError):
@@ -235,6 +233,22 @@ class MPIArrayDefaultTest(unittest.TestCase):
                         self.mpi_array.min(out=mpi_out)
 
 
+        # def test_custom_std_method(self):
+        #         #Default std of entire array contents
+        #         self.assertEqual(self.np_array.std(), self.mpi_array.std())
+        #
+        #         #Std along specified axies
+        #         self.assertTrue(np.alltrue(self.np_array.std(axis=0) == self.mpi_array.std(axis=0)))
+        #         self.assertTrue(np.alltrue(self.np_array.std(axis=1) == self.mpi_array.std(axis=1)))
+        #         with self.assertRaises(ValueError):
+        #                 self.mpi_array.std(axis=self.mpi_array.ndim)
+        #
+        #         #Use of 'out' field
+        #         mpi_out = np.zeros(())
+        #         with self.assertRaises(NotSupportedError):
+        #                 self.mpi_array.std(out=mpi_out)
+
+
         def test_custom_sum_method(self):
                 #Default sum of entire array contents
                 self.assertEqual(self.np_array.sum(), self.mpi_array.sum())
@@ -256,6 +270,95 @@ class MPIArrayDefaultTest(unittest.TestCase):
                 mpi_out = np.zeros(())
                 with self.assertRaises(NotSupportedError):
                         self.mpi_array.sum(out=mpi_out)
+
+
+class MPIArrayUndistributedTest(MPIArrayDefaultTest):
+
+        def create_setUp_parms(self):
+                parms = {}
+                parms['comm'] = MPI.COMM_WORLD
+                parms['rank'] = MPI.COMM_WORLD.Get_rank()
+                parms['comm_size'] = MPI.COMM_WORLD.Get_size()
+                # Undistributed distribution
+                parms['dist'] = 'u'
+                #Add 1 to avoid divide by zero errors/warnings
+                parms['data'] = (np.array(list(range(16))).reshape(4,4) + 1).tolist()
+                parms['local_data'] = parms['data']
+                parms['comm_dims'] = None
+                parms['comm_coords'] = None
+                return parms
+
+        def test_scalar_dunder_unary_operations(self):
+                scalar_data = 1
+                np_scalar = np.array(scalar_data)
+                mpi_scalar = mpi_np.MPIArray(scalar_data, comm=self.comm, dist=self.dist)
+
+                self.assertEqual(complex(np_scalar), complex(mpi_scalar))
+                self.assertEqual(int(np_scalar), int(mpi_scalar))
+                self.assertEqual(float(np_scalar), float(mpi_scalar))
+                self.assertEqual(oct(np_scalar), oct(mpi_scalar))
+                self.assertEqual(hex(np_scalar), hex(mpi_scalar))
+
+
+class MPIArrayAltRowBlockTest(MPIArrayDefaultTest):
+
+        def create_setUp_parms(self):
+                parms = {}
+                parms['comm'] = MPI.COMM_WORLD
+                parms['rank'] = MPI.COMM_WORLD.Get_rank()
+                parms['comm_size'] = MPI.COMM_WORLD.Get_size()
+                # Alternate row block distribution
+                parms['dist'] = ('b', '*')
+                #Add 1 to avoid divide by zero errors/warnings
+                parms['data'] = (np.array(list(range(16))).reshape(4,4) + 1).tolist()
+                parms['local_data'] = [parms['data'][parms['rank']]]
+                parms['comm_dims'] = [parms['comm_size']]
+                parms['comm_coords'] = [parms['rank']]
+                return parms
+
+
+class MPIArrayColBlockTest(MPIArrayDefaultTest):
+
+        def create_setUp_parms(self):
+                parms = {}
+                parms['comm'] = MPI.COMM_WORLD
+                parms['rank'] = MPI.COMM_WORLD.Get_rank()
+                parms['comm_size'] = MPI.COMM_WORLD.Get_size()
+                # Column block distribution
+                parms['dist'] = ('*', 'b')
+                #Add 1 to avoid divide by zero errors/warnings
+                parms['data'] = (np.array(list(range(16))).reshape(4,4) + 1).tolist()
+                parms['local_data'] = \
+                    (np.array(list(range(16))).reshape(4,4) + 1)[:,parms['rank']].reshape(4,1).tolist()
+                parms['comm_dims'] = [1, parms['comm_size']]
+                parms['comm_coords'] = [0, parms['rank']]
+                return parms
+
+
+class MPIArrayBlockBlockTest(MPIArrayDefaultTest):
+
+        def create_setUp_parms(self):
+                parms = {}
+                parms['comm'] = MPI.COMM_WORLD
+                parms['rank'] = MPI.COMM_WORLD.Get_rank()
+                parms['comm_size'] = MPI.COMM_WORLD.Get_size()
+                # Block block distribution
+                parms['dist'] = ('b', 'b')
+                #Add 1 to avoid divide by zero errors/warnings
+                np_data = (np.array(list(range(16))).reshape(4,4) + 1)
+                parms['data'] = np_data.tolist()
+                local_data_map = {0: np_data[:2,:2],
+                                  1: np_data[:2,2:],
+                                  2: np_data[2:,:2],
+                                  3: np_data[2:,2:]}
+                parms['local_data'] = local_data_map[parms['rank']].tolist()
+                parms['comm_dims'] = [2, 2]
+                rank_coord_map = {0: [0, 0],
+                                  1: [0, 1],
+                                  2: [1, 0],
+                                  3: [1, 1]}
+                parms['comm_coords'] = rank_coord_map[parms['rank']]
+                return parms
 
 
 if __name__ == '__main__':
