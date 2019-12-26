@@ -44,14 +44,16 @@ class UtilsDistributionIndependentTest(unittest.TestCase):
 
         def test_get_block_index(self):
                 data_length = 10
-                rank = MPI.COMM_WORLD.Get_rank()
                 num_procs = 3
                 rank_block_map = {0: (0, 4),
                                   1: (4, 7),
                                   2: (7, 10)}
-                if rank < num_procs:
-                    self.assertEqual(rank_block_map[rank],
-                                     get_block_index(data_length, num_procs, rank))
+                self.assertEqual(rank_block_map[0],
+                                     get_block_index(data_length, num_procs, 0))
+                self.assertEqual(rank_block_map[1],
+                                     get_block_index(data_length, num_procs, 1))
+                self.assertEqual(rank_block_map[2],
+                                     get_block_index(data_length, num_procs, 2))
 
 
         def test_distribution_to_dimensions_with_invalid_distributions(self):
