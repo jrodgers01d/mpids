@@ -122,8 +122,8 @@ class MPIArray(np.ndarray):
                 axis = 0
                 for axis_dim in local_shape:
                     axis_length = self.__custom_reduction(MPI.SUM,
-                                                         np.asarray(local_shape[axis]),
-                                                         axis = axis)
+                                                          np.asarray(local_shape[axis]),
+                                                          axis = axis)
                     comm_shape.append(axis_length[0])
                     axis += 1
 
@@ -236,8 +236,34 @@ class MPIArray(np.ndarray):
                 """
                 axis = kwargs.get('axis')
                 local_mean = self.mean(**kwargs)
-                if axis == 1: #Force a transpose
-                        local_mean = local_mean.reshape(self.shape[1], 1)
+
+#TODO: Explore np kwarg 'keepdims' to avoid force transpose
+                if is_undistributed(self.dist) and axis == 1:
+                        #Force a tranpose
+                        local_mean = local_mean.reshape(self.shape[0], 1)
+
+                if is_row_block_distributed(self.dist) and axis == 1:
+                        row_min, row_max = self.local_to_global[0]
+                        local_mean = local_mean[row_min: row_max]
+
+                if is_column_block_distributed(self.dist):
+                        if axis == 0:
+                            col_min, col_max = self.local_to_global[1]
+                            local_mean = local_mean[col_min: col_max]
+#TODO: Explore np kwarg 'keepdims' to avoid force transpose
+                        if axis == 1: #Force a transpose
+                            local_mean = local_mean.reshape(self.shape[0], 1)
+
+                if is_block_block_distributed(self.dist):
+                        if axis == 0:
+                                col_min, col_max = self.local_to_global[1]
+                                local_mean = local_mean[col_min: col_max]
+                        if axis == 1:
+                                row_min, row_max = self.local_to_global[0]
+                                local_mean = local_mean[row_min: row_max]
+#TODO: Explore np kwarg 'keepdims' to avoid force transpose
+                                #Force a transpose
+                                local_mean = local_mean.reshape(self.shape[0], 1)
 
                 local_square_diff = (self - local_mean)**2
                 local_sum_square_diff = \

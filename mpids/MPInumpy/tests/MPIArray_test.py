@@ -240,6 +240,22 @@ class MPIArrayDefaultTest(unittest.TestCase):
                         self.mpi_array.min(out=mpi_out)
 
 
+        def test_custom_std_method(self):
+                #Default std of entire array contents
+                self.assertEqual(self.np_array.std(), self.mpi_array.std())
+
+                #Std along specified axies
+                self.assertTrue(np.alltrue(self.np_array.std(axis=0) == self.mpi_array.std(axis=0)))
+                self.assertTrue(np.alltrue(self.np_array.std(axis=1) == self.mpi_array.std(axis=1)))
+                with self.assertRaises(ValueError):
+                        self.mpi_array.std(axis=self.mpi_array.ndim)
+
+                #Use of 'out' field
+                mpi_out = np.zeros(())
+                with self.assertRaises(NotSupportedError):
+                        self.mpi_array.std(out=mpi_out)
+
+
         def test_custom_sum_method(self):
                 #Default sum of entire array contents
                 self.assertEqual(self.np_array.sum(), self.mpi_array.sum())
@@ -280,20 +296,6 @@ class MPIArrayUndistributedTest(MPIArrayDefaultTest):
                 parms['local_to_global'] = None
                 return parms
 
-        def test_custom_std_method(self):
-                #Default std of entire array contents
-                self.assertEqual(self.np_array.std(), self.mpi_array.std())
-
-                #Std along specified axies
-                self.assertTrue(np.alltrue(self.np_array.std(axis=0) == self.mpi_array.std(axis=0)))
-                self.assertTrue(np.alltrue(self.np_array.std(axis=1) == self.mpi_array.std(axis=1)))
-                with self.assertRaises(ValueError):
-                        self.mpi_array.std(axis=self.mpi_array.ndim)
-
-                #Use of 'out' field
-                mpi_out = np.zeros(())
-                with self.assertRaises(NotSupportedError):
-                        self.mpi_array.std(out=mpi_out)
 
         def test_scalar_dunder_unary_operations(self):
                 scalar_data = 1
@@ -327,21 +329,6 @@ class MPIArrayAltRowBlockTest(MPIArrayDefaultTest):
                                        3 : {0 : (3, 4)}}
                 parms['local_to_global'] = local_to_global_map[parms['rank']]
                 return parms
-
-        def test_custom_std_method(self):
-                #Default std of entire array contents
-                self.assertEqual(self.np_array.std(), self.mpi_array.std())
-
-                #Std along specified axies
-                self.assertTrue(np.alltrue(self.np_array.std(axis=0) == self.mpi_array.std(axis=0)))
-        #         self.assertTrue(np.alltrue(self.np_array.std(axis=1) == self.mpi_array.std(axis=1)))
-        #         # with self.assertRaises(ValueError):
-        #         #         self.mpi_array.std(axis=self.mpi_array.ndim)
-        #         #
-        #         # #Use of 'out' field
-        #         # mpi_out = np.zeros(())
-        #         # with self.assertRaises(NotSupportedError):
-        #         #         self.mpi_array.std(out=mpi_out)
 
 
 class MPIArrayColBlockTest(MPIArrayDefaultTest):
