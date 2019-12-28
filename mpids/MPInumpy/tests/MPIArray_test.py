@@ -147,13 +147,21 @@ class MPIArrayDefaultTest(unittest.TestCase):
 
                 self.assertTrue(first_row is not self.mpi_array)
                 self.assertTrue(isinstance(first_row, mpi_np.MPIArray))
-                self.assertTrue(first_row.base is self.mpi_array)
+                self.assertEqual(first_row.dtype, self.mpi_array.dtype)
+                self.assertEqual(first_row.comm, self.mpi_array.comm)
+                self.assertEqual(first_row.dist, self.mpi_array.dist)
+                self.assertEqual(first_row.comm_dims, self.mpi_array.comm_dims)
+                self.assertEqual(first_row.comm_coord, self.mpi_array.comm_coord)
                 self.assertEqual(np_first_row.size, first_row.size)
                 self.assertEqual(np_first_row.nbytes, first_row.nbytes)
 
                 self.assertTrue(last_row is not self.mpi_array)
-                self.assertTrue(last_row.base is self.mpi_array)
                 self.assertTrue(isinstance(last_row, mpi_np.MPIArray))
+                self.assertEqual(last_row.dtype, self.mpi_array.dtype)
+                self.assertEqual(last_row.comm, self.mpi_array.comm)
+                self.assertEqual(last_row.dist, self.mpi_array.dist)
+                self.assertEqual(last_row.comm_dims, self.mpi_array.comm_dims)
+                self.assertEqual(last_row.comm_coord, self.mpi_array.comm_coord)
                 self.assertEqual(np_last_row.size, last_row.size)
                 self.assertEqual(np_last_row.nbytes, last_row.nbytes)
 
@@ -163,14 +171,22 @@ class MPIArrayDefaultTest(unittest.TestCase):
                 np_second_half_last_row = np_last_row[len(np_last_row) // 2:]
 
                 self.assertTrue(first_half_first_row is not first_row)
-                self.assertTrue(first_half_first_row.base is self.mpi_array)
                 self.assertTrue(isinstance(first_half_first_row, mpi_np.MPIArray))
+                self.assertEqual(first_half_first_row.dtype, self.mpi_array.dtype)
+                self.assertEqual(first_half_first_row.comm, self.mpi_array.comm)
+                self.assertEqual(first_half_first_row.dist, self.mpi_array.dist)
+                self.assertEqual(first_half_first_row.comm_dims, self.mpi_array.comm_dims)
+                self.assertEqual(first_half_first_row.comm_coord, self.mpi_array.comm_coord)
                 self.assertEqual(np_first_half_first_row.size, first_half_first_row.size)
                 self.assertEqual(np_first_half_first_row.nbytes, first_half_first_row.nbytes)
 
                 self.assertTrue(second_half_last_row is not last_row)
-                self.assertTrue(second_half_last_row.base is self.mpi_array)
                 self.assertTrue(isinstance(second_half_last_row, mpi_np.MPIArray))
+                self.assertEqual(second_half_last_row.dtype, self.mpi_array.dtype)
+                self.assertEqual(second_half_last_row.comm, self.mpi_array.comm)
+                self.assertEqual(second_half_last_row.dist, self.mpi_array.dist)
+                self.assertEqual(second_half_last_row.comm_dims, self.mpi_array.comm_dims)
+                self.assertEqual(second_half_last_row.comm_coord, self.mpi_array.comm_coord)
                 self.assertEqual(np_second_half_last_row.size, second_half_last_row.size)
                 self.assertEqual(np_second_half_last_row.nbytes, second_half_last_row.nbytes)
 
@@ -180,14 +196,22 @@ class MPIArrayDefaultTest(unittest.TestCase):
                 np_last_column = self.np_local_array[:,[self.np_local_array.shape[1] - 1]]
 
                 self.assertTrue(first_column is not self.mpi_array)
-                self.assertTrue(first_column.base is not self.mpi_array)
                 self.assertTrue(isinstance(first_column, mpi_np.MPIArray))
+                self.assertEqual(first_column.dtype, self.mpi_array.dtype)
+                self.assertEqual(first_column.comm, self.mpi_array.comm)
+                self.assertEqual(first_column.dist, self.mpi_array.dist)
+                self.assertEqual(first_column.comm_dims, self.mpi_array.comm_dims)
+                self.assertEqual(first_column.comm_coord, self.mpi_array.comm_coord)                 
                 self.assertEqual(np_first_column.size, first_column.size)
                 self.assertEqual(np_first_column.nbytes, first_column.nbytes)
 
                 self.assertTrue(last_column is not self.mpi_array)
-                self.assertTrue(last_column.base is not self.mpi_array)
                 self.assertTrue(isinstance(last_column, mpi_np.MPIArray))
+                self.assertEqual(last_column.dtype, self.mpi_array.dtype)
+                self.assertEqual(last_column.comm, self.mpi_array.comm)
+                self.assertEqual(last_column.dist, self.mpi_array.dist)
+                self.assertEqual(last_column.comm_dims, self.mpi_array.comm_dims)
+                self.assertEqual(last_column.comm_coord, self.mpi_array.comm_coord)
                 self.assertEqual(np_last_column.size, last_column.size)
                 self.assertEqual(np_last_column.nbytes, last_column.nbytes)
 
