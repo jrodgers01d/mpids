@@ -4,6 +4,20 @@ from mpi4py import MPI
 import mpids.MPInumpy as mpi_np
 from mpids.MPInumpy.errors import ValueError, NotSupportedError
 
+
+class MPIArrayDistributionIndependentTest(unittest.TestCase):
+        def test_abstract_methods_raise_not_implemented_errors(self):
+                mpi_array = mpi_np.MPIArray([1])
+
+                with self.assertRaises(NotImplementedError):
+                        mpi_array = mpi_np.MPIArray([1])
+                        mpi_array.std()
+
+                with self.assertRaises(NotImplementedError):
+                        mpi_array = mpi_np.MPIArray([1])
+                        mpi_array.custom_reduction(None, None)
+
+
 class MPIArrayDefaultTest(unittest.TestCase):
 
         def create_setUp_parms(self):
@@ -201,7 +215,7 @@ class MPIArrayDefaultTest(unittest.TestCase):
                 self.assertEqual(first_column.comm, self.mpi_array.comm)
                 self.assertEqual(first_column.dist, self.mpi_array.dist)
                 self.assertEqual(first_column.comm_dims, self.mpi_array.comm_dims)
-                self.assertEqual(first_column.comm_coord, self.mpi_array.comm_coord)                 
+                self.assertEqual(first_column.comm_coord, self.mpi_array.comm_coord)
                 self.assertEqual(np_first_column.size, first_column.size)
                 self.assertEqual(np_first_column.nbytes, first_column.nbytes)
 
