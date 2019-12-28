@@ -3,7 +3,7 @@ import numpy as np
 
 from mpids.MPInumpy.utils import is_undistributed, is_row_block_distributed, \
                                  is_column_block_distributed, is_block_block_distributed
-from mpids.MPInumpy.errors import ValueError, NotSupportedError
+from mpids.MPInumpy.errors import ValueError, NotSupportedError, IndexError
 
 class MPIArray(np.ndarray):
         """ MPIArray subclass of numpy.ndarray """

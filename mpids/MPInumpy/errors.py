@@ -13,3 +13,7 @@ class ValueError(MPInumpyError):
 class NotSupportedError(MPInumpyError):
         """ Exception class for when a numpy feature is not supported. """
         pass
+
+class IndexError(MPInumpyError):
+        """ Exception class for when a numpy feature is not supported. """
+        pass
