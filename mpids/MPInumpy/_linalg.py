@@ -3,6 +3,7 @@ from numpy import matmul as np_matmul
 from petsc4py import PETSc
 
 from mpids.MPInumpy.MPIArray import MPIArray
+from mpids.MPInumpy.distributions import Distribution_Dict
 from mpids.MPInumpy.errors import NotSupportedError
 from mpids.MPInumpy.utils import get_comm_dims, get_cart_coords
 
@@ -12,13 +13,13 @@ def matmul(a, b, out=None, comm=MPI.COMM_WORLD, dist='b'):
 
         #Numpy only arrays
         if not isinstance(a, MPIArray) and not isinstance(b, MPIArray):
-                return MPIArray(np_matmul(a, b), comm=comm, dist=dist)
+                return Distribution_Dict[dist](np_matmul(a, b), comm=comm)
         #Numpy and MPIArray
         if not isinstance(a, MPIArray) or not isinstance(b, MPIArray):
-            return MPIArray(np_matmul(a, b), comm=comm, dist=dist)
+            return Distribution_Dict[dist](np_matmul(a, b), comm=comm)
         #Undistributed MPIArrays
         if a.dist == b.dist == 'u':
-                return MPIArray(np_matmul(a, b), comm=comm, dist=dist)
+                return Distribution_Dict[dist](np_matmul(a, b), comm=comm)
 
         return _row_block_mat_mult(a, b, comm=comm)
 
@@ -57,12 +58,8 @@ def _row_block_mat_mult(a, b, comm=MPI.COMM_WORLD):
         comm_dims = get_comm_dims(size, 'b')
         comm_coord = get_cart_coords(comm_dims, size, rank)
 
-        result = MPIArray(C.getValues(range(A_row_start, A_row_end),
+        return Distribution_Dict['b'](C.getValues(range(A_row_start, A_row_end),
                                       range(a_global_cols)),
-                          comm=comm,
-                          dist='u',
-                          comm_dims=comm_dims,
-                          comm_coord=comm_coord)
-        result.dist = 'b'
-
-        return result
+                                      comm=comm,
+                                      comm_dims=comm_dims,
+                                      comm_coord=comm_coord)

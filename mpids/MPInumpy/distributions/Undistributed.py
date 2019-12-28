@@ -7,6 +7,11 @@ class Undistributed(MPIArray):
 
         #Unique properties to MPIArray
         @property
+        def dist(self):
+                return 'u'
+
+
+        @property
         def globalsize(self):
                 return self.size
 
@@ -47,8 +52,7 @@ class Undistributed(MPIArray):
 
                 return self.__class__(global_std,
                                       dtype=global_std.dtype,
-                                      comm=self.comm,
-                                      dist='u')
+                                      comm=self.comm)
 
 
         def custom_reduction(self, operation, local_red, axis=None, dtype=None,

@@ -6,6 +6,13 @@ from mpids.MPInumpy.errors import ValueError, NotSupportedError
 
 
 class MPIArrayDistributionIndependentTest(unittest.TestCase):
+
+        def test_abstract_properties_raise_not_implemented_errors(self):
+                mpi_array = mpi_np.MPIArray([1])
+                with self.assertRaises(NotImplementedError):
+                        mpi_array = mpi_np.MPIArray([1])
+                        mpi_array.dist
+
         def test_abstract_methods_raise_not_implemented_errors(self):
                 mpi_array = mpi_np.MPIArray([1])
 
@@ -336,37 +343,17 @@ class MPIArrayUndistributedTest(MPIArrayDefaultTest):
 
 
         def test_scalar_dunder_unary_operations(self):
+                from mpids.MPInumpy.distributions.Undistributed import Undistributed
+
                 scalar_data = 1
                 np_scalar = np.array(scalar_data)
-                mpi_scalar = mpi_np.MPIArray(scalar_data, comm=self.comm, dist=self.dist)
+                mpi_scalar = Undistributed(scalar_data, comm=self.comm)
 
                 self.assertEqual(complex(np_scalar), complex(mpi_scalar))
                 self.assertEqual(int(np_scalar), int(mpi_scalar))
                 self.assertEqual(float(np_scalar), float(mpi_scalar))
                 self.assertEqual(oct(np_scalar), oct(mpi_scalar))
                 self.assertEqual(hex(np_scalar), hex(mpi_scalar))
-
-
-class MPIArrayAltRowBlockTest(MPIArrayDefaultTest):
-
-        def create_setUp_parms(self):
-                parms = {}
-                parms['comm'] = MPI.COMM_WORLD
-                parms['rank'] = MPI.COMM_WORLD.Get_rank()
-                parms['comm_size'] = MPI.COMM_WORLD.Get_size()
-                # Alternate row block distribution
-                parms['dist'] = ('b', '*')
-                #Add 1 to avoid divide by zero errors/warnings
-                parms['data'] = (np.array(list(range(16))).reshape(4,4) + 1).tolist()
-                parms['local_data'] = [parms['data'][parms['rank']]]
-                parms['comm_dims'] = [parms['comm_size']]
-                parms['comm_coords'] = [parms['rank']]
-                local_to_global_map = {0 : {0 : (0, 1)},
-                                       1 : {0 : (1, 2)},
-                                       2 : {0 : (2, 3)},
-                                       3 : {0 : (3, 4)}}
-                parms['local_to_global'] = local_to_global_map[parms['rank']]
-                return parms
 
 
 class MPIArrayColBlockTest(MPIArrayDefaultTest):

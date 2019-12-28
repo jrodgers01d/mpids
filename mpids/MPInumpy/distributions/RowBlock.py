@@ -5,6 +5,12 @@ from mpids.MPInumpy.MPIArray import MPIArray
 
 class RowBlock(MPIArray):
 
+        #Unique properties to MPIArray
+        @property
+        def dist(self):
+                return 'b'
+
+
         def std(self, **kwargs):
                 axis = kwargs.get('axis')
                 local_mean = self.mean(**kwargs)
@@ -30,8 +36,7 @@ class RowBlock(MPIArray):
 
                 return self.__class__(global_std,
                                       dtype=global_std.dtype,
-                                      comm=self.comm,
-                                      dist='u')
+                                      comm=self.comm)
 
 
         def custom_reduction(self, operation, local_red, axis=None, dtype=None,

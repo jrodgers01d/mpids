@@ -7,7 +7,6 @@ __all__ = ['Undistributed', 'RowBlock', 'ColumnBlock', 'BlockBlock']
 
 
 Distribution_Dict = { 'b' : RowBlock,
-                      ('b', '*') : RowBlock,
                       ('*', 'b') : ColumnBlock,
                       ('b', 'b') : BlockBlock,
                       'u' : Undistributed}

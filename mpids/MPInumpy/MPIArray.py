@@ -7,8 +7,8 @@ class MPIArray(np.ndarray):
         """ MPIArray subclass of numpy.ndarray """
 
         def __new__(cls, array_data, dtype=None, copy=True, order=None,
-                    subok=False, ndmin=0, comm=MPI.COMM_WORLD, dist='b',
-                    comm_dims=None, comm_coord=None, local_to_global=None):
+                    subok=False, ndmin=0, comm=MPI.COMM_WORLD, comm_dims=None,
+                    comm_coord=None, local_to_global=None):
                 """ Create MPIArray from process local array data.
 
                 Parameters
@@ -32,14 +32,6 @@ class MPIArray(np.ndarray):
                 comm : MPI Communicator, optional
                         MPI process communication object.  If none specified
                         defaults to MPI.COMM_WORLD
-                dist : str, list, tuple
-                        Specified distribution of data among processes.
-                        Default value 'b' : Block, *
-                        Supported types:
-                            'b' : Block, *
-                            ('*', 'b') : *, Block
-                            ('b','b') : Block-Block
-                            'u' : Undistributed
                 comm_dims: list
                         Specified dimensions of processes in cartesian grid
                         for communicator.
@@ -65,7 +57,6 @@ class MPIArray(np.ndarray):
                                subok=subok,
                                ndmin=ndmin).view(cls)
                 obj.comm = comm
-                obj.dist = dist
                 obj.comm_dims = comm_dims
                 obj.comm_coord = comm_coord
                 obj.local_to_global = local_to_global
@@ -75,7 +66,6 @@ class MPIArray(np.ndarray):
         def __array_finalize__(self, obj):
                 if obj is None: return
                 self.comm = getattr(obj, 'comm', None)
-                self.dist = getattr(obj, 'dist', None)
                 self.comm_dims = getattr(obj, 'comm_dims', None)
                 self.comm_coord = getattr(obj, 'comm_coord', None)
                 self.local_to_global = getattr(obj, 'local_to_global', None)
@@ -90,6 +80,11 @@ class MPIArray(np.ndarray):
                                getattr(self, 'dtype', None))
 
         #Unique properties to MPIArray
+        @property
+        def dist(self):
+                raise NotImplementedError("Define a distribution")
+
+
         @property
         def globalsize(self):
                 comm_size = np.zeros(1, dtype='int')
@@ -143,8 +138,7 @@ class MPIArray(np.ndarray):
                 global_max = self.custom_reduction(MPI.MAX, local_max, **kwargs)
                 return self.__class__(global_max,
                                       dtype=global_max.dtype,
-                                      comm=self.comm,
-                                      dist='u')
+                                      comm=self.comm)
 
 
         def mean(self, **kwargs):
@@ -174,8 +168,7 @@ class MPIArray(np.ndarray):
 
                 return self.__class__(global_mean,
                                       dtype=global_mean.dtype,
-                                      comm=self.comm,
-                                      dist='u')
+                                      comm=self.comm)
 
 
         def min(self, **kwargs):
@@ -201,8 +194,7 @@ class MPIArray(np.ndarray):
                 global_min = self.custom_reduction(MPI.MIN, local_min, **kwargs)
                 return self.__class__(global_min,
                                       dtype=global_min.dtype,
-                                      comm=self.comm,
-                                      dist='u')
+                                      comm=self.comm)
 
 
         def std(self, **kwargs):
@@ -223,7 +215,7 @@ class MPIArray(np.ndarray):
                         MPIArray with std values along specified axis with
                         undistributed(copies on all procs) distribution.
                 """
-                raise NotImplementedError("Implement a custom reduction")
+                raise NotImplementedError("Implement a custom std")
 
 
         def sum(self, **kwargs):
@@ -249,8 +241,7 @@ class MPIArray(np.ndarray):
                 global_sum = self.custom_reduction(MPI.SUM, local_sum, **kwargs)
                 return self.__class__(global_sum,
                                       dtype=global_sum.dtype,
-                                      comm=self.comm,
-                                      dist='u')
+                                      comm=self.comm)
 
 
         def __check_reduction_parms(self, axis=None, dtype=None, out=None):

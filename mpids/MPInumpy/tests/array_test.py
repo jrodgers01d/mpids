@@ -63,21 +63,6 @@ class ArrayUndistributedTest(ArrayDefaultTest):
                 return parms
 
 
-class ArrayAltRowBlockTest(ArrayDefaultTest):
-
-        def create_setUp_parms(self):
-                parms = {}
-                data = np.array(list(range(20))).reshape(5,4)
-                parms['comm'] = MPI.COMM_WORLD
-                # Alternate row block distribution
-                parms['dist'] = ('b', '*')
-                parms['dist_class'] = RowBlock
-                parms['mpi_np_array'] = mpi_np.array(data,
-                                                     comm=parms['comm'],
-                                                     dist=parms['dist'])
-                return parms
-
-
 class ArrayColBlockTest(ArrayDefaultTest):
 
         def create_setUp_parms(self):

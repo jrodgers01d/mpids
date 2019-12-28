@@ -233,9 +233,7 @@ def is_row_block_distributed(distribution):
         -------
         result : boolean
         """
-        if distribution[0] != 'b':
-                return False
-        return len(distribution) == 1 or distribution[1] == '*'
+        return distribution[0] == 'b' and len(distribution) == 1
 
 
 def is_column_block_distributed(distribution):

@@ -62,7 +62,6 @@ def array(array_data, dtype=None, copy=True, order=None, subok=False, ndmin=0,
                                        subok=subok,
                                        ndmin=ndmin,
                                        comm=comm,
-                                       dist=dist,
                                        comm_dims=comm_dims,
                                        comm_coord=comm_coord,
                                        local_to_global=local_to_global)
