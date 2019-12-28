@@ -2,6 +2,7 @@ import unittest
 import numpy as np
 from mpi4py import MPI
 import mpids.MPInumpy as mpi_np
+from mpids.MPInumpy.distributions import *
 from mpids.MPInumpy.errors import InvalidDistributionError
 
 class ArrayCreationErrorsPropegatedTest(unittest.TestCase):
@@ -28,6 +29,7 @@ class ArrayDefaultTest(unittest.TestCase):
                 parms['comm'] = MPI.COMM_WORLD
                 # Default distribution
                 parms['dist'] = 'b'
+                parms['dist_class'] = RowBlock
                 parms['mpi_np_array'] = mpi_np.array(data, comm=parms['comm'])
                 return parms
 
@@ -35,11 +37,13 @@ class ArrayDefaultTest(unittest.TestCase):
                 parms = self.create_setUp_parms()
                 self.comm = parms['comm']
                 self.dist = parms['dist']
+                self.dist_class = parms['dist_class']
                 self.mpi_np_array = parms['mpi_np_array']
 
 
         def test_return_behavior(self):
                 self.assertTrue(isinstance(self.mpi_np_array, mpi_np.MPIArray))
+                self.assertTrue(isinstance(self.mpi_np_array, self.dist_class))
                 self.assertEqual(self.mpi_np_array.comm, self.comm)
                 self.assertEqual(self.mpi_np_array.dist, self.dist)
 
@@ -52,6 +56,7 @@ class ArrayUndistributedTest(ArrayDefaultTest):
                 parms['comm'] = MPI.COMM_WORLD
                 # Undistributed distribution
                 parms['dist'] = 'u'
+                parms['dist_class'] = Undistributed
                 parms['mpi_np_array'] = mpi_np.array(data,
                                                      comm=parms['comm'],
                                                      dist=parms['dist'])
@@ -66,6 +71,7 @@ class ArrayAltRowBlockTest(ArrayDefaultTest):
                 parms['comm'] = MPI.COMM_WORLD
                 # Alternate row block distribution
                 parms['dist'] = ('b', '*')
+                parms['dist_class'] = RowBlock
                 parms['mpi_np_array'] = mpi_np.array(data,
                                                      comm=parms['comm'],
                                                      dist=parms['dist'])
@@ -80,6 +86,7 @@ class ArrayColBlockTest(ArrayDefaultTest):
                 parms['comm'] = MPI.COMM_WORLD
                 # Column block distribution
                 parms['dist'] = ('*', 'b')
+                parms['dist_class'] = ColumnBlock
                 parms['mpi_np_array'] = mpi_np.array(data,
                                                      comm=parms['comm'],
                                                      dist=parms['dist'])
@@ -94,6 +101,7 @@ class ArrayBlockBlockTest(ArrayDefaultTest):
                 parms['comm'] = MPI.COMM_WORLD
                 # Block block distribution
                 parms['dist'] = ('b', 'b')
+                parms['dist_class'] = BlockBlock
                 parms['mpi_np_array'] = mpi_np.array(data,
                                                      comm=parms['comm'],
                                                      dist=parms['dist'])

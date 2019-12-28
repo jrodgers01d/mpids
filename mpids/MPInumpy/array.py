@@ -1,6 +1,6 @@
 from mpi4py import MPI
 
-from mpids.MPInumpy.MPIArray import MPIArray
+from mpids.MPInumpy.distributions import Distribution_Dict
 from mpids.MPInumpy.utils import determine_local_data, \
                                  get_comm_dims,\
                                  get_cart_coords
@@ -55,14 +55,14 @@ def array(array_data, dtype=None, copy=True, order=None, subok=False, ndmin=0,
         local_data, local_to_global = \
                 determine_local_data(array_data, dist, comm_dims, comm_coord)
 
-        return MPIArray(local_data,
-                        dtype=dtype,
-                        copy=copy,
-                        order=order,
-                        subok=subok,
-                        ndmin=ndmin,
-                        comm=comm,
-                        dist=dist,
-                        comm_dims=comm_dims,
-                        comm_coord=comm_coord,
-                        local_to_global=local_to_global)
+        return Distribution_Dict[dist](local_data,
+                                       dtype=dtype,
+                                       copy=copy,
+                                       order=order,
+                                       subok=subok,
+                                       ndmin=ndmin,
+                                       comm=comm,
+                                       dist=dist,
+                                       comm_dims=comm_dims,
+                                       comm_coord=comm_coord,
+                                       local_to_global=local_to_global)
