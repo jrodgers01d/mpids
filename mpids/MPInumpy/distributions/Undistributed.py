@@ -16,17 +16,23 @@ class Undistributed(MPIArray):
 
         @property
         def globalsize(self):
-                return self.size
+                if self._globalsize is None:
+                        self._globalsize = self.size
+                return self._globalsize
 
 
         @property
         def globalnbytes(self):
-                return self.nbytes
+            if self._globalnbytes is None:
+                    self._globalnbytes = self.nbytes
+            return self._globalnbytes
 
 
         @property
         def globalshape(self):
-                return self.shape
+                if self._globalshape is None:
+                        self._globalshape = self.shape
+                return self._globalshape
 
 
         #Custom reduction method implementations

@@ -18,31 +18,46 @@ class ColumnBlock(MPIArray):
 
         @property
         def globalsize(self):
+                if self._globalsize is None:
+                        self.__globalsize()
+                return self._globalsize
+
+        def __globalsize(self):
                 comm_size = np.zeros(1, dtype='int')
                 self.comm.Allreduce(np.array(self.size), comm_size, op=MPI.SUM)
-                return comm_size
+                self._globalsize = comm_size
 
 
         @property
         def globalnbytes(self):
+                if self._globalnbytes is None:
+                        self.__globalnbytes()
+                return self._globalnbytes
+
+        def __globalnbytes(self):
                 comm_nbytes = np.zeros(1, dtype='int')
                 self.comm.Allreduce(np.array(self.nbytes), comm_nbytes, op=MPI.SUM)
-                return comm_nbytes
+                self._globalnbytes = comm_nbytes
 
 
         @property
         def globalshape(self):
+                if self._globalshape is None:
+                        self.__globalshape()
+                return self._globalshape
+
+        def __globalshape(self):
                 local_shape = self.shape
                 comm_shape = []
                 axis = 0
                 for axis_dim in local_shape:
                     axis_length = self.custom_reduction(MPI.SUM,
-                                                          np.asarray(local_shape[axis]),
-                                                          axis = axis)
+                                                        np.asarray(local_shape[axis]),
+                                                        axis = axis)
                     comm_shape.append(axis_length[0])
                     axis += 1
 
-                return comm_shape
+                self._globalshape = comm_shape
 
 
         #Custom reduction method implementations

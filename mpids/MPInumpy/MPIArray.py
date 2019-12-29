@@ -5,6 +5,7 @@ from mpids.MPInumpy.errors import ValueError, NotSupportedError
 
 """
     Abstract base numpy array subclass for the individual distributions.
+    See mpids.MPInumpy.distributions for implementations.
 """
 class MPIArray(np.ndarray):
         """ MPIArray subclass of numpy.ndarray """
@@ -64,6 +65,13 @@ class MPIArray(np.ndarray):
                 obj.comm_coord = comm_coord
                 obj.local_to_global = local_to_global
                 return obj
+
+
+        def __init__(self, *args, **kwargs):
+                #Initialize unique properties
+                self._globalsize = None
+                self._globalnbytes = None
+                self._globalshape = None
 
 
         def __array_finalize__(self, obj):
