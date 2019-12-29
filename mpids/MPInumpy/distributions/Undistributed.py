@@ -3,6 +3,9 @@ import numpy as np
 
 from mpids.MPInumpy.MPIArray import MPIArray
 
+"""
+    Undistributed implementation of MPIArray abstract base class.
+"""
 class Undistributed(MPIArray):
 
         #Unique properties to MPIArray
@@ -24,6 +27,37 @@ class Undistributed(MPIArray):
         @property
         def globalshape(self):
                 return self.shape
+
+
+        #Custom reduction method implementations
+        def max(self, **kwargs):
+                self.check_reduction_parms(**kwargs)
+                local_max = np.asarray(self.base.max(**kwargs))
+                global_max = self.custom_reduction(MPI.MAX, local_max, **kwargs)
+                return Undistributed(global_max,
+                                      dtype=global_max.dtype,
+                                      comm=self.comm)
+
+        def mean(self, **kwargs):
+                global_sum = self.sum(**kwargs)
+                axis = kwargs.get('axis')
+                if axis is not None:
+                        global_mean = global_sum * 1. / self.globalshape[axis]
+                else:
+                        global_mean = global_sum * 1. / self.globalsize
+
+                return Undistributed(global_mean,
+                                      dtype=global_mean.dtype,
+                                      comm=self.comm)
+
+
+        def min(self, **kwargs):
+                self.check_reduction_parms(**kwargs)
+                local_min = np.asarray(self.base.min(**kwargs))
+                global_min = self.custom_reduction(MPI.MIN, local_min, **kwargs)
+                return Undistributed(global_min,
+                                      dtype=global_min.dtype,
+                                      comm=self.comm)
 
 
         def std(self, **kwargs):
@@ -50,8 +84,17 @@ class Undistributed(MPIArray):
                         global_std = np.sqrt(
                                 global_sum_square_diff * 1. / self.globalsize)
 
-                return self.__class__(global_std,
+                return Undistributed(global_std,
                                       dtype=global_std.dtype,
+                                      comm=self.comm)
+
+
+        def sum(self, **kwargs):
+                self.check_reduction_parms(**kwargs)
+                local_sum = np.asarray(self.base.sum(**kwargs))
+                global_sum = self.custom_reduction(MPI.SUM, local_sum, **kwargs)
+                return Undistributed(global_sum,
+                                      dtype=global_sum.dtype,
                                       comm=self.comm)
 
 

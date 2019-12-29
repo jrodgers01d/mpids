@@ -3,9 +3,10 @@ import numpy as np
 from mpi4py import MPI
 import mpids.MPInumpy as mpi_np
 from mpids.MPInumpy.errors import ValueError, NotSupportedError
+from mpids.MPInumpy.distributions.Undistributed import Undistributed
 
 
-class MPIArrayDistributionIndependentTest(unittest.TestCase):
+class MPIArrayAbstractBaseClassTest(unittest.TestCase):
 
         def test_abstract_properties_raise_not_implemented_errors(self):
                 mpi_array = mpi_np.MPIArray([1])
@@ -13,12 +14,41 @@ class MPIArrayDistributionIndependentTest(unittest.TestCase):
                         mpi_array = mpi_np.MPIArray([1])
                         mpi_array.dist
 
+                with self.assertRaises(NotImplementedError):
+                        mpi_array = mpi_np.MPIArray([1])
+                        mpi_array.globalsize
+
+                with self.assertRaises(NotImplementedError):
+                        mpi_array = mpi_np.MPIArray([1])
+                        mpi_array.globalnbytes
+
+                with self.assertRaises(NotImplementedError):
+                        mpi_array = mpi_np.MPIArray([1])
+                        mpi_array.globalshape
+
+
         def test_abstract_methods_raise_not_implemented_errors(self):
                 mpi_array = mpi_np.MPIArray([1])
 
                 with self.assertRaises(NotImplementedError):
                         mpi_array = mpi_np.MPIArray([1])
+                        mpi_array.max()
+
+                with self.assertRaises(NotImplementedError):
+                        mpi_array = mpi_np.MPIArray([1])
+                        mpi_array.mean()
+
+                with self.assertRaises(NotImplementedError):
+                        mpi_array = mpi_np.MPIArray([1])
+                        mpi_array.min()
+
+                with self.assertRaises(NotImplementedError):
+                        mpi_array = mpi_np.MPIArray([1])
                         mpi_array.std()
+
+                with self.assertRaises(NotImplementedError):
+                        mpi_array = mpi_np.MPIArray([1])
+                        mpi_array.sum()
 
                 with self.assertRaises(NotImplementedError):
                         mpi_array = mpi_np.MPIArray([1])
@@ -238,6 +268,9 @@ class MPIArrayDefaultTest(unittest.TestCase):
 
 
         def test_custom_max_method(self):
+                #Returned object is undistributed
+                self.assertTrue(isinstance(self.mpi_array.max(), Undistributed))
+
                 #Default max of entire array contents
                 self.assertEqual(self.np_array.max(), self.mpi_array.max())
 
@@ -254,6 +287,9 @@ class MPIArrayDefaultTest(unittest.TestCase):
 
 
         def test_custom_mean_method(self):
+                #Returned object is undistributed
+                self.assertTrue(isinstance(self.mpi_array.mean(), Undistributed))
+
                 #Default mean of entire array contents
                 self.assertEqual(self.np_array.mean(), self.mpi_array.mean())
 
@@ -270,6 +306,9 @@ class MPIArrayDefaultTest(unittest.TestCase):
 
 
         def test_custom_min_method(self):
+                #Returned object is undistributed
+                self.assertTrue(isinstance(self.mpi_array.min(), Undistributed))
+
                 #Default min of entire array contents
                 self.assertEqual(self.np_array.min(), self.mpi_array.min())
 
@@ -286,6 +325,9 @@ class MPIArrayDefaultTest(unittest.TestCase):
 
 
         def test_custom_std_method(self):
+                #Returned object is undistributed
+                self.assertTrue(isinstance(self.mpi_array.std(), Undistributed))
+
                 #Default std of entire array contents
                 self.assertEqual(self.np_array.std(), self.mpi_array.std())
 
@@ -302,6 +344,9 @@ class MPIArrayDefaultTest(unittest.TestCase):
 
 
         def test_custom_sum_method(self):
+                #Returned object is undistributed
+                self.assertTrue(isinstance(self.mpi_array.sum(), Undistributed))
+
                 #Default sum of entire array contents
                 self.assertEqual(self.np_array.sum(), self.mpi_array.sum())
 
