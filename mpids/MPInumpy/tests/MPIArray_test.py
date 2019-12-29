@@ -65,14 +65,19 @@ class MPIArrayDefaultTest(unittest.TestCase):
                 # Default distribution
                 parms['dist'] = 'b'
                 #Add 1 to avoid divide by zero errors/warnings
-                parms['data'] = (np.array(list(range(16))).reshape(4,4) + 1).tolist()
-                parms['local_data'] = [parms['data'][parms['rank']]]
+                np_data = (np.array(list(range(25))).reshape(5,5) + 1)
+                parms['data'] = np_data.tolist()
+                local_data_map = {0: np_data[:2],
+                                  1: np_data[2:3],
+                                  2: np_data[3:4],
+                                  3: np_data[4:]}
+                parms['local_data'] = local_data_map[parms['rank']].tolist()
                 parms['comm_dims'] = [parms['comm_size']]
                 parms['comm_coords'] = [parms['rank']]
-                local_to_global_map = {0 : {0 : (0, 1)},
-                                       1 : {0 : (1, 2)},
-                                       2 : {0 : (2, 3)},
-                                       3 : {0 : (3, 4)}}
+                local_to_global_map = {0 : {0 : (0, 2)},
+                                       1 : {0 : (2, 3)},
+                                       2 : {0 : (3, 4)},
+                                       3 : {0 : (4, 5)}}
                 parms['local_to_global'] = local_to_global_map[parms['rank']]
                 return parms
 
@@ -379,7 +384,7 @@ class MPIArrayUndistributedTest(MPIArrayDefaultTest):
                 # Undistributed distribution
                 parms['dist'] = 'u'
                 #Add 1 to avoid divide by zero errors/warnings
-                parms['data'] = (np.array(list(range(16))).reshape(4,4) + 1).tolist()
+                parms['data'] = (np.array(list(range(25))).reshape(5,5) + 1).tolist()
                 parms['local_data'] = parms['data']
                 parms['comm_dims'] = None
                 parms['comm_coords'] = None
@@ -411,15 +416,19 @@ class MPIArrayColBlockTest(MPIArrayDefaultTest):
                 # Column block distribution
                 parms['dist'] = ('*', 'b')
                 #Add 1 to avoid divide by zero errors/warnings
-                parms['data'] = (np.array(list(range(16))).reshape(4,4) + 1).tolist()
-                parms['local_data'] = \
-                    (np.array(list(range(16))).reshape(4,4) + 1)[:,parms['rank']].reshape(4,1).tolist()
+                np_data = (np.array(list(range(25))).reshape(5,5) + 1)
+                parms['data'] = np_data.tolist()
+                local_data_map = {0: np_data[:,:2],
+                                  1: np_data[:,2:3],
+                                  2: np_data[:,3:4],
+                                  3: np_data[:,4:]}
+                parms['local_data'] = local_data_map[parms['rank']].tolist()
                 parms['comm_dims'] = [1, parms['comm_size']]
                 parms['comm_coords'] = [0, parms['rank']]
-                local_to_global_map = {0 : {0 : (0, 4), 1 : (0, 1)},
-                                       1 : {0 : (0, 4), 1 : (1, 2)},
-                                       2 : {0 : (0, 4), 1 : (2, 3)},
-                                       3 : {0 : (0, 4), 1 : (3, 4)}}
+                local_to_global_map = {0 : {0 : (0, 5), 1 : (0, 2)},
+                                       1 : {0 : (0, 5), 1 : (2, 3)},
+                                       2 : {0 : (0, 5), 1 : (3, 4)},
+                                       3 : {0 : (0, 5), 1 : (4, 5)}}
                 parms['local_to_global'] = local_to_global_map[parms['rank']]
                 return parms
 
@@ -434,12 +443,12 @@ class MPIArrayBlockBlockTest(MPIArrayDefaultTest):
                 # Block block distribution
                 parms['dist'] = ('b', 'b')
                 #Add 1 to avoid divide by zero errors/warnings
-                np_data = (np.array(list(range(16))).reshape(4,4) + 1)
+                np_data = (np.array(list(range(25))).reshape(5,5) + 1)
                 parms['data'] = np_data.tolist()
-                local_data_map = {0: np_data[:2,:2],
-                                  1: np_data[:2,2:],
-                                  2: np_data[2:,:2],
-                                  3: np_data[2:,2:]}
+                local_data_map = {0: np_data[:3,:3],
+                                  1: np_data[:3,3:],
+                                  2: np_data[3:,:3],
+                                  3: np_data[3:,3:]}
                 parms['local_data'] = local_data_map[parms['rank']].tolist()
                 parms['comm_dims'] = [2, 2]
                 rank_coord_map = {0: [0, 0],
@@ -447,10 +456,10 @@ class MPIArrayBlockBlockTest(MPIArrayDefaultTest):
                                   2: [1, 0],
                                   3: [1, 1]}
                 parms['comm_coords'] = rank_coord_map[parms['rank']]
-                local_to_global_map = {0 : {0 : (0, 2), 1 : (0, 2)},
-                                       1 : {0 : (0, 2), 1 : (2, 4)},
-                                       2 : {0 : (2, 4), 1 : (0, 2)},
-                                       3 : {0 : (2, 4), 1 : (2, 4)}}
+                local_to_global_map = {0 : {0 : (0, 3), 1 : (0, 3)},
+                                       1 : {0 : (0, 3), 1 : (3, 5)},
+                                       2 : {0 : (3, 5), 1 : (0, 3)},
+                                       3 : {0 : (3, 5), 1 : (3, 5)}}
                 parms['local_to_global'] = local_to_global_map[parms['rank']]
                 return parms
 

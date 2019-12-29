@@ -78,8 +78,8 @@ class ColumnBlock(MPIArray):
                         global_mean = global_sum * 1. / self.globalsize
 
                 return Undistributed(global_mean,
-                                      dtype=global_mean.dtype,
-                                      comm=self.comm)
+                                     dtype=global_mean.dtype,
+                                     comm=self.comm)
 
 
         def min(self, **kwargs):
@@ -87,8 +87,8 @@ class ColumnBlock(MPIArray):
                 local_min = np.asarray(self.base.min(**kwargs))
                 global_min = self.custom_reduction(MPI.MIN, local_min, **kwargs)
                 return Undistributed(global_min,
-                                      dtype=global_min.dtype,
-                                      comm=self.comm)
+                                     dtype=global_min.dtype,
+                                     comm=self.comm)
 
 
         def std(self, **kwargs):
@@ -107,9 +107,9 @@ class ColumnBlock(MPIArray):
                         np.asarray(local_square_diff.base.sum(**kwargs))
                 global_sum_square_diff = \
                         self.custom_reduction(MPI.SUM,
-                                                local_sum_square_diff,
-                                                dtype = local_sum_square_diff.dtype,
-                                                **kwargs)
+                                              local_sum_square_diff,
+                                              dtype = local_sum_square_diff.dtype,
+                                              **kwargs)
                 if axis is not None:
                         global_std = np.sqrt(
                                 global_sum_square_diff * 1. / self.globalshape[axis])
@@ -118,8 +118,8 @@ class ColumnBlock(MPIArray):
                                 global_sum_square_diff * 1. / self.globalsize)
 
                 return Undistributed(global_std,
-                                      dtype=global_std.dtype,
-                                      comm=self.comm)
+                                     dtype=global_std.dtype,
+                                     comm=self.comm)
 
 
         def sum(self, **kwargs):
@@ -136,9 +136,26 @@ class ColumnBlock(MPIArray):
                 if dtype is None: dtype = self.dtype
 
                 if axis == 0:
-                        global_red = np.zeros(local_red.size * self.comm.size,
-                                              dtype=dtype)
-                        self.comm.Allgather(local_red, global_red)
+                        local_displacement = np.zeros(1, dtype= 'int')
+                        local_count = np.asarray(local_red.size, dtype= 'int')
+                        displacements = np.zeros(self.comm.size,
+                                                 dtype=local_displacement.dtype)
+                        counts = np.zeros(self.comm.size, dtype=local_count.dtype)
+                        total_count = np.zeros(1, dtype=local_count.dtype)
+
+                        #Exclusive scan to determine displacements
+                        self.comm.Exscan(local_count, local_displacement, op=MPI.SUM)
+                        self.comm.Allreduce(local_count, total_count, op=MPI.SUM)                        #Inclusive scan to determine displacements
+                        self.comm.Allgather(local_displacement, displacements)
+                        self.comm.Allgather(local_count, counts)
+
+                        global_red = np.zeros(total_count, dtype=dtype)
+                        # Final conditioning of displacements list
+                        displacements[0] = 0
+
+                        mpi_dtype = MPI._typedict[np.sctype2char(local_red.dtype)]
+                        self.comm.Allgatherv(local_red,
+                                [global_red, (counts, displacements), mpi_dtype])
                 if axis is None or axis == 1:
                         global_red = np.zeros(local_red.size, dtype=dtype)
                         self.comm.Allreduce(local_red, global_red, op=operation)
