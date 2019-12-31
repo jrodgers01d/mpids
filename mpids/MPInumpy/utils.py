@@ -1,7 +1,8 @@
 from mpi4py import MPI
 import numpy as np
 
-from mpids.MPInumpy.errors import IndexError, InvalidDistributionError
+from mpids.MPInumpy.errors import IndexError, InvalidDistributionError, \
+                                  NotSupportedError
 
 __all__ = ['determine_local_data', 'get_block_index', 'get_cart_coords',
            'get_comm_dims', 'global_to_local_key', 'distribution_to_dimensions',
@@ -228,35 +229,38 @@ def global_to_local_key(global_key, globalshape, local_to_global_dict):
         local_key : int, slice, tuple
                 Selection indices present in locally distributed array.
         """
-        if local_to_global_dict is None: #Undistributed Case
-                return global_key
+        __global_to_local_key_map = {int   : _global_to_local_key_int,
+                                     slice : _global_to_local_key_slice,
+                                     tuple : _global_to_local_key_tuple}
 
-        if isinstance(global_key, int):
-                local_key = _global_to_local_key_int(global_key,
-                                                     globalshape,
-                                                     local_to_global_dict)
-        if isinstance(global_key, slice):
-                local_key = _global_to_local_key_slice(global_key,
-                                                       globalshape,
-                                                       local_to_global_dict)
-        if isinstance(global_key, tuple):
-                local_key = _global_to_local_key_tuple(global_key,
-                                                       globalshape,
-                                                       local_to_global_dict)
+        def __unsupported_key(*args):
+                raise NotSupportedError('index/slice key ' +
+                                        '{} '.format(global_key) +
+                                        'is not supported')
+
+        local_key = \
+                __global_to_local_key_map.get(type(global_key),
+                                              __unsupported_key
+                                             )(global_key,
+                                               globalshape,
+                                               local_to_global_dict)
         return local_key
 
 
 def _global_to_local_key_int(global_key, globalshape,
                              local_to_global_dict, axis=0):
         """ Helper method to process int keys """
-        global_min, global_max = local_to_global_dict[axis]
         # Handle negative/reverse access case
         if global_key < 0:
                 global_key += globalshape[axis]
         if global_key < 0 or global_key >= globalshape[axis]:
-                raise IndexError(' index {}'.format(global_key) +
-                                 ' is out of bounds for axis 0 with ' +
+                raise IndexError('index {}'.format(global_key) +
+                                 ' is out of bounds for axis 0 with' +
                                  ' global shape {}'.format(globalshape[axis]))
+        if local_to_global_dict is None:
+                return global_key
+
+        global_min, global_max = local_to_global_dict[axis]
         if global_key >= global_min and global_key < global_max:
                 local_key = global_key - global_min
         else: #Don't slice/access
@@ -269,6 +273,8 @@ def _global_to_local_key_slice(global_key, globalshape,
                                local_to_global_dict, axis=0):
         """ Helper method to process slice keys """
         if global_key == slice(None):
+                return global_key
+        if local_to_global_dict is None:
                 return global_key
 
         global_start, global_stop, global_step = \
@@ -292,7 +298,7 @@ def _global_to_local_key_slice(global_key, globalshape,
 def _global_to_local_key_tuple(global_key, globalshape, local_to_global_dict):
         """ Helper method to process tuple of int or slice keys """
         if len(global_key) > len(globalshape):
-                raise IndexError(' too many indices for array with'  +
+                raise IndexError('too many indices for array with'  +
                                  ' global shape {}'.format(globalshape))
 
         local_key = []

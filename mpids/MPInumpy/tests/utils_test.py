@@ -6,7 +6,8 @@ from mpids.MPInumpy.utils import *
 from mpids.MPInumpy.utils import _global_to_local_key_int,  \
                                  _global_to_local_key_slice,\
                                  _global_to_local_key_tuple
-from mpids.MPInumpy.errors import IndexError, InvalidDistributionError
+from mpids.MPInumpy.errors import IndexError, InvalidDistributionError, \
+                                  NotSupportedError
 
 
 class UtilsDistributionIndependentTest(unittest.TestCase):
@@ -97,6 +98,18 @@ class UtilsDistributionIndependentTest(unittest.TestCase):
                 self.assertEqual(non_slice,
                                  _global_to_local_key_int(global_negative_index_outside_range, globalshape, local_to_global))
 
+                #Global result for local_to_global defined as None
+                self.assertEqual(global_first_index,
+                                 _global_to_local_key_int(global_first_index, globalshape, None))
+                self.assertEqual(global_second_index,
+                                 _global_to_local_key_int(global_second_index, globalshape, None))
+                self.assertEqual(global_last_index,
+                                 _global_to_local_key_int(global_last_index, globalshape, None))
+                self.assertEqual(global_lower_outside_local_range,
+                                 _global_to_local_key_int(global_lower_outside_local_range, globalshape, None))
+                self.assertEqual(global_upper_outside_local_range,
+                                 _global_to_local_key_int(global_upper_outside_local_range, globalshape, None))
+
                 #Check for index errors
                 index_out_of_global_range = 5
                 negative_index_out_of_global_range = -6
@@ -104,6 +117,10 @@ class UtilsDistributionIndependentTest(unittest.TestCase):
                         _global_to_local_key_int(index_out_of_global_range, globalshape, local_to_global)
                 with self.assertRaises(IndexError):
                         _global_to_local_key_int(negative_index_out_of_global_range, globalshape, local_to_global)
+                with self.assertRaises(IndexError):
+                        _global_to_local_key_int(index_out_of_global_range, globalshape, None)
+                with self.assertRaises(IndexError):
+                        _global_to_local_key_int(negative_index_out_of_global_range, globalshape, None)
 
 
         def test_global_to_local_key_slice(self):
@@ -198,25 +215,36 @@ class UtilsDistributionIndependentTest(unittest.TestCase):
                 self.assertEqual(local_mixed_tuple,
                                  _global_to_local_key_tuple(mixed_tuple, globalshape, local_to_global))
 
+                #Global result for local_to_global defined as None
+                self.assertEqual(int_tuple,
+                                 _global_to_local_key_tuple(int_tuple, globalshape, None))
+                self.assertEqual(slice_tuple,
+                                 _global_to_local_key_tuple(slice_tuple, globalshape, None))
+                self.assertEqual(mixed_tuple,
+                                 _global_to_local_key_tuple(mixed_tuple, globalshape, None))
+
                 #Check Index Error is propagated from _global_to_local_key_int
                 with mock.patch('mpids.MPInumpy.utils._global_to_local_key_int',
                                 side_effect = IndexError('Error')) as mock_obj_int:
                         with self.assertRaises(IndexError):
                                 _global_to_local_key_tuple((6, 6), globalshape, local_to_global)
+                with mock.patch('mpids.MPInumpy.utils._global_to_local_key_int',
+                                side_effect = IndexError('Error')) as mock_obj_int:
+                        with self.assertRaises(IndexError):
+                                _global_to_local_key_tuple((6, 6), globalshape, None)
 
                 #Check Index Error is thrown when key has more dimensions
                 #than total array shape
                 with self.assertRaises(IndexError):
                         _global_to_local_key_tuple((0, 1, 2), globalshape, local_to_global)
+                with self.assertRaises(IndexError):
+                        _global_to_local_key_tuple((0, 1, 2), globalshape, None)
 
 
         def test_global_to_local_key(self):
                 globalshape = (5, 5)
                 local_to_global = {0 : (1, 4), 1 : (1, 4)}
 
-                #Undistributed Case
-                dummy_key = 'Dummy Key'
-                self.assertEqual(dummy_key, global_to_local_key(dummy_key, globalshape, None))
 
                 #Check that int/slice/tuple helper methods are called
                 with mock.patch('mpids.MPInumpy.utils._global_to_local_key_int') as mock_obj_int:
@@ -242,6 +270,10 @@ class UtilsDistributionIndependentTest(unittest.TestCase):
                                 side_effect = IndexError('Error')) as mock_obj_tuple:
                         with self.assertRaises(IndexError):
                                 global_to_local_key((0, 1, 2), globalshape, local_to_global)
+
+                #Check Not Supported Error is thrown when non int/slice/tuple key provided
+                with self.assertRaises(NotSupportedError):
+                        global_to_local_key([0, 1], globalshape, local_to_global)
 
 
 class UtilsDefaultTest(unittest.TestCase):

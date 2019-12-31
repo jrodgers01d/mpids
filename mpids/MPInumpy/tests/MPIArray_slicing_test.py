@@ -2,7 +2,7 @@ import unittest
 import numpy as np
 from mpi4py import MPI
 import mpids.MPInumpy as mpi_np
-from mpids.MPInumpy.errors import IndexError
+from mpids.MPInumpy.errors import IndexError, NotSupportedError
 
 class MPIArraySlicingDefaultTest(unittest.TestCase):
 
@@ -39,6 +39,10 @@ class MPIArraySlicingDefaultTest(unittest.TestCase):
                         ndims = len(self.mpi_array.globalshape)
                         overslice = tuple([0] * (ndims + 1))
                         self.mpi_array[overslice]
+
+                #Check Not Supported Error is thrown when non int/slice/tuple key provided
+                with self.assertRaises(NotSupportedError):
+                        self.mpi_array[[0, 1]]
 
 
 class MPIArraySlicingUndistributedTest(MPIArraySlicingDefaultTest):
