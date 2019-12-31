@@ -2,6 +2,7 @@ from mpi4py import MPI
 import numpy as np
 
 from mpids.MPInumpy.errors import ValueError, NotSupportedError
+from mpids.MPInumpy.utils import global_to_local_key
 
 """
     Abstract base numpy array subclass for the individual distributions.
@@ -82,6 +83,18 @@ class MPIArray(np.ndarray):
                 self.local_to_global = getattr(obj, 'local_to_global', None)
 
 
+        def __getitem__(self, key):
+                local_key = global_to_local_key(key,
+                                                self.globalshape,
+                                                self.local_to_global)
+                indexed_result = self.base.__getitem__(local_key)
+#TODO Sort out local to global, potential remapping requirement
+                return self.__class__(indexed_result,
+                                      dtype=self.dtype,
+                                      comm=self.comm,
+                                      comm_dims=self.comm_dims,
+                                      comm_coord=self.comm_coord)
+
         def __repr__(self):
                 return '{}(globalsize={}, globalshape={}, dist={}, dtype={})' \
                        .format('MPIArray',
@@ -89,6 +102,12 @@ class MPIArray(np.ndarray):
                                list(getattr(self, 'globalshape', None)),
                                getattr(self, 'dist', None),
                                getattr(self, 'dtype', None))
+
+
+#TODO: Sort this nonsense out, breaks for select distributions d/t __getitem__
+        def __str__(self):
+                raise NotSupportedError("__str__ not currently supported.")
+
 
         #Unique properties to MPIArray
         @property

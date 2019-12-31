@@ -1,8 +1,10 @@
 from mpi4py import MPI
-from mpids.MPInumpy.errors import InvalidDistributionError
+import numpy as np
+
+from mpids.MPInumpy.errors import IndexError, InvalidDistributionError
 
 __all__ = ['determine_local_data', 'get_block_index', 'get_cart_coords',
-           'get_comm_dims', 'distribution_to_dimensions',
+           'get_comm_dims', 'global_to_local_key', 'distribution_to_dimensions',
            'is_undistributed', 'is_row_block_distributed',
            'is_column_block_distributed', 'is_block_block_distributed']
 
@@ -43,9 +45,17 @@ def determine_local_data(array_data, dist, comm_dims, comm_coord):
 
         local_to_global = {}
         if len(comm_dims) == 1:
-                start, end = get_block_index(len(array_data), comm_dims[0], comm_coord[0])
-                local_to_global[0] = (start, end)
-                return array_data[slice(start, end)], local_to_global
+                for axis in range(len(np.shape(array_data))):
+                        if axis == 0:
+                                row_start, row_end = \
+                                            get_block_index(len(array_data),
+                                                            comm_dims[0],
+                                                            comm_coord[0])
+                                local_to_global[axis] = (row_start, row_end)
+                        else:
+                                local_to_global[axis] = (0, len(array_data[0]))
+
+                return array_data[slice(row_start, row_end)], local_to_global
 
         try:
                 for axis in range(len(comm_dims)):
@@ -68,6 +78,39 @@ def determine_local_data(array_data, dist, comm_dims, comm_coord):
 
         return [array_data[row][slice(col_start, col_end)] \
                         for row in range(row_start, row_end)], local_to_global
+
+
+def distribution_to_dimensions(distribution, procs):
+        """ Convert specified distribution to cartesian dimensions
+
+        Parameters
+        ----------
+        distribution : str, list, tuple
+                Specified distribution of data among processes.
+                Default value 'b' : Block, *
+                Supported types:
+                    'b' : Block, *
+                    ('*', 'b') : *, Block
+                    ('b','b') : Block-Block
+                    'u' : Undistributed
+        procs: int
+                Size/number of processes in communicator
+
+        Returns
+        -------
+        dimensions : int, list
+                Seed for determinging processes per cartesian coordinate
+                direction.
+        """
+        if is_row_block_distributed(distribution):
+                return 1
+        if is_column_block_distributed(distribution):
+                return [1, procs]
+        if is_block_block_distributed(distribution):
+                return len(distribution)
+
+        raise InvalidDistributionError(
+                'Invalid distribution encountered: {}'.format(distribution))
 
 
 def get_block_index(axis_len, axis_size, axis_coord):
@@ -161,37 +204,115 @@ def get_comm_dims(procs, dist):
         return MPI.Compute_dims(procs, distribution_to_dimensions(dist, procs))
 
 
-def distribution_to_dimensions(distribution, procs):
-        """ Convert specified distribution to cartesian dimensions
+def global_to_local_key(global_key, globalshape, local_to_global_dict):
+        """ Determine array like data to be distributed among processes
+            Convert global slice/index key to process local key
 
         Parameters
         ----------
-        distribution : str, list, tuple
-                Specified distribution of data among processes.
-                Default value 'b' : Block, *
-                Supported types:
-                    'b' : Block, *
-                    ('*', 'b') : *, Block
-                    ('b','b') : Block-Block
-                    'u' : Undistributed
-        procs: int
-                Size/number of processes in communicator
+        global_key : int, slice, tuple
+                Selection indices, i.e. keys to object access dunder methods
+                __getitem__, __setitem__, ...
+        globalshape : list, tuple
+                Combined shape of distributed array.
+        local_to_global_dict : dictionary
+                Dictionary specifying global index start/end of data by axis.
+                Format:
+                        key, value = axis, (inclusive start, exclusive end)
+                        {0: [start_index, end_index),
+                         1: [start_index, end_index),
+                         ...}
 
         Returns
         -------
-        dimensions : int, list
-                Seed for determinging processes per cartesian coordinate
-                direction.
+        local_key : int, slice, tuple
+                Selection indices present in locally distributed array.
         """
-        if is_row_block_distributed(distribution):
-                return 1
-        if is_column_block_distributed(distribution):
-                return [1, procs]
-        if is_block_block_distributed(distribution):
-                return len(distribution)
+        if local_to_global_dict is None: #Undistributed Case
+                return global_key
 
-        raise InvalidDistributionError(
-                'Invalid distribution encountered: {}'.format(distribution))
+        if isinstance(global_key, int):
+                local_key = _global_to_local_key_int(global_key,
+                                                     globalshape,
+                                                     local_to_global_dict)
+        if isinstance(global_key, slice):
+                local_key = _global_to_local_key_slice(global_key,
+                                                       globalshape,
+                                                       local_to_global_dict)
+        if isinstance(global_key, tuple):
+                local_key = _global_to_local_key_tuple(global_key,
+                                                       globalshape,
+                                                       local_to_global_dict)
+        return local_key
+
+
+def _global_to_local_key_int(global_key, globalshape,
+                             local_to_global_dict, axis=0):
+        """ Helper method to process int keys """
+        global_min, global_max = local_to_global_dict[axis]
+        # Handle negative/reverse access case
+        if global_key < 0:
+                global_key += globalshape[axis]
+        if global_key < 0 or global_key >= globalshape[axis]:
+                raise IndexError(' index {}'.format(global_key) +
+                                 ' is out of bounds for axis 0 with ' +
+                                 ' global shape {}'.format(globalshape[axis]))
+        if global_key >= global_min and global_key < global_max:
+                local_key = global_key - global_min
+        else: #Don't slice/access
+                local_key = slice(0, 0)
+
+        return local_key
+
+
+def _global_to_local_key_slice(global_key, globalshape,
+                               local_to_global_dict, axis=0):
+        """ Helper method to process slice keys """
+        if global_key == slice(None):
+                return global_key
+
+        global_start, global_stop, global_step = \
+                global_key.indices(globalshape[axis])
+        global_min, global_max = local_to_global_dict[axis]
+
+        #Condition slice start/stop
+        global_start = \
+                global_start if global_start is not None else 0
+        global_stop = \
+                global_stop if global_stop is not None else globalshape[axis]
+        #Bias start/stop by local min/max
+        local_start = global_start - global_min
+        local_stop = global_stop - global_min
+
+        local_key = slice(local_start, local_stop, global_step)
+
+        return local_key
+
+
+def _global_to_local_key_tuple(global_key, globalshape, local_to_global_dict):
+        """ Helper method to process tuple of int or slice keys """
+        if len(global_key) > len(globalshape):
+                raise IndexError(' too many indices for array with'  +
+                                 ' global shape {}'.format(globalshape))
+
+        local_key = []
+        axis = 0
+        for dim_key in global_key:
+                if isinstance(dim_key, int):
+                        local_key.append(
+                                _global_to_local_key_int(dim_key,
+                                                         globalshape,
+                                                         local_to_global_dict,
+                                                         axis))
+                if isinstance(dim_key, slice):
+                        local_key.append(
+                                _global_to_local_key_slice(dim_key,
+                                                           globalshape,
+                                                           local_to_global_dict,
+                                                           axis))
+                axis += 1
+
+        return tuple(local_key)
 
 
 def is_undistributed(distribution):

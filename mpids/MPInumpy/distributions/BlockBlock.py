@@ -193,6 +193,7 @@ class BlockBlock(MPIArray):
                                 col_comm.Allgather(local_count, counts)
 
                                 global_red = np.zeros(total_count, dtype=dtype)
+                                # Final conditioning of displacements list
                                 displacements[0] = 0
 
                                 mpi_dtype = MPI._typedict[np.sctype2char(local_red.dtype)]

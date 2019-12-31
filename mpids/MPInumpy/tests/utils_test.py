@@ -1,8 +1,12 @@
 import unittest
+import unittest.mock as mock
 import numpy as np
 from mpi4py import MPI
 from mpids.MPInumpy.utils import *
-from mpids.MPInumpy.errors import InvalidDistributionError
+from mpids.MPInumpy.utils import _global_to_local_key_int,  \
+                                 _global_to_local_key_slice,\
+                                 _global_to_local_key_tuple
+from mpids.MPInumpy.errors import IndexError, InvalidDistributionError
 
 
 class UtilsDistributionIndependentTest(unittest.TestCase):
@@ -59,6 +63,187 @@ class UtilsDistributionIndependentTest(unittest.TestCase):
                         distribution_to_dimensions(('u','u'), procs)
 
 
+        def test_global_to_local_key_int(self):
+                globalshape = (5, 5)
+                local_to_global = {0 : (1, 4), 1 : (1, 4)}
+
+                #Inputs
+                global_first_index = 1
+                global_second_index = 2
+                global_last_index = 3
+                global_lower_outside_local_range = 0
+                global_upper_outside_local_range = 4
+                global_negative_last_index = -2
+                global_negative_index_outside_range = -1
+                #Expected Results
+                local_first_index = 0
+                local_second_index = 1
+                local_last_index = 2
+                local_negative_last_index = 2
+                non_slice = slice(0, 0)
+
+                self.assertEqual(local_first_index,
+                                 _global_to_local_key_int(global_first_index, globalshape, local_to_global))
+                self.assertEqual(local_second_index,
+                                 _global_to_local_key_int(global_second_index, globalshape, local_to_global))
+                self.assertEqual(local_last_index,
+                                 _global_to_local_key_int(global_last_index, globalshape, local_to_global))
+                self.assertEqual(non_slice,
+                                 _global_to_local_key_int(global_lower_outside_local_range, globalshape, local_to_global))
+                self.assertEqual(non_slice,
+                                 _global_to_local_key_int(global_upper_outside_local_range, globalshape, local_to_global))
+                self.assertEqual(local_negative_last_index,
+                                 _global_to_local_key_int(global_negative_last_index, globalshape, local_to_global))
+                self.assertEqual(non_slice,
+                                 _global_to_local_key_int(global_negative_index_outside_range, globalshape, local_to_global))
+
+                #Check for index errors
+                index_out_of_global_range = 5
+                negative_index_out_of_global_range = -6
+                with self.assertRaises(IndexError):
+                        _global_to_local_key_int(index_out_of_global_range, globalshape, local_to_global)
+                with self.assertRaises(IndexError):
+                        _global_to_local_key_int(negative_index_out_of_global_range, globalshape, local_to_global)
+
+
+        def test_global_to_local_key_slice(self):
+                globalshape = (5, 5)
+                local_to_global = {0 : (1, 4), 1 : (1, 4)}
+
+                #Inputs
+                global_first = slice(1, 2)
+                global_second = slice(2, 3)
+                global_last = slice(3, 4)
+                global_lower_outside_local_range = slice(0, 1)
+                global_upper_outside_local_range = slice(4, 5)
+                #Expected Results
+                local_first_index = slice(0, 1, 1)
+                local_second_index = slice(1, 2, 1)
+                local_last_index = slice(2, 3, 1)
+                #Note: below would slice nothing as the start/stops are
+                #out of the local range
+                local_outside_min_range = slice(-1, 0, 1)
+                local_outside_max_range = slice(3, 4, 1)
+                #Equivalent to indexing arr[:]
+                select_all = slice(None, None, None)
+
+                self.assertEqual(select_all,
+                                 _global_to_local_key_slice(select_all, globalshape, local_to_global))
+                self.assertEqual(local_first_index,
+                                 _global_to_local_key_slice(global_first, globalshape, local_to_global))
+                self.assertEqual(local_second_index,
+                                 _global_to_local_key_slice(global_second, globalshape, local_to_global))
+                self.assertEqual(local_last_index,
+                                 _global_to_local_key_slice(global_last, globalshape, local_to_global))
+                self.assertEqual(local_outside_min_range,
+                                 _global_to_local_key_slice(global_lower_outside_local_range, globalshape, local_to_global))
+                self.assertEqual(local_outside_max_range,
+                                 _global_to_local_key_slice(global_upper_outside_local_range, globalshape, local_to_global))
+
+
+        def test_global_to_local_key_slice_with_steps(self):
+                globalshape = (5, 5)
+                local_to_global = {0 : (1, 4), 1 : (1, 4)}
+                #Inputs
+                global_first = slice(1, 5, 3)
+                global_second = slice(0, 5, 2)
+                global_last = slice(0, 5, 3)
+                global_first_and_last = slice(1, 4, 2)
+                #Expected Results
+                local_first = slice(0, 4, 3)
+                local_second = slice(-1, 4, 2)
+                local_last = slice(-1, 4, 3)
+                local_first_and_last = slice(0, 3, 2)
+
+                self.assertEqual(local_first,
+                                 _global_to_local_key_slice(global_first, globalshape, local_to_global))
+                self.assertEqual(local_second,
+                                 _global_to_local_key_slice(global_second, globalshape, local_to_global))
+                self.assertEqual(local_last,
+                                 _global_to_local_key_slice(global_last, globalshape, local_to_global))
+                self.assertEqual(local_first_and_last,
+                                 _global_to_local_key_slice(global_first_and_last, globalshape, local_to_global))
+
+
+        def test_global_to_local_key_tuple(self):
+                globalshape = (5, 5)
+                local_to_global = {0 : (1, 4), 1 : (1, 4)}
+                #Inputs
+                int_tuple = (1, 1)
+                slice_tuple = (slice(1, 2), slice(1, 2))
+                mixed_tuple = (1, slice(1, 2))
+                #Expected Results
+                local_int_tuple = (0, 0)
+                local_slice_tuple = (slice(0, 1, 1), slice(0, 1, 1))
+                local_mixed_tuple = (0, slice(0, 1, 1))
+
+                #Check that int/slice helper methods are called
+                with mock.patch('mpids.MPInumpy.utils._global_to_local_key_int') as mock_obj_int:
+                        _global_to_local_key_tuple(int_tuple, globalshape, local_to_global)
+                calls = [mock.call(int_tuple[0], globalshape, local_to_global, 0),
+                         mock.call(int_tuple[1], globalshape, local_to_global, 1)]
+                mock_obj_int.assert_has_calls(calls)
+
+                with mock.patch('mpids.MPInumpy.utils._global_to_local_key_slice') as mock_obj_slice:
+                        _global_to_local_key_tuple(slice_tuple, globalshape, local_to_global)
+                calls = [mock.call(slice_tuple[0], globalshape, local_to_global, 0),
+                         mock.call(slice_tuple[1], globalshape, local_to_global, 1)]
+                mock_obj_slice.assert_has_calls(calls)
+
+                #Check return behavior
+                self.assertEqual(local_int_tuple,
+                                 _global_to_local_key_tuple(int_tuple, globalshape, local_to_global))
+                self.assertEqual(local_slice_tuple,
+                                 _global_to_local_key_tuple(slice_tuple, globalshape, local_to_global))
+                self.assertEqual(local_mixed_tuple,
+                                 _global_to_local_key_tuple(mixed_tuple, globalshape, local_to_global))
+
+                #Check Index Error is propagated from _global_to_local_key_int
+                with mock.patch('mpids.MPInumpy.utils._global_to_local_key_int',
+                                side_effect = IndexError('Error')) as mock_obj_int:
+                        with self.assertRaises(IndexError):
+                                _global_to_local_key_tuple((6, 6), globalshape, local_to_global)
+
+                #Check Index Error is thrown when key has more dimensions
+                #than total array shape
+                with self.assertRaises(IndexError):
+                        _global_to_local_key_tuple((0, 1, 2), globalshape, local_to_global)
+
+
+        def test_global_to_local_key(self):
+                globalshape = (5, 5)
+                local_to_global = {0 : (1, 4), 1 : (1, 4)}
+
+                #Undistributed Case
+                dummy_key = 'Dummy Key'
+                self.assertEqual(dummy_key, global_to_local_key(dummy_key, globalshape, None))
+
+                #Check that int/slice/tuple helper methods are called
+                with mock.patch('mpids.MPInumpy.utils._global_to_local_key_int') as mock_obj_int:
+                        global_to_local_key(1, globalshape, local_to_global)
+                mock_obj_int.assert_called_with(1, globalshape, local_to_global)
+
+                with mock.patch('mpids.MPInumpy.utils._global_to_local_key_slice') as mock_obj_slice:
+                        global_to_local_key(slice(1, 2), globalshape, local_to_global)
+                mock_obj_slice.assert_called_with(slice(1, 2), globalshape, local_to_global)
+
+                with mock.patch('mpids.MPInumpy.utils._global_to_local_key_tuple') as mock_obj_tuple:
+                        global_to_local_key((1, 2), globalshape, local_to_global)
+                mock_obj_tuple.assert_called_with((1, 2), globalshape, local_to_global)
+
+                #Check Index Error is propagated from _global_to_local_key_int
+                with mock.patch('mpids.MPInumpy.utils._global_to_local_key_int',
+                                side_effect = IndexError('Error')) as mock_obj_int:
+                        with self.assertRaises(IndexError):
+                                global_to_local_key((6, 6), globalshape, local_to_global)
+
+                #Check Index Error is propagated from _global_to_local_key_tuple
+                with mock.patch('mpids.MPInumpy.utils._global_to_local_key_tuple',
+                                side_effect = IndexError('Error')) as mock_obj_tuple:
+                        with self.assertRaises(IndexError):
+                                global_to_local_key((0, 1, 2), globalshape, local_to_global)
+
+
 class UtilsDefaultTest(unittest.TestCase):
 
         def create_setUp_parms(self):
@@ -88,10 +273,10 @@ class UtilsDefaultTest(unittest.TestCase):
                                        2 : {0 : (6, 8)},
                                        3 : {0 : (8, 10)}}
                 parms['local_to_global'] = local_to_global_map[parms['rank']]
-                local_to_global_2d_map = {0 : {0 : (0, 2)},
-                                          1 : {0 : (2, 3)},
-                                          2 : {0 : (3, 4)},
-                                          3 : {0 : (4, 5)}}
+                local_to_global_2d_map = {0 : {0 : (0, 2), 1 : (0, 4)},
+                                          1 : {0 : (2, 3), 1 : (0, 4)},
+                                          2 : {0 : (3, 4), 1 : (0, 4)},
+                                          3 : {0 : (4, 5), 1 : (0, 4)}}
                 parms['local_to_global_2d'] = local_to_global_2d_map[parms['rank']]
                 return parms
 
@@ -155,7 +340,6 @@ class UtilsDefaultTest(unittest.TestCase):
 
                 self.assertTrue(np.alltrue(self.local_data_2d == local_data_2d))
                 self.assertEqual(self.local_to_global_2d, local_to_global)
-
 
 
 class UtilsUndistributedTest(UtilsDefaultTest):
