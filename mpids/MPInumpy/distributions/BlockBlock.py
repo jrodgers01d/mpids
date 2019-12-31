@@ -25,7 +25,7 @@ class BlockBlock(MPIArray):
         def __globalsize(self):
                 comm_size = np.zeros(1, dtype='int')
                 self.comm.Allreduce(np.array(self.size), comm_size, op=MPI.SUM)
-                self._globalsize = comm_size
+                self._globalsize = int(comm_size)
 
 
         @property
@@ -37,7 +37,7 @@ class BlockBlock(MPIArray):
         def __globalnbytes(self):
                 comm_nbytes = np.zeros(1, dtype='int')
                 self.comm.Allreduce(np.array(self.nbytes), comm_nbytes, op=MPI.SUM)
-                self._globalnbytes = comm_nbytes
+                self._globalnbytes = int(comm_nbytes)
 
 
         @property
@@ -54,10 +54,10 @@ class BlockBlock(MPIArray):
                     axis_length = self.custom_reduction(MPI.SUM,
                                                         np.asarray(local_shape[axis]),
                                                         axis = axis)
-                    comm_shape.append(axis_length[0])
+                    comm_shape.append(int(axis_length[0]))
                     axis += 1
 
-                self._globalshape = comm_shape
+                self._globalshape = tuple(comm_shape)
 
 
         #Custom reduction method implementations
