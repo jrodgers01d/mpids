@@ -88,10 +88,13 @@ class MPIArray(np.ndarray):
                                                 self.globalshape,
                                                 self.local_to_global)
                 indexed_result = self.base.__getitem__(local_key)
+                #Group comms based on wether or not something was indexed
+                indexed_comm = self.comm.Split(color = (indexed_result.size == 0),
+                                               key = self.comm.Get_rank())
 #TODO Sort out local to global, potential remapping requirement
                 return self.__class__(indexed_result,
                                       dtype=self.dtype,
-                                      comm=self.comm,
+                                      comm=indexed_comm,
                                       comm_dims=self.comm_dims,
                                       comm_coord=self.comm_coord)
 
@@ -99,7 +102,7 @@ class MPIArray(np.ndarray):
                 return '{}(globalsize={}, globalshape={}, dist={}, dtype={})' \
                        .format('MPIArray',
                                getattr(self, 'globalsize', None),
-                               list(getattr(self, 'globalshape', None)),
+                               getattr(self, 'globalshape', None),
                                getattr(self, 'dist', None),
                                getattr(self, 'dtype', None))
 
