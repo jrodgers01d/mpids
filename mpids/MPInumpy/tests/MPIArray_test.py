@@ -120,6 +120,23 @@ class MPIArrayDefaultTest(unittest.TestCase):
                 self.assertEqual(self.np_array.size, self.mpi_array.globalsize)
                 self.assertEqual(self.np_array.nbytes, self.mpi_array.globalnbytes)
                 self.assertEqual(self.np_array.shape,  tuple(self.mpi_array.globalshape))
+                #Unique properties data types
+                if isinstance(self.mpi_array, Undistributed):
+                        self.assertTrue(self.mpi_array.comm_dims is None)
+                        self.assertTrue(self.mpi_array.comm_coord is None)
+                        self.assertTrue(self.mpi_array.local_to_global is None)
+                else:
+                        self.assertTrue(isinstance(self.mpi_array.comm_dims, list))
+                        self.assertTrue(isinstance(self.mpi_array.comm_dims[0], int))
+                        self.assertTrue(isinstance(self.mpi_array.comm_coord, list))
+                        self.assertTrue(isinstance(self.mpi_array.comm_coord[0], int))
+                        self.assertTrue(isinstance(self.mpi_array.local_to_global, dict))
+                        self.assertTrue(isinstance(self.mpi_array.local_to_global[0], tuple))
+                        self.assertTrue(isinstance(self.mpi_array.local_to_global[0][0], int))
+                self.assertTrue(isinstance(self.mpi_array.globalsize, int))
+                self.assertTrue(isinstance(self.mpi_array.globalnbytes, int))
+                self.assertTrue(isinstance(self.mpi_array.globalshape, tuple))
+                self.assertTrue(isinstance(self.mpi_array.globalshape[0], int))
 
                 #Replicated numpy.ndarray properties
                 self.assertTrue(np.alltrue(self.np_local_array.T == self.mpi_array.T))
@@ -138,7 +155,7 @@ class MPIArrayDefaultTest(unittest.TestCase):
 
         def test_dunder_methods(self):
                 self.assertEqual('MPIArray(globalsize={}, globalshape={}, dist={}, dtype={})'\
-                                    .format(self.mpi_array.globalsize, list(self.mpi_array.globalshape),
+                                    .format(self.mpi_array.globalsize, self.mpi_array.globalshape,
                                             self.dist, self.mpi_array.dtype)
                                  , self.mpi_array.__repr__())
                 self.assertEqual(None, self.mpi_array.__array_finalize__(None))
