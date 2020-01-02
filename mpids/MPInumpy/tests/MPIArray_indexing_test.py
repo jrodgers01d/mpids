@@ -218,13 +218,15 @@ class MPIArrayIndexingDefaultTest(unittest.TestCase):
                 self.assertTrue(returned_array.comm_dims is None)
                 self.assertTrue(returned_array.comm_coord is None)
                 self.assertTrue(returned_array.local_to_global is None)
+                self.assertEqual(returned_array.globalshape, self.mpi_array.globalshape)
                 self.assertEqual(returned_array.globalsize, self.mpi_array.globalsize)
                 self.assertEqual(returned_array.globalnbytes, self.mpi_array.globalnbytes)
-                self.assertEqual(returned_array.globalshape, self.mpi_array.globalshape)
+                self.assertEqual(returned_array.globalndim, self.mpi_array.globalndim)
 
+                self.assertEqual(returned_array.shape, self.data.shape)
                 self.assertEqual(returned_array.size, self.data.size)
                 self.assertEqual(returned_array.nbytes, self.data.nbytes)
-                self.assertEqual(returned_array.shape, self.data.shape)
+                self.assertEqual(returned_array.ndim, self.data.ndim)
                 self.assertTrue(np.alltrue(returned_array == self.data))
 
 
@@ -239,13 +241,15 @@ class MPIArrayIndexingDefaultTest(unittest.TestCase):
         #         self.assertTrue(returned_array.comm_dims is None)
         #         self.assertTrue(returned_array.comm_coord is None)
         #         self.assertTrue(returned_array.local_to_global is None)
+        #         self.assertEqual(returned_array.globalshape, self.data[first_row].shape)
         #         self.assertEqual(returned_array.globalsize, self.data[first_row].size)
         #         self.assertEqual(returned_array.globalnbytes, self.data[first_row].nbytes)
-        #         self.assertEqual(returned_array.globalshape, self.data[first_row].shape)
+        #         self.assertEqual(returned_array.globalndim, self.data[first_row].ndim)
         #
+        #         self.assertEqual(returned_array.shape, self.data[first_row].shape)
         #         self.assertEqual(returned_array.size, self.data[first_row].size)
         #         self.assertEqual(returned_array.nbytes, self.data[first_row].nbytes)
-        #         self.assertEqual(returned_array.shape, self.data[first_row].shape)
+        #         self.assertEqual(returned_array.ndim, self.data[first_row].ndim)
         #         self.assertTrue(np.alltrue(returned_array == self.data[first_row]))
         #
         #
@@ -260,13 +264,15 @@ class MPIArrayIndexingDefaultTest(unittest.TestCase):
         #         self.assertTrue(returned_array.comm_dims is None)
         #         self.assertTrue(returned_array.comm_coord is None)
         #         self.assertTrue(returned_array.local_to_global is None)
+        #         self.assertEqual(returned_array.globalshape, self.data[last_row].shape)
         #         self.assertEqual(returned_array.globalsize, self.data[last_row].size)
         #         self.assertEqual(returned_array.globalnbytes, self.data[last_row].nbytes)
-        #         self.assertEqual(returned_array.globalshape, self.data[last_row].shape)
+        #         self.assertEqual(returned_array.globalndim, self.data[last_row].ndim)
         #
+        #         self.assertEqual(returned_array.shape, self.data[last_row].shape)
         #         self.assertEqual(returned_array.size, self.data[last_row].size)
         #         self.assertEqual(returned_array.nbytes, self.data[last_row].nbytes)
-        #         self.assertEqual(returned_array.shape, self.data[last_row].shape)
+        #         self.assertEqual(returned_array.ndim, self.data[last_row].ndim)
         #         self.assertTrue(np.alltrue(returned_array == self.data[last_row]))
 
 
@@ -280,13 +286,14 @@ class MPIArrayIndexingDefaultTest(unittest.TestCase):
         #         self.assertTrue(returned_array.comm_dims is None)
         #         self.assertTrue(returned_array.comm_coord is None)
         #         self.assertTrue(returned_array.local_to_global is None)
-        #         self.assertEqual(returned_array.globalsize, self.data[2:4].size)
-        #         self.assertEqual(returned_array.globalnbytes, self.data[2:4].nbytes)
         #         self.assertEqual(returned_array.globalshape, self.data[2:4].shape)
+        #         self.assertEqual(returned_array.globalsize, self.data[2:4].size)
+        #         self.assertEqual(returned_array.globalndim, self.data[2:4].ndim)
         #
+        #         self.assertEqual(returned_array.shape, self.data[2:4].shape)
         #         self.assertEqual(returned_array.size, self.data[2:4].size)
         #         self.assertEqual(returned_array.nbytes, self.data[2:4].nbytes)
-        #         self.assertEqual(returned_array.shape, self.data[2:4].shape)
+        #         self.assertEqual(returned_array.ndim, self.data[2:4].ndim)
         #         self.assertTrue(np.alltrue(returned_array == self.data[2:4]))
 
 
@@ -301,13 +308,15 @@ class MPIArrayIndexingDefaultTest(unittest.TestCase):
         #         self.assertTrue(returned_array.comm_dims is None)
         #         self.assertTrue(returned_array.comm_coord is None)
         #         self.assertTrue(returned_array.local_to_global is None)
+        #         self.assertEqual(returned_array.globalshape, self.data[:, first_col].shape)
         #         self.assertEqual(returned_array.globalsize, self.data[:, first_col].size)
         #         self.assertEqual(returned_array.globalnbytes, self.data[:, first_col].nbytes)
-        #         self.assertEqual(returned_array.globalshape, self.data[:, first_col].shape)
+        #         self.assertEqual(returned_array.globalndim, self.data[:, first_col].ndim)
         #
+        #         self.assertEqual(returned_array.shape, self.data[:, first_col].shape)
         #         self.assertEqual(returned_array.size, self.data[:, first_col].size)
         #         self.assertEqual(returned_array.nbytes, self.data[:, first_col].nbytes)
-        #         self.assertEqual(returned_array.shape, self.data[:, first_col].shape)
+        #         self.assertEqual(returned_array.ndim, self.data[:, first_col].ndim)
         #         self.assertTrue(np.alltrue(returned_array == self.data[:, first_col]))
         #
         #
@@ -322,13 +331,14 @@ class MPIArrayIndexingDefaultTest(unittest.TestCase):
         #         self.assertTrue(returned_array.comm_dims is None)
         #         self.assertTrue(returned_array.comm_coord is None)
         #         self.assertTrue(returned_array.local_to_global is None)
-        #         self.assertEqual(returned_array.globalsize, self.data[:, last_col].size)
-        #         self.assertEqual(returned_array.globalnbytes, self.data[:, last_col].nbytes)
         #         self.assertEqual(returned_array.globalshape, self.data[:, last_col].shape)
+        #         self.assertEqual(returned_array.globalsize, self.data[:, last_col].size)
+        #         self.assertEqual(returned_array.globalndim, self.data[:, last_col].ndim)
         #
+        #         self.assertEqual(returned_array.shape, self.data[:, last_col].shape)
         #         self.assertEqual(returned_array.size, self.data[:, last_col].size)
         #         self.assertEqual(returned_array.nbytes, self.data[:, last_col].nbytes)
-        #         self.assertEqual(returned_array.shape, self.data[:, last_col].shape)
+        #         self.assertEqual(returned_array.ndim, self.data[:, last_col].ndim)
         #         self.assertTrue(np.alltrue(returned_array == self.data[:, last_col]))
 
 

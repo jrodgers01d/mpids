@@ -70,9 +70,10 @@ class MPIArray(np.ndarray):
 
         def __init__(self, *args, **kwargs):
                 #Initialize unique properties
+                self._globalshape = None
                 self._globalsize = None
                 self._globalnbytes = None
-                self._globalshape = None
+                self._globalndim = None
 
 
         def __array_finalize__(self, obj):
@@ -127,6 +128,11 @@ class MPIArray(np.ndarray):
 
 
         @property
+        def globalshape(self):
+                raise NotImplementedError("Define a globalshape implmentation")
+
+
+        @property
         def globalsize(self):
                 raise NotImplementedError("Define a globalsize implmentation")
 
@@ -137,8 +143,8 @@ class MPIArray(np.ndarray):
 
 
         @property
-        def globalshape(self):
-                raise NotImplementedError("Define a globalshape implmentation")
+        def globalndim(self):
+                raise NotImplementedError("Define a globalndim implmentation")
 
 
         #Custom reduction method implementations

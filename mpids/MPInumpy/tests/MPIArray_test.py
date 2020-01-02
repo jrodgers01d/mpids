@@ -23,13 +23,16 @@ class MPIArrayAbstractBaseClassTest(unittest.TestCase):
                         self.mpi_array.dist
 
                 with self.assertRaises(NotImplementedError):
+                        self.mpi_array.globalshape
+
+                with self.assertRaises(NotImplementedError):
                         self.mpi_array.globalsize
 
                 with self.assertRaises(NotImplementedError):
                         self.mpi_array.globalnbytes
 
                 with self.assertRaises(NotImplementedError):
-                        self.mpi_array.globalshape
+                        self.mpi_array.globalndim
 
 
         def test_abstract_methods_raise_not_implemented_errors(self):
@@ -106,9 +109,10 @@ class MPIArrayDefaultTest(unittest.TestCase):
                 self.assertTrue(np.alltrue((returned_array) == (self.mpi_array)))
                 self.assertTrue(returned_array is self.mpi_array)
                 self.assertEqual(returned_array.comm, self.mpi_array.comm)
+                self.assertEqual(returned_array.globalshape, self.mpi_array.globalshape)
                 self.assertEqual(returned_array.globalsize, self.mpi_array.globalsize)
                 self.assertEqual(returned_array.globalnbytes, self.mpi_array.globalnbytes)
-                self.assertEqual(returned_array.globalshape, self.mpi_array.globalshape)
+                self.assertEqual(returned_array.globalndim, self.mpi_array.globalndim)
 
 
         def test_properties(self):
@@ -118,9 +122,10 @@ class MPIArrayDefaultTest(unittest.TestCase):
                 self.assertEqual(self.comm_dims, self.mpi_array.comm_dims)
                 self.assertEqual(self.comm_coord, self.mpi_array.comm_coord)
                 self.assertEqual(self.local_to_global, self.mpi_array.local_to_global)
+                self.assertEqual(self.np_array.shape, self.mpi_array.globalshape)
                 self.assertEqual(self.np_array.size, self.mpi_array.globalsize)
                 self.assertEqual(self.np_array.nbytes, self.mpi_array.globalnbytes)
-                self.assertEqual(self.np_array.shape, self.mpi_array.globalshape)
+                self.assertEqual(self.np_array.ndim, self.mpi_array.globalndim)
                 #Unique properties data types
                 if isinstance(self.mpi_array, Undistributed):
                         self.assertTrue(self.mpi_array.comm_dims is None)
@@ -136,6 +141,7 @@ class MPIArrayDefaultTest(unittest.TestCase):
                         self.assertTrue(isinstance(self.mpi_array.local_to_global[0][0], int))
                 self.assertTrue(isinstance(self.mpi_array.globalsize, int))
                 self.assertTrue(isinstance(self.mpi_array.globalnbytes, int))
+                self.assertTrue(isinstance(self.mpi_array.globalndim, int))
                 self.assertTrue(isinstance(self.mpi_array.globalshape, tuple))
                 self.assertTrue(isinstance(self.mpi_array.globalshape[0], int))
 
@@ -323,9 +329,10 @@ class MPIArrayDefaultTest(unittest.TestCase):
                 self.assertTrue(isinstance(collected_array, Undistributed))
                 self.assertTrue(collected_array is not self.mpi_array)
                 self.assertEqual(collected_array.comm, self.mpi_array.comm)
+                self.assertEqual(collected_array.globalshape, self.mpi_array.globalshape)
                 self.assertEqual(collected_array.globalsize, self.mpi_array.globalsize)
                 self.assertEqual(collected_array.globalnbytes, self.mpi_array.globalnbytes)
-                self.assertEqual(collected_array.globalshape, self.mpi_array.globalshape)
+                self.assertEqual(collected_array.globalndim, self.mpi_array.globalndim)
 
                 #Check collected values
                 self.assertTrue(np.alltrue((collected_array) == (self.np_array)))

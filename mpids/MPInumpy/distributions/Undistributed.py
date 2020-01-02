@@ -31,6 +31,13 @@ class Undistributed(MPIArray):
 
 
         @property
+        def globalshape(self):
+                if self._globalshape is None:
+                        self._globalshape = self.shape
+                return self._globalshape
+
+
+        @property
         def globalsize(self):
                 if self._globalsize is None:
                         self._globalsize = self.size
@@ -45,10 +52,13 @@ class Undistributed(MPIArray):
 
 
         @property
-        def globalshape(self):
-                if self._globalshape is None:
-                        self._globalshape = self.shape
-                return self._globalshape
+        def globalndim(self):
+                if self._globalndim is None:
+                        self.__globalndim()
+                return self._globalndim
+
+        def __globalndim(self):
+                self._globalndim = int(len(self.globalshape))
 
 
         #Custom reduction method implementations
