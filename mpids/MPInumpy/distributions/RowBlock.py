@@ -3,6 +3,7 @@ import numpy as np
 
 from mpids.MPInumpy.MPIArray import MPIArray
 from mpids.MPInumpy.utils import _format_indexed_result, global_to_local_key
+from mpids.MPInumpy.mpi_utils import all_gather_v
 from mpids.MPInumpy.distributions.Undistributed import Undistributed
 
 
@@ -43,15 +44,19 @@ class RowBlock(MPIArray):
                 return self._globalshape
 
         def __globalshape(self):
-                local_shape = self.shape
                 comm_shape = []
                 axis = 0
-                for axis_dim in local_shape:
-                    axis_length = self.custom_reduction(MPI.SUM,
-                                                        np.asarray(local_shape[axis]),
-                                                        axis = axis)
-                    comm_shape.append(int(axis_length[0]))
-                    axis += 1
+                for axis_dim in self.shape:
+                        if axis == 0:
+                                axis_length = \
+                                        self.custom_reduction(MPI.SUM,
+                                                              np.asarray(self.shape[axis]))
+                        else:
+                                axis_length = \
+                                        self.custom_reduction(MPI.MAX,
+                                                              np.asarray(self.shape[axis]))
+                        comm_shape.append(int(axis_length[0]))
+                        axis += 1
 
                 self._globalshape = tuple(comm_shape)
 
@@ -98,6 +103,7 @@ class RowBlock(MPIArray):
                 return Undistributed(global_max,
                                      dtype=global_max.dtype,
                                      comm=self.comm)
+
 
         def mean(self, **kwargs):
                 global_sum = self.sum(**kwargs)
@@ -169,49 +175,15 @@ class RowBlock(MPIArray):
                         global_red = np.zeros(local_red.size, dtype=dtype)
                         self.comm.Allreduce(local_red, global_red, op=operation)
                 if axis == 1:
-                        local_displacement = np.zeros(1, dtype='int')
-                        local_count = np.asarray(local_red.size, dtype='int')
-                        displacements = np.zeros(self.comm.size,
-                                                 dtype=local_displacement.dtype)
-                        counts = np.zeros(self.comm.size, dtype=local_count.dtype)
-                        total_count = np.zeros(1, dtype=local_count.dtype)
-
-                        #Exclusive scan to determine displacements
-                        self.comm.Exscan(local_count, local_displacement, op=MPI.SUM)
-                        self.comm.Allreduce(local_count, total_count, op=MPI.SUM)
-                        self.comm.Allgather(local_displacement, displacements)
-                        self.comm.Allgather(local_count, counts)
-
-                        global_red = np.zeros(total_count, dtype=dtype)
-                        # Final conditioning of displacements list
-                        displacements[0] = 0
-
-                        mpi_dtype = MPI._typedict[np.sctype2char(local_red.dtype)]
-                        self.comm.Allgatherv(local_red,
-                                [global_red, (counts, displacements), mpi_dtype])
+                        global_red = all_gather_v(local_red, comm=self.comm)
 
                 return global_red
 
 
         def collect_data(self):
-                global_data = np.zeros(self.globalshape, dtype=self.dtype)
-                local_displacement = np.zeros(1, dtype='int')
-                local_count = np.asarray(self.size, dtype='int')
-                displacements = np.zeros(self.comm.size,
-                                         dtype=local_displacement.dtype)
-                counts = np.zeros(self.comm.size, dtype=local_count.dtype)
-
-                #Exclusive scan to determine displacements
-                self.comm.Exscan(local_count, local_displacement, op=MPI.SUM)
-                self.comm.Allgather(local_displacement, displacements)
-                self.comm.Allgather(local_count, counts)
-
-                # Final conditioning of displacements list
-                displacements[0] = 0
-
-                mpi_dtype = MPI._typedict[np.sctype2char(self.dtype)]
-                self.comm.Allgatherv(self.data,
-                        [global_data, (counts, displacements), mpi_dtype])
+                global_data = all_gather_v(self,
+                                           shape=self.globalshape,
+                                           comm=self.comm)
 
                 return Undistributed(global_data,
                                      dtype=global_data.dtype,

@@ -17,3 +17,7 @@ class NotSupportedError(MPInumpyError):
 class IndexError(MPInumpyError):
         """ Exception class for when an access index is invalid. """
         pass
+
+class TypeError(MPInumpyError):
+        """ Exception class for when invalid data type is supplied. """
+        pass

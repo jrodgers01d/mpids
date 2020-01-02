@@ -3,6 +3,7 @@ import numpy as np
 
 from mpids.MPInumpy.MPIArray import MPIArray
 from mpids.MPInumpy.utils import _format_indexed_result, global_to_local_key
+from mpids.MPInumpy.mpi_utils import all_gather_v
 from mpids.MPInumpy.distributions.Undistributed import Undistributed
 
 
@@ -43,15 +44,15 @@ class BlockBlock(MPIArray):
                 return self._globalshape
 
         def __globalshape(self):
-                local_shape = self.shape
                 comm_shape = []
                 axis = 0
-                for axis_dim in local_shape:
-                    axis_length = self.custom_reduction(MPI.SUM,
-                                                        np.asarray(local_shape[axis]),
-                                                        axis = axis)
-                    comm_shape.append(int(axis_length[0]))
-                    axis += 1
+                for axis_dim in self.shape:
+                        axis_length = \
+                                self.custom_reduction(MPI.SUM,
+                                                      np.asarray(self.shape[axis]),
+                                                      axis = axis)
+                        comm_shape.append(int(axis_length[0]))
+                        axis += 1
 
                 self._globalshape = tuple(comm_shape)
 
@@ -181,120 +182,43 @@ class BlockBlock(MPIArray):
                         if axis == 0:
                                 col_red = np.zeros(local_red.size, dtype=dtype)
                                 col_comm.Allreduce(local_red, col_red, op=operation)
-
-                                local_displacement = np.zeros(1, dtype='int')
-                                local_count = np.asarray(col_red.size, dtype='int')
-                                displacements = np.zeros(self.comm_dims[1],
-                                                         dtype=local_displacement.dtype)
-                                counts = np.zeros(self.comm_dims[1],
-                                                  dtype=local_count.dtype)
-                                total_count = np.zeros(1, dtype=local_count.dtype)
-
-                                #Exclusive scan to determine displacements
-                                row_comm.Exscan(local_count, local_displacement, op=MPI.SUM)
-                                row_comm.Allreduce(local_count, total_count, op=MPI.SUM)
-                                row_comm.Allgather(local_displacement, displacements)
-                                row_comm.Allgather(local_count, counts)
-
-                                global_red = np.zeros(total_count, dtype=dtype)
-                                # Final conditioning of displacements list
-                                displacements[0] = 0
-
-                                mpi_dtype = MPI._typedict[np.sctype2char(local_red.dtype)]
-                                row_comm.Allgatherv(col_red,
-                                        [global_red, (counts, displacements), mpi_dtype])
-
+                                global_red = all_gather_v(col_red, comm=row_comm)
                         if axis == 1:
                                 row_red = np.zeros(local_red.size, dtype=dtype)
                                 row_comm.Allreduce(local_red, row_red, op=operation)
-
-                                local_displacement = np.zeros(1, dtype='int')
-                                local_count = np.asarray(row_red.size, dtype='int')
-                                displacements = np.zeros(self.comm_dims[0],
-                                                         dtype=local_displacement.dtype)
-                                counts = np.zeros(self.comm_dims[0],
-                                                  dtype=local_count.dtype)
-                                total_count = np.zeros(1, dtype=local_count.dtype)
-
-                                #Exclusive scan to determine displacements
-                                col_comm.Exscan(local_count, local_displacement, op=MPI.SUM)
-                                col_comm.Allreduce(local_count, total_count, op=MPI.SUM)
-                                col_comm.Allgather(local_displacement, displacements)
-                                col_comm.Allgather(local_count, counts)
-
-                                global_red = np.zeros(total_count, dtype=dtype)
-                                # Final conditioning of displacements list
-                                displacements[0] = 0
-
-                                mpi_dtype = MPI._typedict[np.sctype2char(local_red.dtype)]
-                                col_comm.Allgatherv(row_red,
-                                        [global_red, (counts, displacements), mpi_dtype])
+                                global_red = all_gather_v(row_red, comm=col_comm)
 
                 return global_red
 
 
         def collect_data(self):
-                #First combine the columns(transpose is expensive)
                 row_comm = self.comm.Split(color = self.comm_coord[0],
                                            key = self.comm.Get_rank())
-
-                local_displacement = np.zeros(1, dtype='int')
-                displacements = np.zeros(self.comm_dims[0],
-                                         dtype=local_displacement.dtype)
-                counts = np.zeros(self.comm_dims[0], dtype='int')
-
-                #Transpose prior to send to have consistent tranversal
-                local_transpose = \
-                        np.zeros((self.shape[1], self.shape[0]), dtype=self.dtype)
-                local_transpose[:,:] = np.transpose(self.base)
-                local_count = np.asarray(local_transpose.size, dtype='int')
-
-                #Exclusive scan to determine displacements
-                row_comm.Exscan(local_count, local_displacement, op=MPI.SUM)
-                row_comm.Allgather(local_displacement, displacements)
-                row_comm.Allgather(local_count, counts)
-
-                #Number of transposed 'rows' will be global number of columns
-                ## while the number of columns will be the locals number of rows
-                global_row_data_transpose = \
-                        np.zeros((self.globalshape[1], self.shape[0]),
-                                 dtype=self.dtype)
-                # Final conditioning of displacements list
-                displacements[0] = 0
-
-                mpi_dtype = MPI._typedict[np.sctype2char(self.dtype)]
-                row_comm.Allgatherv(local_transpose,
-                        [global_row_data_transpose, (counts, displacements), mpi_dtype])
-
-                #Final transpose to recover original ordering
-                global_row_data = \
-                        np.zeros((global_row_data_transpose.shape[1],
-                                  global_row_data_transpose.shape[0]),
-                                  dtype=self.dtype)
-                global_row_data[:,:] = np.transpose(global_row_data_transpose)
-
-                #Now let's combin those rows!
                 col_comm = self.comm.Split(color = self.comm_coord[1],
                                            key = self.comm.Get_rank())
+                #First combine the columns(transpose is expensive)
+                #Transpose prior to send to have consistent tranversal
+                flipped_shape = tuple(list(self.shape)[::-1])
+                local_transpose = \
+                        np.zeros(flipped_shape, dtype=self.dtype)
+                np.copyto(local_transpose, np.transpose(self.base))
+                #Number of transposed 'rows' will be global number of columns
+                ## while the number of columns will be the locals number of rows
+                global_row_data_trans_shape = (self.globalshape[1], self.shape[0])
+                global_row_data_transpose = \
+                        all_gather_v(local_transpose,
+                                     shape=global_row_data_trans_shape,
+                                     comm=row_comm)
 
-                displacements = np.zeros(self.comm_dims[1],
-                                         dtype=local_displacement.dtype)
-                counts = np.zeros(self.comm_dims[1], dtype='int')
-                local_count = np.asarray(global_row_data.size, dtype='int')
-
-                #Exclusive scan to determine displacements
-                col_comm.Exscan(local_count, local_displacement, op=MPI.SUM)
-                col_comm.Allgather(local_displacement, displacements)
-                col_comm.Allgather(local_count, counts)
-
-                global_data = np.zeros(self.globalshape, dtype=self.dtype)
-
-                # Final conditioning of displacements list
-                displacements[0] = 0
-
-                mpi_dtype = MPI._typedict[np.sctype2char(self.dtype)]
-                col_comm.Allgatherv(global_row_data,
-                        [global_data, (counts, displacements), mpi_dtype])
+                #Final transpose to recover original ordering
+                flipped_global_row_shape = \
+                        tuple(list(global_row_data_transpose.shape)[::-1])
+                global_row_data = \
+                        np.zeros(flipped_global_row_shape, dtype=self.dtype)
+                np.copyto(global_row_data, np.transpose(global_row_data_transpose))
+                global_data = all_gather_v(global_row_data,
+                                           shape=self.globalshape,
+                                           comm=col_comm)
 
                 return Undistributed(global_data,
                                      dtype=global_data.dtype,

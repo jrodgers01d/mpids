@@ -251,7 +251,7 @@ class MPIArrayIndexingDefaultTest(unittest.TestCase):
         #         self.assertEqual(returned_array.nbytes, self.data[first_row].nbytes)
         #         self.assertEqual(returned_array.ndim, self.data[first_row].ndim)
         #         self.assertTrue(np.alltrue(returned_array == self.data[first_row]))
-        #
+
         #
         # def test_custom_getitem_last_row_return(self):
         #         last_row = self.mpi_array.globalshape[0] - 1
@@ -274,8 +274,8 @@ class MPIArrayIndexingDefaultTest(unittest.TestCase):
         #         self.assertEqual(returned_array.nbytes, self.data[last_row].nbytes)
         #         self.assertEqual(returned_array.ndim, self.data[last_row].ndim)
         #         self.assertTrue(np.alltrue(returned_array == self.data[last_row]))
-
-
+        #
+        #
         # def test_custom_getitem_middle_row_slice_return(self):
         #         returned_array = self.mpi_array[2:4]
         #
@@ -295,8 +295,8 @@ class MPIArrayIndexingDefaultTest(unittest.TestCase):
         #         self.assertEqual(returned_array.nbytes, self.data[2:4].nbytes)
         #         self.assertEqual(returned_array.ndim, self.data[2:4].ndim)
         #         self.assertTrue(np.alltrue(returned_array == self.data[2:4]))
-
-
+        #
+        #
         # def test_custom_getitem_first_column_return(self):
         #         first_col = 0
         #         returned_array = self.mpi_array[:, first_col]
