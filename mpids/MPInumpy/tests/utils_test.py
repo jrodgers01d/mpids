@@ -13,6 +13,13 @@ from mpids.MPInumpy.errors import IndexError, InvalidDistributionError, \
 
 class UtilsDistributionIndependentTest(unittest.TestCase):
 
+        def setUp(self):
+                class IndexKeyGenerator(object):
+                        def __getitem__(self, key):
+                                return key
+                self.index_key_generator = IndexKeyGenerator()
+
+
         def test_distribution_checks(self):
                 undist = 'u'
                 row_block = 'b'
@@ -70,19 +77,34 @@ class UtilsDistributionIndependentTest(unittest.TestCase):
                 local_to_global = {0 : (1, 4), 1 : (1, 4)}
 
                 #Inputs
-                global_first_index = 1
-                global_second_index = 2
-                global_last_index = 3
-                global_lower_outside_local_range = 0
-                global_upper_outside_local_range = 4
-                global_negative_last_index = -2
-                global_negative_index_outside_range = -1
+                global_first_index = self.index_key_generator[1]
+                global_second_index = self.index_key_generator[2]
+                global_last_index = self.index_key_generator[3]
+                global_lower_outside_local_range = self.index_key_generator[0]
+                global_upper_outside_local_range = self.index_key_generator[4]
+                global_negative_last_index = self.index_key_generator[-2]
+                global_negative_index_outside_range = self.index_key_generator[-1]
+                #Check keys are what we expect
+                self.assertEqual(1, global_first_index)
+                self.assertEqual(2, global_second_index)
+                self.assertEqual(3, global_last_index)
+                self.assertEqual(0, global_lower_outside_local_range)
+                self.assertEqual(4, global_upper_outside_local_range)
+                self.assertEqual(-2, global_negative_last_index)
+                self.assertEqual(-1, global_negative_index_outside_range)
+
                 #Expected Results
-                local_first_index = 0
-                local_second_index = 1
-                local_last_index = 2
-                local_negative_last_index = 2
-                non_slice = slice(0, 0)
+                local_first_index = self.index_key_generator[0]
+                local_second_index = self.index_key_generator[1]
+                local_last_index = self.index_key_generator[2]
+                local_negative_last_index = self.index_key_generator[2]
+                non_slice = self.index_key_generator[0:0]
+                #Check keyss are what we expect
+                self.assertEqual(0, local_first_index)
+                self.assertEqual(1, local_second_index)
+                self.assertEqual(2, local_last_index)
+                self.assertEqual(2, local_negative_last_index)
+                self.assertEqual(slice(0, 0), non_slice)
 
                 self.assertEqual(local_first_index,
                                  _global_to_local_key_int(global_first_index, globalshape, local_to_global))
@@ -112,8 +134,12 @@ class UtilsDistributionIndependentTest(unittest.TestCase):
                                  _global_to_local_key_int(global_upper_outside_local_range, globalshape, None))
 
                 #Check for index errors
-                index_out_of_global_range = 5
-                negative_index_out_of_global_range = -6
+                index_out_of_global_range = self.index_key_generator[5]
+                negative_index_out_of_global_range = self.index_key_generator[-6]
+                #Check keys are what we expect
+                self.assertEqual(5, index_out_of_global_range)
+                self.assertEqual(-6, negative_index_out_of_global_range)
+
                 with self.assertRaises(IndexError):
                         _global_to_local_key_int(index_out_of_global_range, globalshape, local_to_global)
                 with self.assertRaises(IndexError):
@@ -129,21 +155,36 @@ class UtilsDistributionIndependentTest(unittest.TestCase):
                 local_to_global = {0 : (1, 4), 1 : (1, 4)}
 
                 #Inputs
-                global_first = slice(1, 2)
-                global_second = slice(2, 3)
-                global_last = slice(3, 4)
-                global_lower_outside_local_range = slice(0, 1)
-                global_upper_outside_local_range = slice(4, 5)
+                global_first = self.index_key_generator[1:2]
+                global_second = self.index_key_generator[2:3]
+                global_last = self.index_key_generator[3:4]
+                global_lower_outside_local_range = self.index_key_generator[0:1]
+                global_upper_outside_local_range = self.index_key_generator[4:5]
+                #Check keys are what we expect
+                self.assertEqual(slice(1, 2), global_first)
+                self.assertEqual(slice(2, 3), global_second)
+                self.assertEqual(slice(3, 4), global_last)
+                self.assertEqual(slice(0, 1), global_lower_outside_local_range)
+                self.assertEqual(slice(4, 5), global_upper_outside_local_range)
+
                 #Expected Results
-                local_first_index = slice(0, 1, 1)
-                local_second_index = slice(1, 2, 1)
-                local_last_index = slice(2, 3, 1)
+                local_first_index = self.index_key_generator[0:1:1]
+                local_second_index = self.index_key_generator[1:2:1]
+                local_last_index = self.index_key_generator[2:3:1]
+                #Check keys are what we expect
+                self.assertEqual(slice(0, 1, 1), local_first_index)
+                self.assertEqual(slice(1, 2, 1), local_second_index)
+                self.assertEqual(slice(2, 3, 1), local_last_index)
+
                 #Note: below would slice nothing as the start/stops are
                 #out of the local range
-                local_outside_min_range = slice(-1, 0, 1)
-                local_outside_max_range = slice(3, 4, 1)
-                #Equivalent to indexing arr[:]
-                select_all = slice(None, None, None)
+                local_outside_min_range = self.index_key_generator[-1:0:1]
+                local_outside_max_range = self.index_key_generator[3:4:1]
+                select_all = self.index_key_generator[:]
+                #Check keys are what we expect
+                self.assertEqual(slice(-1, 0, 1), local_outside_min_range)
+                self.assertEqual(slice(3, 4, 1), local_outside_max_range)
+                self.assertEqual(slice(None, None, None), select_all)
 
                 self.assertEqual(select_all,
                                  _global_to_local_key_slice(select_all, globalshape, local_to_global))
@@ -163,15 +204,26 @@ class UtilsDistributionIndependentTest(unittest.TestCase):
                 globalshape = (5, 5)
                 local_to_global = {0 : (1, 4), 1 : (1, 4)}
                 #Inputs
-                global_first = slice(1, 5, 3)
-                global_second = slice(0, 5, 2)
-                global_last = slice(0, 5, 3)
-                global_first_and_last = slice(1, 4, 2)
+                global_first = self.index_key_generator[1:5:3]
+                global_second = self.index_key_generator[0:5:2]
+                global_last = self.index_key_generator[0:5:3]
+                global_first_and_last = self.index_key_generator[1:4:2]
+                #Check keys are what we expect
+                self.assertEqual(slice(1, 5, 3), global_first)
+                self.assertEqual(slice(0, 5, 2), global_second)
+                self.assertEqual(slice(0, 5, 3), global_last)
+                self.assertEqual(slice(1, 4, 2), global_first_and_last)
+
                 #Expected Results
-                local_first = slice(0, 4, 3)
-                local_second = slice(-1, 4, 2)
-                local_last = slice(-1, 4, 3)
-                local_first_and_last = slice(0, 3, 2)
+                local_first = self.index_key_generator[0:4:3]
+                local_second = self.index_key_generator[-1:4:2]
+                local_last = self.index_key_generator[-1:4:3]
+                local_first_and_last = self.index_key_generator[0:3:2]
+                #Check keys are what we expect
+                self.assertEqual(slice(0, 4, 3), local_first)
+                self.assertEqual(slice(-1, 4, 2), local_second)
+                self.assertEqual(slice(-1, 4, 3), local_last)
+                self.assertEqual(slice(0, 3, 2), local_first_and_last)
 
                 self.assertEqual(local_first,
                                  _global_to_local_key_slice(global_first, globalshape, local_to_global))
@@ -187,13 +239,22 @@ class UtilsDistributionIndependentTest(unittest.TestCase):
                 globalshape = (5, 5)
                 local_to_global = {0 : (1, 4), 1 : (1, 4)}
                 #Inputs
-                int_tuple = (1, 1)
-                slice_tuple = (slice(1, 2), slice(1, 2))
-                mixed_tuple = (1, slice(1, 2))
+                int_tuple = self.index_key_generator[1, 1]
+                slice_tuple = self.index_key_generator[1:2,1:2]
+                mixed_tuple = self.index_key_generator[1,1:2]
+                #Check keys are what we expect
+                self.assertEqual((1, 1), int_tuple)
+                self.assertEqual((slice(1, 2), slice(1, 2)), slice_tuple)
+                self.assertEqual((1, slice(1, 2)), mixed_tuple)
+
                 #Expected Results
-                local_int_tuple = (0, 0)
-                local_slice_tuple = (slice(0, 1, 1), slice(0, 1, 1))
-                local_mixed_tuple = (0, slice(0, 1, 1))
+                local_int_tuple = self.index_key_generator[0,0]
+                local_slice_tuple = self.index_key_generator[0:1:1,0:1:1]
+                local_mixed_tuple = self.index_key_generator[0,0:1:1]
+                #Check keys are what we expect
+                self.assertEqual((0, 0), local_int_tuple)
+                self.assertEqual((slice(0, 1, 1), slice(0, 1, 1)), local_slice_tuple)
+                self.assertEqual((0, slice(0, 1, 1)), local_mixed_tuple)
 
                 #Check that int/slice helper methods are called
                 with mock.patch('mpids.MPInumpy.utils._global_to_local_key_int') as mock_obj_int:
@@ -282,37 +343,33 @@ class UtilsDistributionIndependentTest(unittest.TestCase):
 
                 np_scalar = test_matrix[0,0]
                 undesired_scalar_shape = np_scalar.shape
-                self.assertEqual((), undesired_scalar_shape)
-
                 desired_scalar_shape =(1,)
                 formated_np_scalar = _format_indexed_result((0, 0), np_scalar)
-                self.assertEqual(undesired_scalar_shape, np_scalar.shape)
+                self.assertEqual((), undesired_scalar_shape)
                 self.assertEqual(desired_scalar_shape, formated_np_scalar.shape)
                 self.assertEqual(np_scalar, formated_np_scalar)
 
                 empty_array = test_matrix[0:0]
                 undesired_empty_shape = empty_array.shape
+                desired_scalar_empty_shape =(0,)
+                desired_empty_shape =(0, 0)
                 self.assertEqual((0, 4), undesired_empty_shape)
 
-                desired_empty_shape =(0,)
+                formated_empty_array_int = _format_indexed_result(1, empty_array)
+                self.assertEqual(desired_scalar_empty_shape, formated_empty_array_int.shape)
+                self.assertEqual(empty_array.data.tolist(), formated_empty_array_int.data.tolist())
+
                 formated_empty_array_slice = _format_indexed_result(slice(1,1), empty_array)
-                self.assertEqual(undesired_empty_shape, empty_array.shape)
                 self.assertEqual(desired_empty_shape, formated_empty_array_slice.shape)
                 self.assertEqual(empty_array.data.tolist(), formated_empty_array_slice.data.tolist())
 
-                #SPECIAL CASE, because a global index can exist outside of the
-                ## local index space.
-                #Result of slice
-                empty_outside_index_array = np.array([]).reshape(0, 1)
-                undesired_empty_outside_index_shape = empty_outside_index_array.shape
-                self.assertEqual((0, 1), undesired_empty_outside_index_shape)
+                formated_empty_array_tuple_int = _format_indexed_result((1, 1), empty_array)
+                self.assertEqual(desired_scalar_empty_shape, formated_empty_array_tuple_int.shape)
+                self.assertEqual(empty_array.data.tolist(), formated_empty_array_tuple_int.data.tolist())
 
-                desired_empty_outside_index_shape =(0, 0)
-                formated_empty_outside_index_array = \
-                        _format_indexed_result((slice(1,1), slice(1,1)), empty_outside_index_array)
-                self.assertEqual(undesired_empty_outside_index_shape, empty_outside_index_array.shape)
-                self.assertEqual(desired_empty_outside_index_shape, formated_empty_outside_index_array.shape)
-                self.assertEqual(empty_outside_index_array.data.tolist(), formated_empty_outside_index_array.data.tolist())
+                formated_empty_array_tuple_slice = _format_indexed_result((slice(1,1), slice(1,1)), empty_array)
+                self.assertEqual(desired_empty_shape, formated_empty_array_tuple_slice.shape)
+                self.assertEqual(empty_array.data.tolist(), formated_empty_array_tuple_slice.data.tolist())
 
 
 class UtilsDefaultTest(unittest.TestCase):

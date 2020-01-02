@@ -143,13 +143,19 @@ def _format_indexed_result(global_key, indexed_result):
 
         #Adjust shape for processes with nothing sliced
         if indexed_result.size == 0:
-                if isinstance(global_key, tuple):
-                        indexed_result = \
-                                indexed_result.reshape([0] * len(global_key))
-                else:
+                if isinstance(global_key, int):
                         indexed_result = indexed_result.reshape(0)
-
+                if isinstance(global_key, slice):
+                        indexed_result = \
+                                indexed_result.reshape([0] * len(indexed_result.shape))
+                if isinstance(global_key, tuple):
+                        if all(isinstance(dim_key, int) for dim_key in global_key):
+                                indexed_result = indexed_result.reshape(0)
+                        else:
+                                indexed_result = \
+                                        indexed_result.reshape([0] * len(indexed_result.shape))
         return indexed_result
+
 
 def get_block_index(axis_len, axis_size, axis_coord):
         """ Get start/end array index range along axis for data block.
@@ -276,11 +282,10 @@ def global_to_local_key(global_key, globalshape, local_to_global_dict):
                                         'is not supported')
 
         local_key = \
-                __global_to_local_key_map.get(type(global_key),
-                                              __unsupported_key
-                                             )(global_key,
-                                               globalshape,
-                                               local_to_global_dict)
+                __global_to_local_key_map.get(
+                        type(global_key), __unsupported_key)(global_key,
+                                                             globalshape,
+                                                             local_to_global_dict)
         return local_key
 
 
