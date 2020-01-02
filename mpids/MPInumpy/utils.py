@@ -114,6 +114,43 @@ def distribution_to_dimensions(distribution, procs):
                 'Invalid distribution encountered: {}'.format(distribution))
 
 
+def _format_indexed_result(global_key, indexed_result):
+        """ Helper method to format __getitem__ index based result
+            distribution as a MPIArray.
+
+            Ensures results have:
+                - shapes:
+                    In the case of scalar values
+                - correctly populated shapes(value and length):
+                    In the case of empty slices
+
+            Parameters
+            ----------
+            global_key : int, slice, tuple
+                    Selection indices, i.e. keys to object access dunder methods
+                    __getitem__, __setitem__, ...
+            indexed_result : numpy.ndarray
+                    Result of calling __getitem__ with global_key
+
+            Returns
+            -------
+            formatted_indexed_result : numpy.ndarray
+                    Original array with properties necessary for distribution
+        """
+        #Avoid empty tuples for shape
+        if indexed_result.ndim == 0:
+                indexed_result = np.array([indexed_result])
+
+        #Adjust shape for processes with nothing sliced
+        if indexed_result.size == 0:
+                if isinstance(global_key, tuple):
+                        indexed_result = \
+                                indexed_result.reshape([0] * len(global_key))
+                else:
+                        indexed_result = indexed_result.reshape(0)
+
+        return indexed_result
+
 def get_block_index(axis_len, axis_size, axis_coord):
         """ Get start/end array index range along axis for data block.
 

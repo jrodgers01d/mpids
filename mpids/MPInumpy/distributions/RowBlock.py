@@ -2,6 +2,7 @@ from mpi4py import MPI
 import numpy as np
 
 from mpids.MPInumpy.MPIArray import MPIArray
+from mpids.MPInumpy.utils import _format_indexed_result, global_to_local_key
 from mpids.MPInumpy.distributions.Undistributed import Undistributed
 
 
@@ -9,6 +10,25 @@ from mpids.MPInumpy.distributions.Undistributed import Undistributed
     RowBlock implementation of MPIArray abstract base class.
 """
 class RowBlock(MPIArray):
+
+#TODO: Resolve this namespace requirement
+        def __getitem__(self, key):
+                local_key = global_to_local_key(key,
+                                                self.globalshape,
+                                                self.local_to_global)
+                indexed_result = self.base.__getitem__(local_key)
+                indexed_result = _format_indexed_result(key, indexed_result)
+
+                distributed_result = \
+                        self.__class__(indexed_result,
+                                       dtype=self.dtype,
+                                       comm=self.comm,
+                                       comm_dims=self.comm_dims,
+                                       comm_coord=self.comm_coord,
+                                       local_to_global=self.local_to_global)
+                #Return undistributed copy of data
+                return distributed_result.collect_data()
+
 
         #Unique properties to MPIArray
         @property
@@ -138,8 +158,8 @@ class RowBlock(MPIArray):
                         global_red = np.zeros(local_red.size, dtype=dtype)
                         self.comm.Allreduce(local_red, global_red, op=operation)
                 if axis == 1:
-                        local_displacement = np.zeros(1, dtype= 'int')
-                        local_count = np.asarray(local_red.size, dtype= 'int')
+                        local_displacement = np.zeros(1, dtype='int')
+                        local_count = np.asarray(local_red.size, dtype='int')
                         displacements = np.zeros(self.comm.size,
                                                  dtype=local_displacement.dtype)
                         counts = np.zeros(self.comm.size, dtype=local_count.dtype)
@@ -147,7 +167,7 @@ class RowBlock(MPIArray):
 
                         #Exclusive scan to determine displacements
                         self.comm.Exscan(local_count, local_displacement, op=MPI.SUM)
-                        self.comm.Allreduce(local_count, total_count, op=MPI.SUM)                        #Inclusive scan to determine displacements
+                        self.comm.Allreduce(local_count, total_count, op=MPI.SUM)
                         self.comm.Allgather(local_displacement, displacements)
                         self.comm.Allgather(local_count, counts)
 
@@ -160,3 +180,28 @@ class RowBlock(MPIArray):
                                 [global_red, (counts, displacements), mpi_dtype])
 
                 return global_red
+
+
+        def collect_data(self):
+                global_data = np.zeros(self.globalshape, dtype=self.dtype)
+                local_displacement = np.zeros(1, dtype='int')
+                local_count = np.asarray(self.size, dtype='int')
+                displacements = np.zeros(self.comm.size,
+                                         dtype=local_displacement.dtype)
+                counts = np.zeros(self.comm.size, dtype=local_count.dtype)
+
+                #Exclusive scan to determine displacements
+                self.comm.Exscan(local_count, local_displacement, op=MPI.SUM)
+                self.comm.Allgather(local_displacement, displacements)
+                self.comm.Allgather(local_count, counts)
+
+                # Final conditioning of displacements list
+                displacements[0] = 0
+
+                mpi_dtype = MPI._typedict[np.sctype2char(self.dtype)]
+                self.comm.Allgatherv(self.data,
+                        [global_data, (counts, displacements), mpi_dtype])
+
+                return Undistributed(global_data,
+                                     dtype=global_data.dtype,
+                                     comm=self.comm)

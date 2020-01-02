@@ -83,20 +83,11 @@ class MPIArray(np.ndarray):
                 self.local_to_global = getattr(obj, 'local_to_global', None)
 
 
+#TODO: Resolve this namespace requirement
         def __getitem__(self, key):
-                local_key = global_to_local_key(key,
-                                                self.globalshape,
-                                                self.local_to_global)
-                indexed_result = self.base.__getitem__(local_key)
-                #Group comms based on wether or not something was indexed
-                indexed_comm = self.comm.Split(color = (indexed_result.size == 0),
-                                               key = self.comm.Get_rank())
-#TODO Sort out local to global, potential remapping requirement
-                return self.__class__(indexed_result,
-                                      dtype=self.dtype,
-                                      comm=indexed_comm,
-                                      comm_dims=self.comm_dims,
-                                      comm_coord=self.comm_coord)
+                raise NotImplementedError(
+                        "Implement a custom __getitem__ method")
+
 
         def __repr__(self):
                 return '{}(globalsize={}, globalshape={}, dist={}, dtype={})' \
@@ -105,6 +96,23 @@ class MPIArray(np.ndarray):
                                getattr(self, 'globalshape', None),
                                getattr(self, 'dist', None),
                                getattr(self, 'dtype', None))
+
+
+        def __setitem__(self, key, value):
+                #Check input, will throw np.ValueError if data type of passed
+                ## value can't be converted to objects type
+                np_value = np.asarray(value, dtype=self.dtype)
+
+#TODO: Sort out mapping, potentially two pass try-catch distributing the input
+## as necessary for target distribution
+                if np_value.size != 1:
+                        raise NotSupportedError(
+                                "values of length 1 only currently supported.")
+
+                local_key = global_to_local_key(key,
+                                                self.globalshape,
+                                                self.local_to_global)
+                self.base.__setitem__(local_key, np_value)
 
 
 #TODO: Sort this nonsense out, breaks for select distributions d/t __getitem__
@@ -250,3 +258,19 @@ class MPIArray(np.ndarray):
         def custom_reduction(self, operation, local_red, axis=None,
                                dtype=None, out=None):
                 raise NotImplementedError("Implement a custom reduction")
+
+
+        def collect_data(self):
+                """ Collect/Reconstruct distributed array.
+
+                Parameters
+                ----------
+                None
+
+                Returns
+                -------
+                MPIArray : numpy.ndarray sub class
+                        Undistributed(resconstructed) MPIArray.
+                """
+                raise NotImplementedError(
+                        "Implement a method to collect distributed array")

@@ -15,5 +15,5 @@ class NotSupportedError(MPInumpyError):
         pass
 
 class IndexError(MPInumpyError):
-        """ Exception class for when a numpy feature is not supported. """
+        """ Exception class for when an access index is invalid. """
         pass

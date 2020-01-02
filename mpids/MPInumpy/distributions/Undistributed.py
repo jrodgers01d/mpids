@@ -2,11 +2,27 @@ from mpi4py import MPI
 import numpy as np
 
 from mpids.MPInumpy.MPIArray import MPIArray
+from mpids.MPInumpy.utils import global_to_local_key
 
 """
     Undistributed implementation of MPIArray abstract base class.
 """
 class Undistributed(MPIArray):
+
+#TODO: Resolve this namespace requirement
+        def __getitem__(self, key):
+                local_key = global_to_local_key(key,
+                                                self.globalshape,
+                                                self.local_to_global)
+                indexed_result = self.base.__getitem__(key)
+                #Return undistributed copy of data
+                return self.__class__(indexed_result,
+                                      dtype=self.dtype,
+                                      comm=self.comm,
+                                      comm_dims=self.comm_dims,
+                                      comm_coord=self.comm_coord,
+                                      local_to_global=self.local_to_global)
+
 
         #Unique properties to MPIArray
         @property
@@ -107,3 +123,9 @@ class Undistributed(MPIArray):
         def custom_reduction(self, operation, local_red, axis=None, dtype=None,
                              out=None):
                 return local_red
+
+
+        def collect_data(self):
+                return Undistributed(self.data,
+                                     dtype=self.dtype,
+                                     comm=self.comm)

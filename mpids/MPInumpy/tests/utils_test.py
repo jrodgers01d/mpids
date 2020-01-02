@@ -3,7 +3,8 @@ import unittest.mock as mock
 import numpy as np
 from mpi4py import MPI
 from mpids.MPInumpy.utils import *
-from mpids.MPInumpy.utils import _global_to_local_key_int,  \
+from mpids.MPInumpy.utils import _format_indexed_result,\
+                                 _global_to_local_key_int,  \
                                  _global_to_local_key_slice,\
                                  _global_to_local_key_tuple
 from mpids.MPInumpy.errors import IndexError, InvalidDistributionError, \
@@ -274,6 +275,44 @@ class UtilsDistributionIndependentTest(unittest.TestCase):
                 #Check Not Supported Error is thrown when non int/slice/tuple key provided
                 with self.assertRaises(NotSupportedError):
                         global_to_local_key([0, 1], globalshape, local_to_global)
+
+
+        def test_format_indexed_result(self):
+                test_matrix = np.array(list(range(16))).reshape(4,4)
+
+                np_scalar = test_matrix[0,0]
+                undesired_scalar_shape = np_scalar.shape
+                self.assertEqual((), undesired_scalar_shape)
+
+                desired_scalar_shape =(1,)
+                formated_np_scalar = _format_indexed_result((0, 0), np_scalar)
+                self.assertEqual(undesired_scalar_shape, np_scalar.shape)
+                self.assertEqual(desired_scalar_shape, formated_np_scalar.shape)
+                self.assertEqual(np_scalar, formated_np_scalar)
+
+                empty_array = test_matrix[0:0]
+                undesired_empty_shape = empty_array.shape
+                self.assertEqual((0, 4), undesired_empty_shape)
+
+                desired_empty_shape =(0,)
+                formated_empty_array_slice = _format_indexed_result(slice(1,1), empty_array)
+                self.assertEqual(undesired_empty_shape, empty_array.shape)
+                self.assertEqual(desired_empty_shape, formated_empty_array_slice.shape)
+                self.assertEqual(empty_array.data.tolist(), formated_empty_array_slice.data.tolist())
+
+                #SPECIAL CASE, because a global index can exist outside of the
+                ## local index space.
+                #Result of slice
+                empty_outside_index_array = np.array([]).reshape(0, 1)
+                undesired_empty_outside_index_shape = empty_outside_index_array.shape
+                self.assertEqual((0, 1), undesired_empty_outside_index_shape)
+
+                desired_empty_outside_index_shape =(0, 0)
+                formated_empty_outside_index_array = \
+                        _format_indexed_result((slice(1,1), slice(1,1)), empty_outside_index_array)
+                self.assertEqual(undesired_empty_outside_index_shape, empty_outside_index_array.shape)
+                self.assertEqual(desired_empty_outside_index_shape, formated_empty_outside_index_array.shape)
+                self.assertEqual(empty_outside_index_array.data.tolist(), formated_empty_outside_index_array.data.tolist())
 
 
 class UtilsDefaultTest(unittest.TestCase):

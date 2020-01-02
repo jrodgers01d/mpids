@@ -2,6 +2,7 @@ from mpi4py import MPI
 import numpy as np
 
 from mpids.MPInumpy.MPIArray import MPIArray
+from mpids.MPInumpy.utils import _format_indexed_result, global_to_local_key
 from mpids.MPInumpy.distributions.Undistributed import Undistributed
 
 
@@ -9,6 +10,25 @@ from mpids.MPInumpy.distributions.Undistributed import Undistributed
     Column Block implementation of MPIArray abstract base class.
 """
 class ColumnBlock(MPIArray):
+
+#TODO: Resolve this namespace requirement
+        def __getitem__(self, key):
+                local_key = global_to_local_key(key,
+                                                self.globalshape,
+                                                self.local_to_global)
+                indexed_result = self.base.__getitem__(local_key)
+                indexed_result = _format_indexed_result(key, indexed_result)
+
+                distributed_result = \
+                        self.__class__(indexed_result,
+                                       dtype=self.dtype,
+                                       comm=self.comm,
+                                       comm_dims=self.comm_dims,
+                                       comm_coord=self.comm_coord,
+                                       local_to_global=self.local_to_global)
+                #Return undistributed copy of data
+                return distributed_result.collect_data()
+
 
         #Unique properties to MPIArray
         @property
@@ -136,8 +156,8 @@ class ColumnBlock(MPIArray):
                 if dtype is None: dtype = self.dtype
 
                 if axis == 0:
-                        local_displacement = np.zeros(1, dtype= 'int')
-                        local_count = np.asarray(local_red.size, dtype= 'int')
+                        local_displacement = np.zeros(1, dtype='int')
+                        local_count = np.asarray(local_red.size, dtype='int')
                         displacements = np.zeros(self.comm.size,
                                                  dtype=local_displacement.dtype)
                         counts = np.zeros(self.comm.size, dtype=local_count.dtype)
@@ -145,7 +165,7 @@ class ColumnBlock(MPIArray):
 
                         #Exclusive scan to determine displacements
                         self.comm.Exscan(local_count, local_displacement, op=MPI.SUM)
-                        self.comm.Allreduce(local_count, total_count, op=MPI.SUM)                        #Inclusive scan to determine displacements
+                        self.comm.Allreduce(local_count, total_count, op=MPI.SUM)
                         self.comm.Allgather(local_displacement, displacements)
                         self.comm.Allgather(local_count, counts)
 
@@ -161,3 +181,35 @@ class ColumnBlock(MPIArray):
                         self.comm.Allreduce(local_red, global_red, op=operation)
 
                 return global_red
+
+
+        def collect_data(self):
+                #Transpose prior to send to have consistent tranversal
+                flipped_shape = tuple(list(self.shape)[::-1])
+                local_transpose = \
+                        np.zeros(flipped_shape, dtype=self.dtype)
+                local_transpose[:,:] = np.transpose(self.base)
+
+                global_data = np.zeros(self.globalshape, dtype=self.dtype)
+                local_displacement = np.zeros(1, dtype='int')
+                local_count = np.asarray(local_transpose.size, dtype='int')
+                displacements = np.zeros(self.comm.size,
+                                         dtype=local_displacement.dtype)
+                counts = np.zeros(self.comm.size, dtype=local_count.dtype)
+
+                #Exclusive scan to determine displacements
+                self.comm.Exscan(local_count, local_displacement, op=MPI.SUM)
+                self.comm.Allgather(local_displacement, displacements)
+                self.comm.Allgather(local_count, counts)
+
+                # Final conditioning of displacements list
+                displacements[0] = 0
+
+                mpi_dtype = MPI._typedict[np.sctype2char(self.dtype)]
+                self.comm.Allgatherv(local_transpose,
+                        [global_data, (counts, displacements), mpi_dtype])
+
+                #Final transpose on output to recover original ordering
+                return Undistributed(global_data.T,
+                                     dtype=global_data.dtype,
+                                     comm=self.comm)

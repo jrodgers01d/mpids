@@ -8,51 +8,51 @@ from mpids.MPInumpy.distributions.Undistributed import Undistributed
 
 class MPIArrayAbstractBaseClassTest(unittest.TestCase):
 
+        def setUp(self):
+                self.mpi_array = mpi_np.MPIArray([1])
+
+        def test_abstract_dunder_methods_raise_not_implemented_errors(self):
+                with self.assertRaises(NotImplementedError):
+                        self.mpi_array.__getitem__(0)
+
+                with self.assertRaises(NotSupportedError):
+                        self.mpi_array.__str__()
+
         def test_abstract_properties_raise_not_implemented_errors(self):
-                mpi_array = mpi_np.MPIArray([1])
                 with self.assertRaises(NotImplementedError):
-                        mpi_array = mpi_np.MPIArray([1])
-                        mpi_array.dist
+                        self.mpi_array.dist
 
                 with self.assertRaises(NotImplementedError):
-                        mpi_array = mpi_np.MPIArray([1])
-                        mpi_array.globalsize
+                        self.mpi_array.globalsize
 
                 with self.assertRaises(NotImplementedError):
-                        mpi_array = mpi_np.MPIArray([1])
-                        mpi_array.globalnbytes
+                        self.mpi_array.globalnbytes
 
                 with self.assertRaises(NotImplementedError):
-                        mpi_array = mpi_np.MPIArray([1])
-                        mpi_array.globalshape
+                        self.mpi_array.globalshape
 
 
         def test_abstract_methods_raise_not_implemented_errors(self):
-                mpi_array = mpi_np.MPIArray([1])
+                with self.assertRaises(NotImplementedError):
+                        self.mpi_array.max()
 
                 with self.assertRaises(NotImplementedError):
-                        mpi_array = mpi_np.MPIArray([1])
-                        mpi_array.max()
+                        self.mpi_array.mean()
 
                 with self.assertRaises(NotImplementedError):
-                        mpi_array = mpi_np.MPIArray([1])
-                        mpi_array.mean()
+                        self.mpi_array.min()
 
                 with self.assertRaises(NotImplementedError):
-                        mpi_array = mpi_np.MPIArray([1])
-                        mpi_array.min()
+                        self.mpi_array.std()
 
                 with self.assertRaises(NotImplementedError):
-                        mpi_array = mpi_np.MPIArray([1])
-                        mpi_array.std()
+                        self.mpi_array.sum()
 
                 with self.assertRaises(NotImplementedError):
-                        mpi_array = mpi_np.MPIArray([1])
-                        mpi_array.sum()
+                        self.mpi_array.custom_reduction(None, None)
 
                 with self.assertRaises(NotImplementedError):
-                        mpi_array = mpi_np.MPIArray([1])
-                        mpi_array.custom_reduction(None, None)
+                        self.mpi_array.collect_data()
 
 
 class MPIArrayDefaultTest(unittest.TestCase):
@@ -73,7 +73,7 @@ class MPIArrayDefaultTest(unittest.TestCase):
                                   3: np_data[4:]}
                 parms['local_data'] = local_data_map[parms['rank']].tolist()
                 parms['comm_dims'] = [parms['comm_size']]
-                parms['comm_coords'] = [parms['rank']]
+                parms['comm_coord'] = [parms['rank']]
                 local_to_global_map = {0 : {0 : (0, 2), 1 : (0, 5)},
                                        1 : {0 : (2, 3), 1 : (0, 5)},
                                        2 : {0 : (3, 4), 1 : (0, 5)},
@@ -91,7 +91,7 @@ class MPIArrayDefaultTest(unittest.TestCase):
                 self.data = parms.get('data')
                 self.local_data = parms.get('local_data')
                 self.comm_dims = parms.get('comm_dims')
-                self.comm_coords = parms.get('comm_coords')
+                self.comm_coord = parms.get('comm_coord')
                 self.local_to_global = parms.get('local_to_global')
 
                 self.np_array = np.array(self.data)
@@ -108,6 +108,7 @@ class MPIArrayDefaultTest(unittest.TestCase):
                 self.assertEqual(returned_array.comm, self.mpi_array.comm)
                 self.assertEqual(returned_array.globalsize, self.mpi_array.globalsize)
                 self.assertEqual(returned_array.globalnbytes, self.mpi_array.globalnbytes)
+                self.assertEqual(returned_array.globalshape, self.mpi_array.globalshape)
 
 
         def test_properties(self):
@@ -115,11 +116,11 @@ class MPIArrayDefaultTest(unittest.TestCase):
                 self.assertEqual(self.comm, self.mpi_array.comm)
                 self.assertEqual(self.dist, self.mpi_array.dist)
                 self.assertEqual(self.comm_dims, self.mpi_array.comm_dims)
-                self.assertEqual(self.comm_coords, self.mpi_array.comm_coord)
+                self.assertEqual(self.comm_coord, self.mpi_array.comm_coord)
                 self.assertEqual(self.local_to_global, self.mpi_array.local_to_global)
                 self.assertEqual(self.np_array.size, self.mpi_array.globalsize)
                 self.assertEqual(self.np_array.nbytes, self.mpi_array.globalnbytes)
-                self.assertEqual(self.np_array.shape,  tuple(self.mpi_array.globalshape))
+                self.assertEqual(self.np_array.shape, self.mpi_array.globalshape)
                 #Unique properties data types
                 if isinstance(self.mpi_array, Undistributed):
                         self.assertTrue(self.mpi_array.comm_dims is None)
@@ -161,9 +162,6 @@ class MPIArrayDefaultTest(unittest.TestCase):
                 self.assertEqual(None, self.mpi_array.__array_finalize__(None))
                 self.assertTrue(np.alltrue(self.np_local_array == self.mpi_array.__array__()))
 
-                #Check nonsupported methods are indicated
-                with self.assertRaises(NotSupportedError):
-                        self.mpi_array.__str__()
 
 
         def test_dunder_binary_operations(self):
@@ -317,6 +315,22 @@ class MPIArrayDefaultTest(unittest.TestCase):
                         self.mpi_array.sum(out=mpi_out)
 
 
+        def test_collect_data_method(self):
+                collected_array = self.mpi_array.collect_data()
+
+                #Returned object is properties
+                self.assertTrue(isinstance(collected_array, mpi_np.MPIArray))
+                self.assertTrue(isinstance(collected_array, Undistributed))
+                self.assertTrue(collected_array is not self.mpi_array)
+                self.assertEqual(collected_array.comm, self.mpi_array.comm)
+                self.assertEqual(collected_array.globalsize, self.mpi_array.globalsize)
+                self.assertEqual(collected_array.globalnbytes, self.mpi_array.globalnbytes)
+                self.assertEqual(collected_array.globalshape, self.mpi_array.globalshape)
+
+                #Check collected values
+                self.assertTrue(np.alltrue((collected_array) == (self.np_array)))
+
+
 class MPIArrayUndistributedTest(MPIArrayDefaultTest):
 
         def create_setUp_parms(self):
@@ -330,7 +344,7 @@ class MPIArrayUndistributedTest(MPIArrayDefaultTest):
                 parms['data'] = (np.array(list(range(25))).reshape(5,5) + 1).tolist()
                 parms['local_data'] = parms['data']
                 parms['comm_dims'] = None
-                parms['comm_coords'] = None
+                parms['comm_coord'] = None
                 parms['local_to_global'] = None
                 return parms
 
@@ -367,7 +381,7 @@ class MPIArrayColBlockTest(MPIArrayDefaultTest):
                                   3: np_data[:,4:]}
                 parms['local_data'] = local_data_map[parms['rank']].tolist()
                 parms['comm_dims'] = [1, parms['comm_size']]
-                parms['comm_coords'] = [0, parms['rank']]
+                parms['comm_coord'] = [0, parms['rank']]
                 local_to_global_map = {0 : {0 : (0, 5), 1 : (0, 2)},
                                        1 : {0 : (0, 5), 1 : (2, 3)},
                                        2 : {0 : (0, 5), 1 : (3, 4)},
@@ -398,7 +412,7 @@ class MPIArrayBlockBlockTest(MPIArrayDefaultTest):
                                   1: [0, 1],
                                   2: [1, 0],
                                   3: [1, 1]}
-                parms['comm_coords'] = rank_coord_map[parms['rank']]
+                parms['comm_coord'] = rank_coord_map[parms['rank']]
                 local_to_global_map = {0 : {0 : (0, 3), 1 : (0, 3)},
                                        1 : {0 : (0, 3), 1 : (3, 5)},
                                        2 : {0 : (3, 5), 1 : (0, 3)},

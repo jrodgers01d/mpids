@@ -2,6 +2,7 @@ from mpi4py import MPI
 import numpy as np
 
 from mpids.MPInumpy.MPIArray import MPIArray
+from mpids.MPInumpy.utils import _format_indexed_result, global_to_local_key
 from mpids.MPInumpy.distributions.Undistributed import Undistributed
 
 
@@ -9,6 +10,25 @@ from mpids.MPInumpy.distributions.Undistributed import Undistributed
     Block-Block implementation of MPIArray abstract base class.
 """
 class BlockBlock(MPIArray):
+
+#TODO: Resolve this namespace requirement
+        def __getitem__(self, key):
+                local_key = global_to_local_key(key,
+                                                self.globalshape,
+                                                self.local_to_global)
+                indexed_result = self.base.__getitem__(local_key)
+                indexed_result = _format_indexed_result(key, indexed_result)
+
+                distributed_result = \
+                        self.__class__(indexed_result,
+                                       dtype=self.dtype,
+                                       comm=self.comm,
+                                       comm_dims=self.comm_dims,
+                                       comm_coord=self.comm_coord,
+                                       local_to_global=self.local_to_global)
+                #Return undistributed copy of data
+                return distributed_result.collect_data()
+
 
         #Unique properties to MPIArray
         @property
@@ -152,8 +172,8 @@ class BlockBlock(MPIArray):
                                 col_red = np.zeros(local_red.size, dtype=dtype)
                                 col_comm.Allreduce(local_red, col_red, op=operation)
 
-                                local_displacement = np.zeros(1, dtype= 'int')
-                                local_count = np.asarray(col_red.size, dtype= 'int')
+                                local_displacement = np.zeros(1, dtype='int')
+                                local_count = np.asarray(col_red.size, dtype='int')
                                 displacements = np.zeros(self.comm_dims[1],
                                                          dtype=local_displacement.dtype)
                                 counts = np.zeros(self.comm_dims[1],
@@ -178,8 +198,8 @@ class BlockBlock(MPIArray):
                                 row_red = np.zeros(local_red.size, dtype=dtype)
                                 row_comm.Allreduce(local_red, row_red, op=operation)
 
-                                local_displacement = np.zeros(1, dtype= 'int')
-                                local_count = np.asarray(row_red.size, dtype= 'int')
+                                local_displacement = np.zeros(1, dtype='int')
+                                local_count = np.asarray(row_red.size, dtype='int')
                                 displacements = np.zeros(self.comm_dims[0],
                                                          dtype=local_displacement.dtype)
                                 counts = np.zeros(self.comm_dims[0],
@@ -201,3 +221,71 @@ class BlockBlock(MPIArray):
                                         [global_red, (counts, displacements), mpi_dtype])
 
                 return global_red
+
+
+        def collect_data(self):
+                #First combine the columns(transpose is expensive)
+                row_comm = self.comm.Split(color = self.comm_coord[0],
+                                           key = self.comm.Get_rank())
+
+                local_displacement = np.zeros(1, dtype='int')
+                displacements = np.zeros(self.comm_dims[0],
+                                         dtype=local_displacement.dtype)
+                counts = np.zeros(self.comm_dims[0], dtype='int')
+
+                #Transpose prior to send to have consistent tranversal
+                local_transpose = \
+                        np.zeros((self.shape[1], self.shape[0]), dtype=self.dtype)
+                local_transpose[:,:] = np.transpose(self.base)
+                local_count = np.asarray(local_transpose.size, dtype='int')
+
+                #Exclusive scan to determine displacements
+                row_comm.Exscan(local_count, local_displacement, op=MPI.SUM)
+                row_comm.Allgather(local_displacement, displacements)
+                row_comm.Allgather(local_count, counts)
+
+                #Number of transposed 'rows' will be global number of columns
+                ## while the number of columns will be the locals number of rows
+                global_row_data_transpose = \
+                        np.zeros((self.globalshape[1], self.shape[0]),
+                                 dtype=self.dtype)
+                # Final conditioning of displacements list
+                displacements[0] = 0
+
+                mpi_dtype = MPI._typedict[np.sctype2char(self.dtype)]
+                row_comm.Allgatherv(local_transpose,
+                        [global_row_data_transpose, (counts, displacements), mpi_dtype])
+
+                #Final transpose to recover original ordering
+                global_row_data = \
+                        np.zeros((global_row_data_transpose.shape[1],
+                                  global_row_data_transpose.shape[0]),
+                                  dtype=self.dtype)
+                global_row_data[:,:] = np.transpose(global_row_data_transpose)
+
+                #Now let's combin those rows!
+                col_comm = self.comm.Split(color = self.comm_coord[1],
+                                           key = self.comm.Get_rank())
+
+                displacements = np.zeros(self.comm_dims[1],
+                                         dtype=local_displacement.dtype)
+                counts = np.zeros(self.comm_dims[1], dtype='int')
+                local_count = np.asarray(global_row_data.size, dtype='int')
+
+                #Exclusive scan to determine displacements
+                col_comm.Exscan(local_count, local_displacement, op=MPI.SUM)
+                col_comm.Allgather(local_displacement, displacements)
+                col_comm.Allgather(local_count, counts)
+
+                global_data = np.zeros(self.globalshape, dtype=self.dtype)
+
+                # Final conditioning of displacements list
+                displacements[0] = 0
+
+                mpi_dtype = MPI._typedict[np.sctype2char(self.dtype)]
+                col_comm.Allgatherv(global_row_data,
+                        [global_data, (counts, displacements), mpi_dtype])
+
+                return Undistributed(global_data,
+                                     dtype=global_data.dtype,
+                                     comm=self.comm)
