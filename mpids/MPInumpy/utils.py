@@ -42,7 +42,8 @@ def determine_local_data(array_data, dist, comm_dims, comm_coord):
                          ...}
         """
         if is_undistributed(dist):
-                return array_data, None
+                local_to_global = None
+                return array_data, local_to_global
 
         local_to_global = {}
         if len(comm_dims) == 1:
