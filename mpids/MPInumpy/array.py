@@ -37,8 +37,6 @@ def array(array_data, dtype=None, copy=True, order=None, subok=False, ndmin=0,
                 Default value 'b' : Block, *
                 Supported types:
                     'b' : Block, *
-                    ('*', 'b') : *, Block
-                    ('b','b') : Block-Block
                     'u' : Undistributed
 
         Returns

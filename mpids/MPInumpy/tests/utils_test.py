@@ -23,28 +23,12 @@ class UtilsDistributionIndependentTest(unittest.TestCase):
         def test_distribution_checks(self):
                 undist = 'u'
                 row_block = 'b'
-                col_block = ('*', 'b')
-                block_block = ('b', 'b')
 
                 self.assertTrue(is_undistributed(undist))
                 self.assertFalse(is_undistributed(row_block))
-                self.assertFalse(is_undistributed(col_block))
-                self.assertFalse(is_undistributed(block_block))
 
                 self.assertTrue(is_row_block_distributed(row_block))
                 self.assertFalse(is_row_block_distributed(undist))
-                self.assertFalse(is_row_block_distributed(col_block))
-                self.assertFalse(is_row_block_distributed(block_block))
-
-                self.assertTrue(is_column_block_distributed(col_block))
-                self.assertFalse(is_column_block_distributed(undist))
-                self.assertFalse(is_column_block_distributed(row_block))
-                self.assertFalse(is_column_block_distributed(block_block))
-
-                self.assertTrue(is_block_block_distributed(block_block))
-                self.assertFalse(is_block_block_distributed(undist))
-                self.assertFalse(is_block_block_distributed(row_block))
-                self.assertFalse(is_block_block_distributed(col_block))
 
 
         def test_get_block_index(self):
@@ -488,81 +472,6 @@ class UtilsUndistributedTest(UtilsDefaultTest):
                 parms['local_to_global'] = None
                 parms['local_to_global_2d'] = None
                 return parms
-
-
-class UtilsColBlockTest(UtilsDefaultTest):
-
-        def create_setUp_parms(self):
-                parms = {}
-                parms['procs'] = MPI.COMM_WORLD.Get_size()
-                parms['rank'] = MPI.COMM_WORLD.Get_rank()
-                parms['data'] = list(range(10))
-                parms['data_2d'] = np.array(list(range(20))).reshape(5,4)
-                # Column block distribution
-                parms['dist'] = ('*', 'b')
-                parms['comm_dims'] = [1, parms['procs']]
-                parms['comm_coord'] = [0, parms['rank']]
-                parms['dist_to_dims'] = [1, parms['procs']]
-                parms['single_dim_support'] = False
-                rank_local_data_2d_map = {0 : parms['data_2d'][:, slice(0, 1)],
-                                          1 : parms['data_2d'][:, slice(1, 2)],
-                                          2 : parms['data_2d'][:, slice(2, 3)],
-                                          3 : parms['data_2d'][:, slice(3, 4)]}
-                parms['local_data_2d'] = rank_local_data_2d_map[parms['rank']]
-                parms['local_to_global'] = None
-                local_to_global_2d_map = {0 : {0 : (0, 5), 1 : (0, 1)},
-                                          1 : {0 : (0, 5), 1 : (1, 2)},
-                                          2 : {0 : (0, 5), 1 : (2, 3)},
-                                          3 : {0 : (0, 5), 1 : (3, 4)}}
-                parms['local_to_global_2d'] = local_to_global_2d_map[parms['rank']]
-
-                return parms
-
-
-class UtilsBlockBlockTest(UtilsDefaultTest):
-
-        def create_setUp_parms(self):
-                parms = {}
-                parms['procs'] = MPI.COMM_WORLD.Get_size()
-                parms['rank'] = MPI.COMM_WORLD.Get_rank()
-                parms['data'] = list(range(10))
-                parms['data_2d'] = np.array(list(range(20))).reshape(5,4)
-                # Block block distribution
-                parms['dist'] = ('b', 'b')
-                parms['comm_dims'] = [2, 2]
-                rank_coord_map = {0: [0, 0],
-                                  1: [0, 1],
-                                  2: [1, 0],
-                                  3: [1, 1]}
-                parms['comm_coord'] = rank_coord_map[parms['rank']]
-                parms['dist_to_dims'] = 2
-                parms['single_dim_support'] = False
-                rank_local_data_2d_map = {0 : parms['data_2d'][0:3, 0:2],
-                                          1 : parms['data_2d'][0:3, 2:4],
-                                          2 : parms['data_2d'][3:5, 0:2],
-                                          3 : parms['data_2d'][3:5, 2:4]}
-                parms['local_data_2d'] = rank_local_data_2d_map[parms['rank']]
-                parms['local_to_global'] = None
-                local_to_global_2d_map = {0 : {0 : (0, 3), 1 : (0, 2)},
-                                          1 : {0 : (0, 3), 1 : (2, 4)},
-                                          2 : {0 : (3, 5), 1 : (0, 2)},
-                                          3 : {0 : (3, 5), 1 : (2, 4)}}
-                parms['local_to_global_2d'] = local_to_global_2d_map[parms['rank']]
-
-                return parms
-
-
-        def test_get_comm_non_square_result(self):
-            procs = 3
-            self.assertEqual([procs, 1], get_comm_dims(procs, self.dist))
-
-            rank_coord_map = {0: [0, 0],
-                              1: [1, 0],
-                              2: [2, 0]}
-            dims = get_comm_dims(procs, self.dist)
-            if self.rank < procs:
-                self.assertEqual(rank_coord_map[self.rank],
-                                 get_cart_coords(dims, procs, self.rank))
 
 
 if __name__ == '__main__':

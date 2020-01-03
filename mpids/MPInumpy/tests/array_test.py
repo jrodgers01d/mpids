@@ -63,35 +63,5 @@ class ArrayUndistributedTest(ArrayDefaultTest):
                 return parms
 
 
-class ArrayColBlockTest(ArrayDefaultTest):
-
-        def create_setUp_parms(self):
-                parms = {}
-                data = np.array(list(range(20))).reshape(5,4)
-                parms['comm'] = MPI.COMM_WORLD
-                # Column block distribution
-                parms['dist'] = ('*', 'b')
-                parms['dist_class'] = ColumnBlock
-                parms['mpi_np_array'] = mpi_np.array(data,
-                                                     comm=parms['comm'],
-                                                     dist=parms['dist'])
-                return parms
-
-
-class ArrayBlockBlockTest(ArrayDefaultTest):
-
-        def create_setUp_parms(self):
-                parms = {}
-                data = np.array(list(range(20))).reshape(5,4)
-                parms['comm'] = MPI.COMM_WORLD
-                # Block block distribution
-                parms['dist'] = ('b', 'b')
-                parms['dist_class'] = BlockBlock
-                parms['mpi_np_array'] = mpi_np.array(data,
-                                                     comm=parms['comm'],
-                                                     dist=parms['dist'])
-                return parms
-
-
 if __name__ == '__main__':
         unittest.main()

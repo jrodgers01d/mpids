@@ -230,116 +230,116 @@ class MPIArrayIndexingDefaultTest(unittest.TestCase):
                 self.assertTrue(np.alltrue(returned_array == self.data))
 
 
-        # def test_custom_getitem_first_row_return(self):
-        #         first_row = 0
-        #         returned_array = self.mpi_array[first_row]
-        #
-        #         self.assertTrue(isinstance(returned_array, mpi_np.MPIArray))
-        #         self.assertTrue(isinstance(returned_array, Undistributed))
-        #         self.assertEqual(returned_array.comm, self.mpi_array.comm)
-        #         self.assertEqual(returned_array.dist, 'u')
-        #         self.assertTrue(returned_array.comm_dims is None)
-        #         self.assertTrue(returned_array.comm_coord is None)
-        #         self.assertTrue(returned_array.local_to_global is None)
-        #         self.assertEqual(returned_array.globalshape, self.data[first_row].shape)
-        #         self.assertEqual(returned_array.globalsize, self.data[first_row].size)
-        #         self.assertEqual(returned_array.globalnbytes, self.data[first_row].nbytes)
-        #         self.assertEqual(returned_array.globalndim, self.data[first_row].ndim)
-        #
-        #         self.assertEqual(returned_array.shape, self.data[first_row].shape)
-        #         self.assertEqual(returned_array.size, self.data[first_row].size)
-        #         self.assertEqual(returned_array.nbytes, self.data[first_row].nbytes)
-        #         self.assertEqual(returned_array.ndim, self.data[first_row].ndim)
-        #         self.assertTrue(np.alltrue(returned_array == self.data[first_row]))
+        def test_custom_getitem_first_row_return(self):
+                first_row = 0
+                returned_array = self.mpi_array[first_row]
 
-        #
-        # def test_custom_getitem_last_row_return(self):
-        #         last_row = self.mpi_array.globalshape[0] - 1
-        #         returned_array = self.mpi_array[last_row]
-        #
-        #         self.assertTrue(isinstance(returned_array, mpi_np.MPIArray))
-        #         self.assertTrue(isinstance(returned_array, Undistributed))
-        #         self.assertEqual(returned_array.comm, self.mpi_array.comm)
-        #         self.assertEqual(returned_array.dist, 'u')
-        #         self.assertTrue(returned_array.comm_dims is None)
-        #         self.assertTrue(returned_array.comm_coord is None)
-        #         self.assertTrue(returned_array.local_to_global is None)
-        #         self.assertEqual(returned_array.globalshape, self.data[last_row].shape)
-        #         self.assertEqual(returned_array.globalsize, self.data[last_row].size)
-        #         self.assertEqual(returned_array.globalnbytes, self.data[last_row].nbytes)
-        #         self.assertEqual(returned_array.globalndim, self.data[last_row].ndim)
-        #
-        #         self.assertEqual(returned_array.shape, self.data[last_row].shape)
-        #         self.assertEqual(returned_array.size, self.data[last_row].size)
-        #         self.assertEqual(returned_array.nbytes, self.data[last_row].nbytes)
-        #         self.assertEqual(returned_array.ndim, self.data[last_row].ndim)
-        #         self.assertTrue(np.alltrue(returned_array == self.data[last_row]))
-        #
-        #
-        # def test_custom_getitem_middle_row_slice_return(self):
-        #         returned_array = self.mpi_array[2:4]
-        #
-        #         self.assertTrue(isinstance(returned_array, mpi_np.MPIArray))
-        #         self.assertTrue(isinstance(returned_array, Undistributed))
-        #         self.assertEqual(returned_array.comm, self.mpi_array.comm)
-        #         self.assertEqual(returned_array.dist, 'u')
-        #         self.assertTrue(returned_array.comm_dims is None)
-        #         self.assertTrue(returned_array.comm_coord is None)
-        #         self.assertTrue(returned_array.local_to_global is None)
-        #         self.assertEqual(returned_array.globalshape, self.data[2:4].shape)
-        #         self.assertEqual(returned_array.globalsize, self.data[2:4].size)
-        #         self.assertEqual(returned_array.globalndim, self.data[2:4].ndim)
-        #
-        #         self.assertEqual(returned_array.shape, self.data[2:4].shape)
-        #         self.assertEqual(returned_array.size, self.data[2:4].size)
-        #         self.assertEqual(returned_array.nbytes, self.data[2:4].nbytes)
-        #         self.assertEqual(returned_array.ndim, self.data[2:4].ndim)
-        #         self.assertTrue(np.alltrue(returned_array == self.data[2:4]))
-        #
-        #
-        # def test_custom_getitem_first_column_return(self):
-        #         first_col = 0
-        #         returned_array = self.mpi_array[:, first_col]
-        #
-        #         self.assertTrue(isinstance(returned_array, mpi_np.MPIArray))
-        #         self.assertTrue(isinstance(returned_array, Undistributed))
-        #         self.assertEqual(returned_array.comm, self.mpi_array.comm)
-        #         self.assertEqual(returned_array.dist, 'u')
-        #         self.assertTrue(returned_array.comm_dims is None)
-        #         self.assertTrue(returned_array.comm_coord is None)
-        #         self.assertTrue(returned_array.local_to_global is None)
-        #         self.assertEqual(returned_array.globalshape, self.data[:, first_col].shape)
-        #         self.assertEqual(returned_array.globalsize, self.data[:, first_col].size)
-        #         self.assertEqual(returned_array.globalnbytes, self.data[:, first_col].nbytes)
-        #         self.assertEqual(returned_array.globalndim, self.data[:, first_col].ndim)
-        #
-        #         self.assertEqual(returned_array.shape, self.data[:, first_col].shape)
-        #         self.assertEqual(returned_array.size, self.data[:, first_col].size)
-        #         self.assertEqual(returned_array.nbytes, self.data[:, first_col].nbytes)
-        #         self.assertEqual(returned_array.ndim, self.data[:, first_col].ndim)
-        #         self.assertTrue(np.alltrue(returned_array == self.data[:, first_col]))
-        #
-        #
-        # def test_custom_getitem_last_column_return(self):
-        #         last_col = self.mpi_array.globalshape[1] - 1
-        #         returned_array = self.mpi_array[:, last_col]
-        #
-        #         self.assertTrue(isinstance(returned_array, mpi_np.MPIArray))
-        #         self.assertTrue(isinstance(returned_array, Undistributed))
-        #         self.assertEqual(returned_array.comm, self.mpi_array.comm)
-        #         self.assertEqual(returned_array.dist, 'u')
-        #         self.assertTrue(returned_array.comm_dims is None)
-        #         self.assertTrue(returned_array.comm_coord is None)
-        #         self.assertTrue(returned_array.local_to_global is None)
-        #         self.assertEqual(returned_array.globalshape, self.data[:, last_col].shape)
-        #         self.assertEqual(returned_array.globalsize, self.data[:, last_col].size)
-        #         self.assertEqual(returned_array.globalndim, self.data[:, last_col].ndim)
-        #
-        #         self.assertEqual(returned_array.shape, self.data[:, last_col].shape)
-        #         self.assertEqual(returned_array.size, self.data[:, last_col].size)
-        #         self.assertEqual(returned_array.nbytes, self.data[:, last_col].nbytes)
-        #         self.assertEqual(returned_array.ndim, self.data[:, last_col].ndim)
-        #         self.assertTrue(np.alltrue(returned_array == self.data[:, last_col]))
+                self.assertTrue(isinstance(returned_array, mpi_np.MPIArray))
+                self.assertTrue(isinstance(returned_array, Undistributed))
+                self.assertEqual(returned_array.comm, self.mpi_array.comm)
+                self.assertEqual(returned_array.dist, 'u')
+                self.assertTrue(returned_array.comm_dims is None)
+                self.assertTrue(returned_array.comm_coord is None)
+                self.assertTrue(returned_array.local_to_global is None)
+                self.assertEqual(returned_array.globalshape, self.data[first_row].shape)
+                self.assertEqual(returned_array.globalsize, self.data[first_row].size)
+                self.assertEqual(returned_array.globalnbytes, self.data[first_row].nbytes)
+                self.assertEqual(returned_array.globalndim, self.data[first_row].ndim)
+
+                self.assertEqual(returned_array.shape, self.data[first_row].shape)
+                self.assertEqual(returned_array.size, self.data[first_row].size)
+                self.assertEqual(returned_array.nbytes, self.data[first_row].nbytes)
+                self.assertEqual(returned_array.ndim, self.data[first_row].ndim)
+                self.assertTrue(np.alltrue(returned_array == self.data[first_row]))
+
+
+        def test_custom_getitem_last_row_return(self):
+                last_row = self.mpi_array.globalshape[0] - 1
+                returned_array = self.mpi_array[last_row]
+
+                self.assertTrue(isinstance(returned_array, mpi_np.MPIArray))
+                self.assertTrue(isinstance(returned_array, Undistributed))
+                self.assertEqual(returned_array.comm, self.mpi_array.comm)
+                self.assertEqual(returned_array.dist, 'u')
+                self.assertTrue(returned_array.comm_dims is None)
+                self.assertTrue(returned_array.comm_coord is None)
+                self.assertTrue(returned_array.local_to_global is None)
+                self.assertEqual(returned_array.globalshape, self.data[last_row].shape)
+                self.assertEqual(returned_array.globalsize, self.data[last_row].size)
+                self.assertEqual(returned_array.globalnbytes, self.data[last_row].nbytes)
+                self.assertEqual(returned_array.globalndim, self.data[last_row].ndim)
+
+                self.assertEqual(returned_array.shape, self.data[last_row].shape)
+                self.assertEqual(returned_array.size, self.data[last_row].size)
+                self.assertEqual(returned_array.nbytes, self.data[last_row].nbytes)
+                self.assertEqual(returned_array.ndim, self.data[last_row].ndim)
+                self.assertTrue(np.alltrue(returned_array == self.data[last_row]))
+
+
+        def test_custom_getitem_middle_row_slice_return(self):
+                returned_array = self.mpi_array[2:4]
+
+                self.assertTrue(isinstance(returned_array, mpi_np.MPIArray))
+                self.assertTrue(isinstance(returned_array, Undistributed))
+                self.assertEqual(returned_array.comm, self.mpi_array.comm)
+                self.assertEqual(returned_array.dist, 'u')
+                self.assertTrue(returned_array.comm_dims is None)
+                self.assertTrue(returned_array.comm_coord is None)
+                self.assertTrue(returned_array.local_to_global is None)
+                self.assertEqual(returned_array.globalshape, self.data[2:4].shape)
+                self.assertEqual(returned_array.globalsize, self.data[2:4].size)
+                self.assertEqual(returned_array.globalndim, self.data[2:4].ndim)
+
+                self.assertEqual(returned_array.shape, self.data[2:4].shape)
+                self.assertEqual(returned_array.size, self.data[2:4].size)
+                self.assertEqual(returned_array.nbytes, self.data[2:4].nbytes)
+                self.assertEqual(returned_array.ndim, self.data[2:4].ndim)
+                self.assertTrue(np.alltrue(returned_array == self.data[2:4]))
+
+
+        def test_custom_getitem_first_column_return(self):
+                first_col = 0
+                returned_array = self.mpi_array[:, first_col]
+
+                self.assertTrue(isinstance(returned_array, mpi_np.MPIArray))
+                self.assertTrue(isinstance(returned_array, Undistributed))
+                self.assertEqual(returned_array.comm, self.mpi_array.comm)
+                self.assertEqual(returned_array.dist, 'u')
+                self.assertTrue(returned_array.comm_dims is None)
+                self.assertTrue(returned_array.comm_coord is None)
+                self.assertTrue(returned_array.local_to_global is None)
+                self.assertEqual(returned_array.globalshape, self.data[:, first_col].shape)
+                self.assertEqual(returned_array.globalsize, self.data[:, first_col].size)
+                self.assertEqual(returned_array.globalnbytes, self.data[:, first_col].nbytes)
+                self.assertEqual(returned_array.globalndim, self.data[:, first_col].ndim)
+
+                self.assertEqual(returned_array.shape, self.data[:, first_col].shape)
+                self.assertEqual(returned_array.size, self.data[:, first_col].size)
+                self.assertEqual(returned_array.nbytes, self.data[:, first_col].nbytes)
+                self.assertEqual(returned_array.ndim, self.data[:, first_col].ndim)
+                self.assertTrue(np.alltrue(returned_array == self.data[:, first_col]))
+
+
+        def test_custom_getitem_last_column_return(self):
+                last_col = self.mpi_array.globalshape[1] - 1
+                returned_array = self.mpi_array[:, last_col]
+
+                self.assertTrue(isinstance(returned_array, mpi_np.MPIArray))
+                self.assertTrue(isinstance(returned_array, Undistributed))
+                self.assertEqual(returned_array.comm, self.mpi_array.comm)
+                self.assertEqual(returned_array.dist, 'u')
+                self.assertTrue(returned_array.comm_dims is None)
+                self.assertTrue(returned_array.comm_coord is None)
+                self.assertTrue(returned_array.local_to_global is None)
+                self.assertEqual(returned_array.globalshape, self.data[:, last_col].shape)
+                self.assertEqual(returned_array.globalsize, self.data[:, last_col].size)
+                self.assertEqual(returned_array.globalndim, self.data[:, last_col].ndim)
+
+                self.assertEqual(returned_array.shape, self.data[:, last_col].shape)
+                self.assertEqual(returned_array.size, self.data[:, last_col].size)
+                self.assertEqual(returned_array.nbytes, self.data[:, last_col].nbytes)
+                self.assertEqual(returned_array.ndim, self.data[:, last_col].ndim)
+                self.assertTrue(np.alltrue(returned_array == self.data[:, last_col]))
 
 
 class MPIArrayIndexingUndistributedTest(MPIArrayIndexingDefaultTest):
@@ -349,28 +349,6 @@ class MPIArrayIndexingUndistributedTest(MPIArrayIndexingDefaultTest):
                 parms['comm'] = MPI.COMM_WORLD
                 # Undistributed distribution
                 parms['dist'] = 'u'
-                parms['data'] = np.array(list(range(25))).reshape(5,5)
-                return parms
-
-
-class MPIArrayIndexingColBlockTest(MPIArrayIndexingDefaultTest):
-
-        def create_setUp_parms(self):
-                parms = {}
-                parms['comm'] = MPI.COMM_WORLD
-                # Column block distribution
-                parms['dist'] = ('*', 'b')
-                parms['data'] = np.array(list(range(25))).reshape(5,5)
-                return parms
-
-
-class MPIArrayIndexingBlockBlockTest(MPIArrayIndexingDefaultTest):
-
-        def create_setUp_parms(self):
-                parms = {}
-                parms['comm'] = MPI.COMM_WORLD
-                # Block block distribution
-                parms['dist'] = ('b', 'b')
                 parms['data'] = np.array(list(range(25))).reshape(5,5)
                 return parms
 

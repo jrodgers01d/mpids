@@ -6,8 +6,7 @@ from mpids.MPInumpy.errors import IndexError, InvalidDistributionError, \
 
 __all__ = ['determine_local_data', 'get_block_index', 'get_cart_coords',
            'get_comm_dims', 'global_to_local_key', 'distribution_to_dimensions',
-           'is_undistributed', 'is_row_block_distributed',
-           'is_column_block_distributed', 'is_block_block_distributed']
+           'is_undistributed', 'is_row_block_distributed']
 
 def determine_local_data(array_data, dist, comm_dims, comm_coord):
         """ Determine array like data to be distributed among processes
@@ -21,8 +20,6 @@ def determine_local_data(array_data, dist, comm_dims, comm_coord):
                 Default value 'b' : Block, *
                 Supported types:
                     'b' : Block, *
-                    ('*', 'b') : *, Block
-                    ('b','b') : Block-Block
                     'u' : Undistributed
         comm_dims : list
                 Division of processes in cartesian grid
@@ -46,40 +43,17 @@ def determine_local_data(array_data, dist, comm_dims, comm_coord):
                 return array_data, local_to_global
 
         local_to_global = {}
-        if len(comm_dims) == 1:
-                for axis in range(len(np.shape(array_data))):
-                        if axis == 0:
-                                row_start, row_end = \
-                                            get_block_index(len(array_data),
-                                                            comm_dims[0],
-                                                            comm_coord[0])
-                                local_to_global[axis] = (row_start, row_end)
-                        else:
-                                local_to_global[axis] = (0, len(array_data[0]))
+        for axis in range(len(np.shape(array_data))):
+                if axis == 0:
+                        row_start, row_end = \
+                                    get_block_index(len(array_data),
+                                                    comm_dims[0],
+                                                    comm_coord[0])
+                        local_to_global[axis] = (row_start, row_end)
+                else:
+                        local_to_global[axis] = (0, len(array_data[0]))
 
-                return array_data[slice(row_start, row_end)], local_to_global
-
-        try:
-                for axis in range(len(comm_dims)):
-                        if axis == 0:
-                                row_start, row_end = \
-                                        get_block_index(len(array_data),
-                                                        comm_dims[axis],
-                                                        comm_coord[axis])
-                                local_to_global[axis] = (row_start, row_end)
-                        else:
-                                col_start, col_end =  \
-                                        get_block_index(len(array_data[0]),
-                                                        comm_dims[axis],
-                                                        comm_coord[axis])
-                                local_to_global[axis] = (col_start, col_end)
-#TODO: Find more elegant solution than try catch
-        except TypeError: # Case when dim of specified dist != dim input array
-                raise InvalidDistributionError(
-                        'Invalid distribution encountered: {}'.format(dist))
-
-        return [array_data[row][slice(col_start, col_end)] \
-                        for row in range(row_start, row_end)], local_to_global
+        return array_data[slice(row_start, row_end)], local_to_global
 
 
 def distribution_to_dimensions(distribution, procs):
@@ -92,8 +66,6 @@ def distribution_to_dimensions(distribution, procs):
                 Default value 'b' : Block, *
                 Supported types:
                     'b' : Block, *
-                    ('*', 'b') : *, Block
-                    ('b','b') : Block-Block
                     'u' : Undistributed
         procs: int
                 Size/number of processes in communicator
@@ -106,11 +78,6 @@ def distribution_to_dimensions(distribution, procs):
         """
         if is_row_block_distributed(distribution):
                 return 1
-        if is_column_block_distributed(distribution):
-                return [1, procs]
-        if is_block_block_distributed(distribution):
-                return len(distribution)
-
         raise InvalidDistributionError(
                 'Invalid distribution encountered: {}'.format(distribution))
 
@@ -235,8 +202,6 @@ def get_comm_dims(procs, dist):
                 Default value 'b' : Block, *
                 Supported types:
                     'b' : Block, *
-                    ('*', 'b') : *, Block
-                    ('b','b') : Block-Block
                     'u' : Undistributed
 
         Returns
@@ -374,8 +339,6 @@ def is_undistributed(distribution):
                 Default value 'b' : Block, *
                 Supported types:
                     'b' : Block, *
-                    ('*', 'b') : *, Block
-                    ('b','b') : Block-Block
                     'u' : Undistributed
 
         Returns
@@ -395,8 +358,6 @@ def is_row_block_distributed(distribution):
                 Default value 'b' : Block, *
                 Supported types:
                     'b' : Block, *
-                    ('*', 'b') : *, Block
-                    ('b','b') : Block-Block
                     'u' : Undistributed
 
         Returns
@@ -404,49 +365,3 @@ def is_row_block_distributed(distribution):
         result : boolean
         """
         return distribution[0] == 'b' and len(distribution) == 1
-
-
-def is_column_block_distributed(distribution):
-        """ Check if distribution is of type column block
-
-        Parameters
-        ----------
-        distribution : str, list, tuple
-                Specified distribution of data among processes.
-                Default value 'b' : Block, *
-                Supported types:
-                    'b' : Block, *
-                    ('*', 'b') : *, Block
-                    ('b','b') : Block-Block
-                    'u' : Undistributed
-
-        Returns
-        -------
-        result : boolean
-        """
-        if len(distribution) != 2:
-                return False
-        return distribution[0] == '*' and distribution[1] == 'b'
-
-
-def is_block_block_distributed(distribution):
-        """ Check if distribution is of type block-block
-
-        Parameters
-        ----------
-        distribution : str, list, tuple
-                Specified distribution of data among processes.
-                Default value 'b' : Block, *
-                Supported types:
-                    'b' : Block, *
-                    ('*', 'b') : *, Block
-                    ('b','b') : Block-Block
-                    'u' : Undistributed
-
-        Returns
-        -------
-        result : boolean
-        """
-        if len(distribution) != 2:
-                return False
-        return distribution[0] == distribution[1] == 'b'
