@@ -116,9 +116,8 @@ class MPIArray(np.ndarray):
                 self.base.__setitem__(local_key, np_value)
 
 
-#TODO: Sort this nonsense out, breaks for select distributions d/t __getitem__
         def __str__(self):
-                raise NotSupportedError("__str__ not currently supported.")
+                return self.base.__str__()
 
 
         #Unique properties to MPIArray

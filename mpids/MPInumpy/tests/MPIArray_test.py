@@ -11,12 +11,11 @@ class MPIArrayAbstractBaseClassTest(unittest.TestCase):
         def setUp(self):
                 self.mpi_array = mpi_np.MPIArray([1])
 
+
         def test_abstract_dunder_methods_raise_not_implemented_errors(self):
                 with self.assertRaises(NotImplementedError):
                         self.mpi_array.__getitem__(0)
 
-                with self.assertRaises(NotSupportedError):
-                        self.mpi_array.__str__()
 
         def test_abstract_properties_raise_not_implemented_errors(self):
                 with self.assertRaises(NotImplementedError):
@@ -166,6 +165,7 @@ class MPIArrayDefaultTest(unittest.TestCase):
                                             self.dist, self.mpi_array.dtype)
                                  , self.mpi_array.__repr__())
                 self.assertEqual(None, self.mpi_array.__array_finalize__(None))
+                self.assertEqual(self.np_local_array.__str__(), self.mpi_array.__str__())
                 self.assertTrue(np.alltrue(self.np_local_array == self.mpi_array.__array__()))
 
 
