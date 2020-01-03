@@ -25,8 +25,7 @@ class ColumnBlock(MPIArray):
                                        dtype=self.dtype,
                                        comm=self.comm,
                                        comm_dims=self.comm_dims,
-                                       comm_coord=self.comm_coord,
-                                       local_to_global=self.local_to_global)
+                                       comm_coord=self.comm_coord)
                 #Return undistributed copy of data
                 return distributed_result.collect_data()
 
@@ -43,17 +42,21 @@ class ColumnBlock(MPIArray):
                         self.__globalshape()
                 return self._globalshape
 
-        def __globalshape(self):
-                comm_shape = []
-                axis = 0
 
-                for axis_dim in self.shape:
-                        axis_length = \
+        def __globalshape(self):
+                if len(self.shape) == 1: #Can only occur during slicing
+                        axis0_len = \
                                 self.custom_reduction(MPI.SUM,
-                                                      np.asarray(self.shape[axis]),
-                                                      axis = axis)
-                        comm_shape.append(int(axis_length[0]))
-                        axis += 1
+                                                      np.asarray(self.shape[0]))
+                        comm_shape = [int(axis0_len[0])]
+                else:
+                        axis0_len = \
+                                self.custom_reduction(MPI.MAX,
+                                                      np.asarray(self.shape[0]))
+                        axis1_len = \
+                                self.custom_reduction(MPI.SUM,
+                                                      np.asarray(self.shape[1]))
+                        comm_shape = [int(axis0_len[0]), int(axis1_len[0])]
 
                 self._globalshape = tuple(comm_shape)
 
@@ -165,7 +168,7 @@ class ColumnBlock(MPIArray):
 
         def custom_reduction(self, operation, local_red, axis=None, dtype=None,
                              out=None):
-                if dtype is None: dtype = self.dtype
+                if dtype is None: dtype = local_red.dtype
 
                 if axis == 0:
                         global_red = all_gather_v(local_red, comm=self.comm)
@@ -183,8 +186,9 @@ class ColumnBlock(MPIArray):
                         np.zeros(flipped_shape, dtype=self.dtype)
                 np.copyto(local_transpose, np.transpose(self.base))
 
+                flipped_global_shape = tuple(list(self.globalshape)[::-1])
                 global_data = all_gather_v(local_transpose,
-                                           shape=self.globalshape,
+                                           shape=flipped_global_shape,
                                            comm=self.comm)
 
                 #Final transpose on output to recover original ordering

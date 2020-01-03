@@ -25,8 +25,7 @@ class RowBlock(MPIArray):
                                        dtype=self.dtype,
                                        comm=self.comm,
                                        comm_dims=self.comm_dims,
-                                       comm_coord=self.comm_coord,
-                                       local_to_global=self.local_to_global)
+                                       comm_coord=self.comm_coord)
                 #Return undistributed copy of data
                 return distributed_result.collect_data()
 
@@ -44,19 +43,14 @@ class RowBlock(MPIArray):
                 return self._globalshape
 
         def __globalshape(self):
-                comm_shape = []
-                axis = 0
-                for axis_dim in self.shape:
-                        if axis == 0:
-                                axis_length = \
-                                        self.custom_reduction(MPI.SUM,
-                                                              np.asarray(self.shape[axis]))
-                        else:
-                                axis_length = \
-                                        self.custom_reduction(MPI.MAX,
-                                                              np.asarray(self.shape[axis]))
-                        comm_shape.append(int(axis_length[0]))
-                        axis += 1
+                axis0_len = self.custom_reduction(MPI.SUM,
+                                                  np.asarray(self.shape[0]))
+                comm_shape = [int(axis0_len[0])]
+                if len(self.shape) == 2:
+                        axis1_len = \
+                                self.custom_reduction(MPI.MAX,
+                                                      np.asarray(self.shape[1]))
+                        comm_shape.append(int(axis1_len[0]))
 
                 self._globalshape = tuple(comm_shape)
 
@@ -169,7 +163,7 @@ class RowBlock(MPIArray):
 
         def custom_reduction(self, operation, local_red, axis=None, dtype=None,
                              out=None):
-                if dtype is None: dtype = self.dtype
+                if dtype is None: dtype = local_red.dtype
 
                 if axis is None or axis == 0:
                         global_red = np.zeros(local_red.size, dtype=dtype)

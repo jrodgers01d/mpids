@@ -18,10 +18,7 @@ class Undistributed(MPIArray):
                 #Return undistributed copy of data
                 return self.__class__(indexed_result,
                                       dtype=self.dtype,
-                                      comm=self.comm,
-                                      comm_dims=self.comm_dims,
-                                      comm_coord=self.comm_coord,
-                                      local_to_global=self.local_to_global)
+                                      comm=self.comm)
 
 
         #Unique properties to MPIArray
