@@ -33,9 +33,9 @@ def determine_local_data(array_data, dist, comm_dims, comm_coord):
         local_to_global : dictionary
                 Dictionary specifying global index start/end of data by axis.
                 Format:
-                        key, value = axis, (inclusive start, exclusive end)
-                        {0: [start_index, end_index),
-                         1: [start_index, end_index),
+                        key, value = axis, [inclusive start, exclusive end)
+                        {0: (start_index, end_index),
+                         1: (start_index, end_index),
                          ...}
         """
         if is_undistributed(dist):
@@ -43,15 +43,15 @@ def determine_local_data(array_data, dist, comm_dims, comm_coord):
                 return array_data, local_to_global
 
         local_to_global = {}
-        for axis in range(len(np.shape(array_data))):
+        for axis, axis_length in enumerate(np.shape(array_data)):
                 if axis == 0:
                         row_start, row_end = \
-                                    get_block_index(len(array_data),
+                                    get_block_index(axis_length,
                                                     comm_dims[0],
                                                     comm_coord[0])
                         local_to_global[axis] = (row_start, row_end)
                 else:
-                        local_to_global[axis] = (0, len(array_data[0]))
+                        local_to_global[axis] = (0, axis_length)
 
         return array_data[slice(row_start, row_end)], local_to_global
 
