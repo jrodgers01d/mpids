@@ -9,273 +9,273 @@ from mpids.MPInumpy.utils import global_to_local_key
     See mpids.MPInumpy.distributions for implementations.
 """
 class MPIArray(np.ndarray):
-        """ MPIArray subclass of numpy.ndarray """
+    """ MPIArray subclass of numpy.ndarray """
 
-        def __new__(cls, array_data, dtype=None, copy=True, order=None,
-                    subok=False, ndmin=0, comm=MPI.COMM_WORLD, comm_dims=None,
-                    comm_coord=None, local_to_global=None):
-                """ Create MPIArray from process local array data.
+    def __new__(cls, array_data, dtype=None, copy=True, order=None,
+                subok=False, ndmin=0, comm=MPI.COMM_WORLD, comm_dims=None,
+                comm_coord=None, local_to_global=None):
+        """ Create MPIArray from process local array data.
 
-                Parameters
-                ----------
-                array_data : array_like
-                        Array like data local to each process.
-                dtype : data-type, optional
-                        Desired data-type for the array.
-                copy : bool, optional
-                        Default 'True' results in copied object, if 'False' copy
-                        only made when base class '__array__' returns a copy.
-                order: {'K','A','C','F'}, optional
-                        Specified memory layout of the array.
-                subok : bool, optional
-                        Default 'False' returned array will be forced to be
-                        base-class array, if 'True' then sub-classes will be
-                        passed-through.
-                ndmin : int, optional
-                        Specifies the minimum number of dimensions that the
-                        resulting array should have.
-                comm : MPI Communicator, optional
-                        MPI process communication object.  If none specified
-                        defaults to MPI.COMM_WORLD
-                comm_dims: list
-                        Specified dimensions of processes in cartesian grid
-                        for communicator.
-                comm_coord : list
-                        Rank/Procses cartesian coordinate in communicator
-                        process grid.
-                local_to_global: dict, None
-                        Dictionary specifying global index start/end of data by axis.
-                        Format:
-                                key, value = axis, (inclusive start, exclusive end)
-                                {0: [start_index, end_index),
-                                 1: [start_index, end_index),
-                                 ...}
+        Parameters
+        ----------
+        array_data : array_like
+            Array like data local to each process.
+        dtype : data-type, optional
+            Desired data-type for the array.
+        copy : bool, optional
+            Default 'True' results in copied object, if 'False' copy
+            only made when base class '__array__' returns a copy.
+        order: {'K','A','C','F'}, optional
+            Specified memory layout of the array.
+        subok : bool, optional
+            Default 'False' returned array will be forced to be
+            base-class array, if 'True' then sub-classes will be
+            passed-through.
+        ndmin : int, optional
+            Specifies the minimum number of dimensions that the
+            resulting array should have.
+        comm : MPI Communicator, optional
+            MPI process communication object.  If none specified
+            defaults to MPI.COMM_WORLD
+        comm_dims: list
+            Specified dimensions of processes in cartesian grid
+            for communicator.
+        comm_coord : list
+            Rank/Procses cartesian coordinate in communicator
+            process grid.
+        local_to_global: dict, None
+            Dictionary specifying global index start/end of data by axis.
+            Format:
+                key, value = axis, [inclusive start, exclusive end)
+                {0: (start_index, end_index),
+                 1: (start_index, end_index),
+                 ...}
 
-                Returns
-                -------
-                MPIArray : numpy.ndarray sub class
-                """
-                obj = np.array(array_data,
-                               dtype=dtype,
-                               copy=copy,
-                               order=order,
-                               subok=subok,
-                               ndmin=ndmin).view(cls)
-                obj.comm = comm
-                obj.comm_dims = comm_dims
-                obj.comm_coord = comm_coord
-                obj.local_to_global = local_to_global
-                return obj
-
-
-        def __init__(self, *args, **kwargs):
-                #Initialize unique properties
-                self._globalshape = None
-                self._globalsize = None
-                self._globalnbytes = None
-                self._globalndim = None
+        Returns
+        -------
+        MPIArray : numpy.ndarray sub class
+        """
+        obj = np.array(array_data,
+                       dtype=dtype,
+                       copy=copy,
+                       order=order,
+                       subok=subok,
+                       ndmin=ndmin).view(cls)
+        obj.comm = comm
+        obj.comm_dims = comm_dims
+        obj.comm_coord = comm_coord
+        obj.local_to_global = local_to_global
+        return obj
 
 
-        def __array_finalize__(self, obj):
-                if obj is None: return
-                self.comm = getattr(obj, 'comm', None)
-                self.comm_dims = getattr(obj, 'comm_dims', None)
-                self.comm_coord = getattr(obj, 'comm_coord', None)
-                self.local_to_global = getattr(obj, 'local_to_global', None)
+    def __init__(self, *args, **kwargs):
+        #Initialize unique properties
+        self._globalshape = None
+        self._globalsize = None
+        self._globalnbytes = None
+        self._globalndim = None
+
+
+    def __array_finalize__(self, obj):
+        if obj is None: return
+        self.comm = getattr(obj, 'comm', None)
+        self.comm_dims = getattr(obj, 'comm_dims', None)
+        self.comm_coord = getattr(obj, 'comm_coord', None)
+        self.local_to_global = getattr(obj, 'local_to_global', None)
 
 
 #TODO: Resolve this namespace requirement
-        def __getitem__(self, key):
-                raise NotImplementedError(
-                        "Implement a custom __getitem__ method")
+    def __getitem__(self, key):
+        raise NotImplementedError(
+            "Implement a custom __getitem__ method")
 
 
-        def __repr__(self):
-                return '{}(globalsize={}, globalshape={}, dist={}, dtype={})' \
-                       .format('MPIArray',
-                               getattr(self, 'globalsize', None),
-                               getattr(self, 'globalshape', None),
-                               getattr(self, 'dist', None),
-                               getattr(self, 'dtype', None))
+    def __repr__(self):
+        return '{}(globalsize={}, globalshape={}, dist={}, dtype={})' \
+                   .format('MPIArray',
+                           getattr(self, 'globalsize', None),
+                           getattr(self, 'globalshape', None),
+                           getattr(self, 'dist', None),
+                           getattr(self, 'dtype', None))
 
 
-        def __setitem__(self, key, value):
-                #Check input, will throw np.ValueError if data type of passed
-                ## value can't be converted to objects type
-                np_value = np.asarray(value, dtype=self.dtype)
+    def __setitem__(self, key, value):
+        #Check input, will throw np.ValueError if data type of passed
+        ## value can't be converted to objects type
+        np_value = np.asarray(value, dtype=self.dtype)
 
 #TODO: Sort out mapping, potentially two pass try-catch distributing the input
 ## as necessary for target distribution
-                if np_value.size != 1:
-                        raise NotSupportedError(
-                                "values of length 1 only currently supported.")
+        if np_value.size != 1:
+            raise NotSupportedError(
+                "values of length 1 only currently supported.")
 
-                local_key = global_to_local_key(key,
-                                                self.globalshape,
-                                                self.local_to_global)
-                self.base.__setitem__(local_key, np_value)
-
-
-        def __str__(self):
-                return self.base.__str__()
+        local_key = global_to_local_key(key,
+                                        self.globalshape,
+                                        self.local_to_global)
+        self.base.__setitem__(local_key, np_value)
 
 
-        #Unique properties to MPIArray
-        @property
-        def dist(self):
-                raise NotImplementedError("Define a distribution")
+    def __str__(self):
+        return self.base.__str__()
 
 
-        @property
-        def globalshape(self):
-                raise NotImplementedError("Define a globalshape implmentation")
+    #Unique properties to MPIArray
+    @property
+    def dist(self):
+        raise NotImplementedError("Define a distribution")
 
 
-        @property
-        def globalsize(self):
-                raise NotImplementedError("Define a globalsize implmentation")
+    @property
+    def globalshape(self):
+        raise NotImplementedError("Define a globalshape implmentation")
 
 
-        @property
-        def globalnbytes(self):
-                raise NotImplementedError("Define a globalnbytes implmentation")
+    @property
+    def globalsize(self):
+        raise NotImplementedError("Define a globalsize implmentation")
 
 
-        @property
-        def globalndim(self):
-                raise NotImplementedError("Define a globalndim implmentation")
+    @property
+    def globalnbytes(self):
+        raise NotImplementedError("Define a globalnbytes implmentation")
 
 
-        #Custom reduction method implementations
-        def max(self, **kwargs):
-                """ Max of array elements in distributed matrix over a
-                given axis.
-
-                Parameters
-                ----------
-                axis : None or int
-                        Axis or axes along which the sum is performed.
-                dtype : dtype, optional
-                        Specified data type of returned array and of the
-                        accumulator in which the elements are summed.
-
-                Returns
-                -------
-                MPIArray : numpy.ndarray sub class
-                        MPIArray with max values along specified axis with
-                        undistributed(copies on all procs) distribution.
-                """
-                raise NotImplementedError("Implement a custom max method")
+    @property
+    def globalndim(self):
+        raise NotImplementedError("Define a globalndim implmentation")
 
 
-        def mean(self, **kwargs):
-                """ Mean of array elements in distributed matrix over a
-                given axis.
+    #Custom reduction method implementations
+    def max(self, **kwargs):
+        """ Max of array elements in distributed matrix over a
+        given axis.
 
-                Parameters
-                ----------
-                axis : None or int
-                        Axis or axes along which the sum is performed.
-                dtype : dtype, optional
-                        Specified data type of returned array and of the
-                        accumulator in which the elements are summed.
+        Parameters
+        ----------
+        axis : None or int
+            Axis or axes along which the sum is performed.
+        dtype : dtype, optional
+            Specified data type of returned array and of the
+            accumulator in which the elements are summed.
 
-                Returns
-                -------
-                MPIArray : numpy.ndarray sub class
-                        MPIArray with mean values along specified axis with
-                        undistributed(copies on all procs) distribution.
-                """
-                raise NotImplementedError("Implement a custom mean method")
-
-
-        def min(self, **kwargs):
-                """ Min of array elements in distributed matrix over a
-                given axis.
-
-                Parameters
-                ----------
-                axis : None or int
-                        Axis or axes along which the sum is performed.
-                dtype : dtype, optional
-                        Specified data type of returned array and of the
-                        accumulator in which the elements are summed.
-
-                Returns
-                -------
-                MPIArray : numpy.ndarray sub class
-                        MPIArray with min values along specified axis with
-                        undistributed(copies on all procs) distribution.
-                """
-                raise NotImplementedError("Implement a custom min method")
+        Returns
+        -------
+        MPIArray : numpy.ndarray sub class
+            MPIArray with max values along specified axis with
+            undistributed(copies on all procs) distribution.
+        """
+        raise NotImplementedError("Implement a custom max method")
 
 
-        def std(self, **kwargs):
-                """ Standard deviation of array elements in distributed matrix
-                over a given axis.
+    def mean(self, **kwargs):
+        """ Mean of array elements in distributed matrix over a
+        given axis.
 
-                Parameters
-                ----------
-                axis : None or int
-                        Axis or axes along which the sum is performed.
-                dtype : dtype, optional
-                        Specified data type of returned array and of the
-                        accumulator in which the elements are summed.
+        Parameters
+        ----------
+        axis : None or int
+            Axis or axes along which the sum is performed.
+        dtype : dtype, optional
+            Specified data type of returned array and of the
+            accumulator in which the elements are summed.
 
-                Returns
-                -------
-                MPIArray : numpy.ndarray sub class
-                        MPIArray with std values along specified axis with
-                        undistributed(copies on all procs) distribution.
-                """
-                raise NotImplementedError("Implement a custom std method")
-
-
-        def sum(self, **kwargs):
-                """ Sum of array elements in distributed matrix over a
-                given axis.
-
-                Parameters
-                ----------
-                axis : None or int
-                        Axis or axes along which the sum is performed.
-                dtype : dtype, optional
-                        Specified data type of returned array and of the
-                        accumulator in which the elements are summed.
-
-                Returns
-                -------
-                MPIArray : numpy.ndarray sub class
-                        MPIArray with sum values along specified axis with
-                        undistributed(copies on all procs) distribution.
-                """
-                raise NotImplementedError("Implement a custom sum method")
+        Returns
+        -------
+        MPIArray : numpy.ndarray sub class
+            MPIArray with mean values along specified axis with
+            undistributed(copies on all procs) distribution.
+        """
+        raise NotImplementedError("Implement a custom mean method")
 
 
-        def check_reduction_parms(self, axis=None, dtype=None, out=None):
-                if axis is not None and axis > self.ndim - 1:
-                        raise ValueError("'axis' entry is out of bounds")
-                if out is not None:
-                        raise NotSupportedError("'out' field not supported")
-                return
+    def min(self, **kwargs):
+        """ Min of array elements in distributed matrix over a
+        given axis.
+
+        Parameters
+        ----------
+        axis : None or int
+            Axis or axes along which the sum is performed.
+        dtype : dtype, optional
+            Specified data type of returned array and of the
+            accumulator in which the elements are summed.
+
+        Returns
+        -------
+        MPIArray : numpy.ndarray sub class
+            MPIArray with min values along specified axis with
+            undistributed(copies on all procs) distribution.
+        """
+        raise NotImplementedError("Implement a custom min method")
 
 
-        def custom_reduction(self, operation, local_red, axis=None,
-                               dtype=None, out=None):
-                raise NotImplementedError("Implement a custom reduction")
+    def std(self, **kwargs):
+        """ Standard deviation of array elements in distributed matrix
+        over a given axis.
+
+        Parameters
+        ----------
+        axis : None or int
+            Axis or axes along which the sum is performed.
+        dtype : dtype, optional
+            Specified data type of returned array and of the
+            accumulator in which the elements are summed.
+
+        Returns
+        -------
+        MPIArray : numpy.ndarray sub class
+            MPIArray with std values along specified axis with
+            undistributed(copies on all procs) distribution.
+        """
+        raise NotImplementedError("Implement a custom std method")
 
 
-        def collect_data(self):
-                """ Collect/Reconstruct distributed array.
+    def sum(self, **kwargs):
+        """ Sum of array elements in distributed matrix over a
+        given axis.
 
-                Parameters
-                ----------
-                None
+        Parameters
+        ----------
+        axis : None or int
+            Axis or axes along which the sum is performed.
+        dtype : dtype, optional
+            Specified data type of returned array and of the
+            accumulator in which the elements are summed.
 
-                Returns
-                -------
-                MPIArray : numpy.ndarray sub class
-                        Undistributed(resconstructed) MPIArray.
-                """
-                raise NotImplementedError(
-                        "Implement a method to collect distributed array")
+        Returns
+        -------
+        MPIArray : numpy.ndarray sub class
+            MPIArray with sum values along specified axis with
+            undistributed(copies on all procs) distribution.
+        """
+        raise NotImplementedError("Implement a custom sum method")
+
+
+    def check_reduction_parms(self, axis=None, dtype=None, out=None):
+        if axis is not None and axis > self.ndim - 1:
+            raise ValueError("'axis' entry is out of bounds")
+        if out is not None:
+            raise NotSupportedError("'out' field not supported")
+        return
+
+
+    def custom_reduction(self, operation, local_red, axis=None,
+                         dtype=None, out=None):
+        raise NotImplementedError("Implement a custom reduction")
+
+
+    def collect_data(self):
+        """ Collect/Reconstruct distributed array.
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        MPIArray : numpy.ndarray sub class
+            Undistributed(resconstructed) MPIArray.
+        """
+        raise NotImplementedError(
+            "Implement a method to collect distributed array")

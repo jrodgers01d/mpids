@@ -8,58 +8,58 @@ from mpids.MPInumpy.errors import NotSupportedError
 from mpids.MPInumpy.utils import get_comm_dims, get_cart_coords
 
 def matmul(a, b, out=None, comm=MPI.COMM_WORLD, dist='b'):
-        if out is not None:
-                raise NotSupportedError("'out' field not supported")
+    if out is not None:
+        raise NotSupportedError("'out' field not supported")
 
-        #Numpy only arrays
-        if not isinstance(a, MPIArray) and not isinstance(b, MPIArray):
-                return Distribution_Dict[dist](np_matmul(a, b), comm=comm)
-        #Numpy and MPIArray
-        if not isinstance(a, MPIArray) or not isinstance(b, MPIArray):
-            return Distribution_Dict[dist](np_matmul(a, b), comm=comm)
-        #Undistributed MPIArrays
-        if a.dist == b.dist == 'u':
-                return Distribution_Dict[dist](np_matmul(a, b), comm=comm)
+    #Numpy only arrays
+    if not isinstance(a, MPIArray) and not isinstance(b, MPIArray):
+        return Distribution_Dict[dist](np_matmul(a, b), comm=comm)
+    #Numpy and MPIArray
+    if not isinstance(a, MPIArray) or not isinstance(b, MPIArray):
+        return Distribution_Dict[dist](np_matmul(a, b), comm=comm)
+    #Undistributed MPIArrays
+    if a.dist == b.dist == 'u':
+        return Distribution_Dict[dist](np_matmul(a, b), comm=comm)
 
-        return _row_block_mat_mult(a, b, comm=comm)
+    return _row_block_mat_mult(a, b, comm=comm)
 
 
 def _row_block_mat_mult(a, b, comm=MPI.COMM_WORLD):
-        a_global_rows, a_global_cols = a.globalshape
-        a_local_rows, a_local_cols = a.shape
-        b_global_rows, b_global_cols = b.globalshape
-        b_local_rows, b_local_cols = b.shape
+    a_global_rows, a_global_cols = a.globalshape
+    a_local_rows, a_local_cols = a.shape
+    b_global_rows, b_global_cols = b.globalshape
+    b_local_rows, b_local_cols = b.shape
 
-        A = PETSc.Mat().create(comm=comm)
-        A.setSizes((a_global_rows, a_global_cols))
-        A.setFromOptions()
-        A.setPreallocationNNZ((a_global_rows, a_global_cols))
-        A_row_start, A_row_end = A.getOwnershipRange()
+    A = PETSc.Mat().create(comm=comm)
+    A.setSizes((a_global_rows, a_global_cols))
+    A.setFromOptions()
+    A.setPreallocationNNZ((a_global_rows, a_global_cols))
+    A_row_start, A_row_end = A.getOwnershipRange()
 
-        A.setValues(range(A_row_start, A_row_end), range(a_global_cols), a)
-        A.assemblyBegin()
-        A.assemblyEnd()
+    A.setValues(range(A_row_start, A_row_end), range(a_global_cols), a)
+    A.assemblyBegin()
+    A.assemblyEnd()
 
-        B = PETSc.Mat().create(comm=comm)
-        B.setSizes((b_global_rows, b_global_cols))
-        B.setFromOptions()
-        B.setPreallocationNNZ((b_global_rows, b_global_cols))
-        B_row_start, B_row_end = B.getOwnershipRange()
+    B = PETSc.Mat().create(comm=comm)
+    B.setSizes((b_global_rows, b_global_cols))
+    B.setFromOptions()
+    B.setPreallocationNNZ((b_global_rows, b_global_cols))
+    B_row_start, B_row_end = B.getOwnershipRange()
 
-        B.setValues(range(B_row_start, B_row_end), range(b_global_cols), b)
-        B.assemblyBegin()
-        B.assemblyEnd()
+    B.setValues(range(B_row_start, B_row_end), range(b_global_cols), b)
+    B.assemblyBegin()
+    B.assemblyEnd()
 
-        C = A.matMult(B)
+    C = A.matMult(B)
 
-        size = comm.Get_size()
-        rank = comm.Get_rank()
+    size = comm.Get_size()
+    rank = comm.Get_rank()
 
-        comm_dims = get_comm_dims(size, 'b')
-        comm_coord = get_cart_coords(comm_dims, size, rank)
+    comm_dims = get_comm_dims(size, 'b')
+    comm_coord = get_cart_coords(comm_dims, size, rank)
 
-        return Distribution_Dict['b'](C.getValues(range(A_row_start, A_row_end),
-                                      range(a_global_cols)),
-                                      comm=comm,
-                                      comm_dims=comm_dims,
-                                      comm_coord=comm_coord)
+    return Distribution_Dict['b'](C.getValues(range(A_row_start, A_row_end),
+                                              range(a_global_cols)),
+                                              comm=comm,
+                                              comm_dims=comm_dims,
+                                              comm_coord=comm_coord)
