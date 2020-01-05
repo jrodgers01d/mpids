@@ -150,7 +150,7 @@ def get_block_index(axis_len, axis_size, axis_coord):
     else:
         local_len = axis_num
         start_index = \
-        axis_rem * (axis_num + 1) + (axis_coord - axis_rem) * axis_num
+            axis_rem * (axis_num + 1) + (axis_coord - axis_rem) * axis_num
     end_index = start_index + local_len
 
     return (start_index, end_index)
@@ -171,7 +171,7 @@ def get_cart_coords(comm_dims, procs, rank):
 
     Returns
     -------
-    coordinates : list
+    coordinates : list, None
         Coordinates of rank in grid
     """
     if comm_dims == None:
@@ -205,7 +205,7 @@ def get_comm_dims(procs, dist):
 
     Returns
     -------
-    comm_dims : list
+    comm_dims : list, None
         Dimensions of cartesian grid
     """
     if is_undistributed(dist):
@@ -246,11 +246,10 @@ def global_to_local_key(global_key, globalshape, local_to_global_dict):
                                 '{} '.format(global_key) +
                                 'is not supported')
 
-    local_key = \
-        __global_to_local_key_map.get(
-            type(global_key), __unsupported_key)(global_key,
-                                                 globalshape,
-                                                 local_to_global_dict)
+    local_key = __global_to_local_key_map\
+        .get(type(global_key), __unsupported_key)(global_key,
+                                                  globalshape,
+                                                  local_to_global_dict)
     return local_key
 
 
@@ -308,8 +307,7 @@ def _global_to_local_key_tuple(global_key, globalshape, local_to_global_dict):
                          ' global shape {}'.format(globalshape))
 
     local_key = []
-    axis = 0
-    for dim_key in global_key:
+    for axis, dim_key in enumerate(global_key):
         if isinstance(dim_key, int):
             local_key.append(_global_to_local_key_int(dim_key,
                                                       globalshape,
@@ -320,7 +318,6 @@ def _global_to_local_key_tuple(global_key, globalshape, local_to_global_dict):
                                                         globalshape,
                                                         local_to_global_dict,
                                                         axis))
-        axis += 1
 
     return tuple(local_key)
 
