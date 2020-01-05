@@ -82,6 +82,10 @@ class MPIArray(np.ndarray):
         self.comm_dims = getattr(obj, 'comm_dims', None)
         self.comm_coord = getattr(obj, 'comm_coord', None)
         self.local_to_global = getattr(obj, 'local_to_global', None)
+        self._globalshape = getattr(obj, '_globalshape', None)
+        self._globalsize = getattr(obj, '_globalsize', None)
+        self._globalnbytes = getattr(obj, '_globalnbytes', None)
+        self._globalndim = getattr(obj, '_globalndim', None)
 
 
 #TODO: Resolve this namespace requirement
