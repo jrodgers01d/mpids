@@ -59,7 +59,7 @@ class RowBlock(MPIArray):
         return self._globalsize
 
     def __globalsize(self):
-        comm_size = np.zeros(1, dtype='int')
+        comm_size = np.empty(1, dtype='int')
         self.comm.Allreduce(np.array(self.size), comm_size, op=MPI.SUM)
         self._globalsize = int(comm_size)
 
@@ -71,7 +71,7 @@ class RowBlock(MPIArray):
         return self._globalnbytes
 
     def __globalnbytes(self):
-        comm_nbytes = np.zeros(1, dtype='int')
+        comm_nbytes = np.empty(1, dtype='int')
         self.comm.Allreduce(np.array(self.nbytes), comm_nbytes, op=MPI.SUM)
         self._globalnbytes = int(comm_nbytes)
 
@@ -159,7 +159,7 @@ class RowBlock(MPIArray):
         if dtype is None: dtype = local_red.dtype
 
         if axis is None or axis == 0:
-            global_red = np.zeros(local_red.size, dtype=dtype)
+            global_red = np.empty(local_red.size, dtype=dtype)
             self.comm.Allreduce(local_red, global_red, op=operation)
         if axis == 1:
             global_red = all_gather_v(local_red, comm=self.comm)

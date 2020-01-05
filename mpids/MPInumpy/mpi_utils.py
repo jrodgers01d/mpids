@@ -10,11 +10,11 @@ def all_gather_v(array_data, shape=None, comm=MPI.COMM_WORLD):
         raise TypeError('invalid data type for all_gather_v.')
 
     comm_size = comm.Get_size()
-    local_displacement = np.zeros(1, dtype='int')
-    displacements = np.zeros(comm_size, dtype='int')
+    local_displacement = np.empty(1, dtype='int')
+    displacements = np.empty(comm_size, dtype='int')
     local_count = np.asarray(array_data.size, dtype='int')
-    counts = np.zeros(comm_size, dtype='int')
-    total_count = np.zeros(1, dtype='int')
+    counts = np.empty(comm_size, dtype='int')
+    total_count = np.empty(1, dtype='int')
 
     #Exclusive scan to determine displacements
     comm.Exscan(local_count, local_displacement, op=MPI.SUM)
@@ -22,7 +22,7 @@ def all_gather_v(array_data, shape=None, comm=MPI.COMM_WORLD):
     comm.Allgather(local_displacement, displacements)
     comm.Allgather(local_count, counts)
 
-    gathered_array = np.zeros(total_count, dtype=array_data.dtype)
+    gathered_array = np.empty(total_count, dtype=array_data.dtype)
     #Reshape if necessary
     if shape is not None:
         gathered_array = gathered_array.reshape(shape)
