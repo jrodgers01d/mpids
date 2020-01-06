@@ -41,16 +41,19 @@ class AllGatherVTest(unittest.TestCase):
             all_gather_v(data_dict)
 
 
+    def arrays_are_equivelant(self, array_1, array_2):
+        self.assertEqual(array_1.dtype, array_2.dtype)
+        self.assertEqual(array_1.shape, array_2.shape)
+        self.assertEqual(array_1.size, array_2.size)
+        self.assertTrue(np.alltrue((array_1) == (array_2)))
+
+
     def test_gather_empty_value_found_on_all_procs(self):
         local_data = np.array([])
         expected_gathered_data = np.array([] * self.num_procs)
 
         gathered_data = all_gather_v(local_data)
-        self.assertEqual(gathered_data.dtype, expected_gathered_data.dtype)
-        self.assertEqual(gathered_data.shape, expected_gathered_data.shape)
-        self.assertEqual(gathered_data.size, expected_gathered_data.size)
-        self.assertTrue(
-            np.alltrue((gathered_data) == (expected_gathered_data)))
+        self.arrays_are_equivelant(gathered_data, expected_gathered_data)
 
 
     def test_gather_single_value_found_on_all_procs(self):
@@ -58,11 +61,7 @@ class AllGatherVTest(unittest.TestCase):
         expected_gathered_data = self.global_scalar
 
         gathered_data = all_gather_v(local_data)
-        self.assertEqual(gathered_data.dtype, expected_gathered_data.dtype)
-        self.assertEqual(gathered_data.shape, expected_gathered_data.shape)
-        self.assertEqual(gathered_data.size, expected_gathered_data.size)
-        self.assertTrue(
-            np.alltrue((gathered_data) == (expected_gathered_data)))
+        self.arrays_are_equivelant(gathered_data, expected_gathered_data)
 
 
     def test_gather_single_value_found_only_on_first_proc_empty_on_rest(self):
@@ -73,11 +72,7 @@ class AllGatherVTest(unittest.TestCase):
         expected_gathered_data = self.global_scalar[0]
 
         gathered_data = all_gather_v(local_data, shape=expected_gathered_data.shape)
-        self.assertEqual(gathered_data.dtype, expected_gathered_data.dtype)
-        self.assertEqual(gathered_data.shape, expected_gathered_data.shape)
-        self.assertEqual(gathered_data.size, expected_gathered_data.size)
-        self.assertTrue(
-            np.alltrue((gathered_data) == (expected_gathered_data)))
+        self.arrays_are_equivelant(gathered_data, expected_gathered_data)
 
 
     def test_gather_single_value_found_only_on_last_proc_empty_on_rest(self):
@@ -89,11 +84,7 @@ class AllGatherVTest(unittest.TestCase):
         expected_gathered_data = self.global_scalar[last_proc]
 
         gathered_data = all_gather_v(local_data, shape=expected_gathered_data.shape)
-        self.assertEqual(gathered_data.dtype, expected_gathered_data.dtype)
-        self.assertEqual(gathered_data.shape, expected_gathered_data.shape)
-        self.assertEqual(gathered_data.size, expected_gathered_data.size)
-        self.assertTrue(
-            np.alltrue((gathered_data) == (expected_gathered_data)))
+        self.arrays_are_equivelant(gathered_data, expected_gathered_data)
 
 
     def test_gather_single_value_found_only_on_middle_proc_empty_on_rest(self):
@@ -105,11 +96,7 @@ class AllGatherVTest(unittest.TestCase):
         expected_gathered_data = self.global_scalar[middle_proc]
 
         gathered_data = all_gather_v(local_data, shape=expected_gathered_data.shape)
-        self.assertEqual(gathered_data.dtype, expected_gathered_data.dtype)
-        self.assertEqual(gathered_data.shape, expected_gathered_data.shape)
-        self.assertEqual(gathered_data.size, expected_gathered_data.size)
-        self.assertTrue(
-            np.alltrue((gathered_data) == (expected_gathered_data)))
+        self.arrays_are_equivelant(gathered_data, expected_gathered_data)
 
 
     def test_gather_single_value_found_only_on_first_last_proc_empty_on_rest(self):
@@ -122,11 +109,7 @@ class AllGatherVTest(unittest.TestCase):
         expected_gathered_data = np.array([0, last_proc])
 
         gathered_data = all_gather_v(local_data, shape=expected_gathered_data.shape)
-        self.assertEqual(gathered_data.dtype, expected_gathered_data.dtype)
-        self.assertEqual(gathered_data.shape, expected_gathered_data.shape)
-        self.assertEqual(gathered_data.size, expected_gathered_data.size)
-        self.assertTrue(
-            np.alltrue((gathered_data) == (expected_gathered_data)))
+        self.arrays_are_equivelant(gathered_data, expected_gathered_data)
 
 
     def test_gather_1d_array_found_on_all_procs(self):
@@ -134,11 +117,7 @@ class AllGatherVTest(unittest.TestCase):
         expected_gathered_data = self.global_data_1d
 
         gathered_data = all_gather_v(local_data, shape=expected_gathered_data.shape)
-        self.assertEqual(gathered_data.dtype, expected_gathered_data.dtype)
-        self.assertEqual(gathered_data.shape, expected_gathered_data.shape)
-        self.assertEqual(gathered_data.size, expected_gathered_data.size)
-        self.assertTrue(
-            np.alltrue((gathered_data) == (expected_gathered_data)))
+        self.arrays_are_equivelant(gathered_data, expected_gathered_data)
 
 
     def test_gather_1d_array_found_only_on_first_proc_empty_on_rest(self):
@@ -149,11 +128,7 @@ class AllGatherVTest(unittest.TestCase):
         expected_gathered_data = self.global_data_1d[0]
 
         gathered_data = all_gather_v(local_data, shape=expected_gathered_data.shape)
-        self.assertEqual(gathered_data.dtype, expected_gathered_data.dtype)
-        self.assertEqual(gathered_data.shape, expected_gathered_data.shape)
-        self.assertEqual(gathered_data.size, expected_gathered_data.size)
-        self.assertTrue(
-            np.alltrue((gathered_data) == (expected_gathered_data)))
+        self.arrays_are_equivelant(gathered_data, expected_gathered_data)
 
 
     def test_gather_1d_array_found_only_on_last_proc_empty_on_rest(self):
@@ -165,11 +140,7 @@ class AllGatherVTest(unittest.TestCase):
         expected_gathered_data = self.global_data_1d[last_proc]
 
         gathered_data = all_gather_v(local_data, shape=expected_gathered_data.shape)
-        self.assertEqual(gathered_data.dtype, expected_gathered_data.dtype)
-        self.assertEqual(gathered_data.shape, expected_gathered_data.shape)
-        self.assertEqual(gathered_data.size, expected_gathered_data.size)
-        self.assertTrue(
-            np.alltrue((gathered_data) == (expected_gathered_data)))
+        self.arrays_are_equivelant(gathered_data, expected_gathered_data)
 
 
     def test_gather_1d_array_found_only_on_middle_proc_empty_on_rest(self):
@@ -181,11 +152,7 @@ class AllGatherVTest(unittest.TestCase):
         expected_gathered_data = self.global_data_1d[middle_proc]
 
         gathered_data = all_gather_v(local_data, shape=expected_gathered_data.shape)
-        self.assertEqual(gathered_data.dtype, expected_gathered_data.dtype)
-        self.assertEqual(gathered_data.shape, expected_gathered_data.shape)
-        self.assertEqual(gathered_data.size, expected_gathered_data.size)
-        self.assertTrue(
-            np.alltrue((gathered_data) == (expected_gathered_data)))
+        self.arrays_are_equivelant(gathered_data, expected_gathered_data)
 
 
     def test_gather_1d_array_found_only_on_first_last_proc_empty_on_rest(self):
@@ -198,11 +165,7 @@ class AllGatherVTest(unittest.TestCase):
                              self.global_data_1d[last_proc]))
 
         gathered_data = all_gather_v(local_data, shape=expected_gathered_data.shape)
-        self.assertEqual(gathered_data.dtype, expected_gathered_data.dtype)
-        self.assertEqual(gathered_data.shape, expected_gathered_data.shape)
-        self.assertEqual(gathered_data.size, expected_gathered_data.size)
-        self.assertTrue(
-            np.alltrue((gathered_data) == (expected_gathered_data)))
+        self.arrays_are_equivelant(gathered_data, expected_gathered_data)
 
 
     def test_gather_2d_array_found_on_all_procs(self):
@@ -210,11 +173,7 @@ class AllGatherVTest(unittest.TestCase):
         expected_gathered_data = self.global_data_2d
 
         gathered_data = all_gather_v(local_data, shape=expected_gathered_data.shape)
-        self.assertEqual(gathered_data.dtype, expected_gathered_data.dtype)
-        self.assertEqual(gathered_data.shape, expected_gathered_data.shape)
-        self.assertEqual(gathered_data.size, expected_gathered_data.size)
-        self.assertTrue(
-            np.alltrue((gathered_data) == (expected_gathered_data)))
+        self.arrays_are_equivelant(gathered_data, expected_gathered_data)
 
 
     def test_gather_2d_array_found_on_first_proc_empty_on_rest(self):
@@ -225,11 +184,7 @@ class AllGatherVTest(unittest.TestCase):
         expected_gathered_data = self.global_data_2d[self.global_data_2d == 0]
 
         gathered_data = all_gather_v(local_data, shape=expected_gathered_data.shape)
-        self.assertEqual(gathered_data.dtype, expected_gathered_data.dtype)
-        self.assertEqual(gathered_data.shape, expected_gathered_data.shape)
-        self.assertEqual(gathered_data.size, expected_gathered_data.size)
-        self.assertTrue(
-            np.alltrue((gathered_data) == (expected_gathered_data)))
+        self.arrays_are_equivelant(gathered_data, expected_gathered_data)
 
 
     def test_gather_2d_array_found_on_last_proc_empty_on_rest(self):
@@ -241,11 +196,7 @@ class AllGatherVTest(unittest.TestCase):
         expected_gathered_data = self.global_data_2d[self.global_data_2d == last_proc]
 
         gathered_data = all_gather_v(local_data, shape=expected_gathered_data.shape)
-        self.assertEqual(gathered_data.dtype, expected_gathered_data.dtype)
-        self.assertEqual(gathered_data.shape, expected_gathered_data.shape)
-        self.assertEqual(gathered_data.size, expected_gathered_data.size)
-        self.assertTrue(
-            np.alltrue((gathered_data) == (expected_gathered_data)))
+        self.arrays_are_equivelant(gathered_data, expected_gathered_data)
 
 
     def test_gather_2d_array_found_on_middle_proc_empty_on_rest(self):
@@ -257,11 +208,7 @@ class AllGatherVTest(unittest.TestCase):
         expected_gathered_data = self.global_data_2d[self.global_data_2d == middle_proc]
 
         gathered_data = all_gather_v(local_data, shape=expected_gathered_data.shape)
-        self.assertEqual(gathered_data.dtype, expected_gathered_data.dtype)
-        self.assertEqual(gathered_data.shape, expected_gathered_data.shape)
-        self.assertEqual(gathered_data.size, expected_gathered_data.size)
-        self.assertTrue(
-            np.alltrue((gathered_data) == (expected_gathered_data)))
+        self.arrays_are_equivelant(gathered_data, expected_gathered_data)
 
 
     def test_gather_2d_array_found_on_first_last_proc_empty_on_rest(self):
@@ -275,11 +222,7 @@ class AllGatherVTest(unittest.TestCase):
                     self.global_data_2d[self.global_data_2d == last_proc]))
 
         gathered_data = all_gather_v(local_data, shape=expected_gathered_data.shape)
-        self.assertEqual(gathered_data.dtype, expected_gathered_data.dtype)
-        self.assertEqual(gathered_data.shape, expected_gathered_data.shape)
-        self.assertEqual(gathered_data.size, expected_gathered_data.size)
-        self.assertTrue(
-            np.alltrue((gathered_data) == (expected_gathered_data)))
+        self.arrays_are_equivelant(gathered_data, expected_gathered_data)
 
 
     def test_gather_1d_array_found_on_first_proc_2d_array_found_on_rest(self):
@@ -296,11 +239,7 @@ class AllGatherVTest(unittest.TestCase):
                                                  global_data_2d_no_first))
 
         gathered_data = all_gather_v(local_data, shape=expected_gathered_data.shape)
-        self.assertEqual(gathered_data.dtype, expected_gathered_data.dtype)
-        self.assertEqual(gathered_data.shape, expected_gathered_data.shape)
-        self.assertEqual(gathered_data.size, expected_gathered_data.size)
-        self.assertTrue(
-            np.alltrue((gathered_data) == (expected_gathered_data)))
+        self.arrays_are_equivelant(gathered_data, expected_gathered_data)
 
 
     def test_gather_1d_array_found_on_last_proc_2d_array_found_on_rest(self):
@@ -318,11 +257,7 @@ class AllGatherVTest(unittest.TestCase):
                                                  global_data_1d_w_last))
 
         gathered_data = all_gather_v(local_data, shape=expected_gathered_data.shape)
-        self.assertEqual(gathered_data.dtype, expected_gathered_data.dtype)
-        self.assertEqual(gathered_data.shape, expected_gathered_data.shape)
-        self.assertEqual(gathered_data.size, expected_gathered_data.size)
-        self.assertTrue(
-            np.alltrue((gathered_data) == (expected_gathered_data)))
+        self.arrays_are_equivelant(gathered_data, expected_gathered_data)
 
 
     def test_gather_1d_array_found_on_middle_proc_2d_array_found_on_rest(self):
@@ -344,11 +279,7 @@ class AllGatherVTest(unittest.TestCase):
                                                  global_data_2d_past_mid))
 
         gathered_data = all_gather_v(local_data, shape=expected_gathered_data.shape)
-        self.assertEqual(gathered_data.dtype, expected_gathered_data.dtype)
-        self.assertEqual(gathered_data.shape, expected_gathered_data.shape)
-        self.assertEqual(gathered_data.size, expected_gathered_data.size)
-        self.assertTrue(
-            np.alltrue((gathered_data) == (expected_gathered_data)))
+        self.arrays_are_equivelant(gathered_data, expected_gathered_data)
 
 
 if __name__ == '__main__':
