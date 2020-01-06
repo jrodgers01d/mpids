@@ -3,7 +3,7 @@ import numpy as np
 
 from mpids.MPInumpy.errors import TypeError
 
-__all__ = ['all_gather_v']
+__all__ = ['all_gather_v', 'broadcast_array']
 
 def all_gather_v(array_data, shape=None, comm=MPI.COMM_WORLD):
     if not isinstance(array_data, np.ndarray):
@@ -34,3 +34,36 @@ def all_gather_v(array_data, shape=None, comm=MPI.COMM_WORLD):
                     [gathered_array, (counts, displacements), mpi_dtype])
 
     return gathered_array
+
+
+def broadcast_array(array_data, comm=MPI.COMM_WORLD, root=0):
+    rank = comm.Get_rank()
+    #Transmit information needed to reconstruct array
+    if rank == root:
+        array_ndim = np.asarray(array_data.ndim, dtype=np.int32)
+    else:
+        array_ndim = np.empty(1, dtype=np.int32)
+    comm.Bcast(array_ndim, root=root)
+
+    if rank == root:
+        array_shape = np.asarray(array_data.shape, dtype=np.int32)
+    else:
+        array_shape = np.empty(array_ndim, dtype=np.int32)
+    comm.Bcast(array_shape, root=root)
+
+#TODO: Look into str/char buffer send for this operation
+    if rank == root:
+        array_dtype = np.sctype2char(array_data.dtype)
+    else:
+        array_dtype = None
+    array_dtype = comm.bcast(array_dtype, root=root)
+
+    #Create empty buffer on non-root ranks
+    if rank != root:
+        array_data = np.empty(array_shape, dtype=np.dtype(array_dtype))
+
+    #Broadcast the array
+    mpi_dtype = MPI._typedict[array_dtype]
+    comm.Bcast([array_data, array_data.size, mpi_dtype], root=root)
+
+    return array_data

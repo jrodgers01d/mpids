@@ -282,5 +282,64 @@ class AllGatherVTest(unittest.TestCase):
         self.arrays_are_equivelant(gathered_data, expected_gathered_data)
 
 
+class BroadcastArrayTest(unittest.TestCase):
+
+    def setUp(self):
+        self.data_1d_int = np.array(list(range(25)), dtype = np.int32)
+        self.data_1d_float = np.array(list(range(25)), dtype = np.float)
+        self.data_2d_int = np.array(list(range(25)), dtype = np.int32).reshape(5,5)
+        self.data_2d_float = np.array(list(range(25)), dtype = np.float).reshape(5,5)
+        self.comm = MPI.COMM_WORLD
+        self.rank = self.comm.Get_rank()
+        self.size = self.comm.Get_size()
+
+
+    def arrays_are_equivelant(self, array_1, array_2):
+        self.assertEqual(array_1.dtype, array_2.dtype)
+        self.assertEqual(array_1.shape, array_2.shape)
+        self.assertEqual(array_1.size, array_2.size)
+        self.assertTrue(np.alltrue((array_1) == (array_2)))
+
+
+    def test_broadcasting_1d_int_array_from_all_ranks(self):
+        for root in range(self.size):
+            local_data = None
+            self.assertTrue(local_data is None)
+            if self.rank == root:
+                local_data = self.data_1d_int
+            local_data = broadcast_array(local_data, comm=self.comm, root=root)
+            self.arrays_are_equivelant(local_data, self.data_1d_int)
+
+
+    def test_broadcasting_1d_float_array_from_all_ranks(self):
+        for root in range(self.size):
+            local_data = None
+            self.assertTrue(local_data is None)
+            if self.rank == root:
+                local_data = self.data_1d_float
+            local_data = broadcast_array(local_data, comm=self.comm, root=root)
+            self.arrays_are_equivelant(local_data, self.data_1d_float)
+
+
+    def test_broadcasting_2d_int_array_from_all_ranks(self):
+        for root in range(self.size):
+            local_data = None
+            self.assertTrue(local_data is None)
+            if self.rank == root:
+                local_data = self.data_2d_int
+            local_data = broadcast_array(local_data, comm=self.comm, root=root)
+            self.arrays_are_equivelant(local_data, self.data_2d_int)
+
+
+    def test_broadcasting_2d_float_array_from_all_ranks(self):
+        for root in range(self.size):
+            local_data = None
+            self.assertTrue(local_data is None)
+            if self.rank == root:
+                local_data = self.data_2d_float
+            local_data = broadcast_array(local_data, comm=self.comm, root=root)
+            self.arrays_are_equivelant(local_data, self.data_2d_float)
+
+
 if __name__ == '__main__':
     unittest.main()
