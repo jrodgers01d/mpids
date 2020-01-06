@@ -10,11 +10,11 @@ def all_gather_v(array_data, shape=None, comm=MPI.COMM_WORLD):
         raise TypeError('invalid data type for all_gather_v.')
 
     comm_size = comm.Get_size()
-    local_displacement = np.empty(1, dtype='int')
-    displacements = np.empty(comm_size, dtype='int')
-    local_count = np.asarray(array_data.size, dtype='int')
-    counts = np.empty(comm_size, dtype='int')
-    total_count = np.empty(1, dtype='int')
+    local_displacement = np.empty(1, dtype=np.int32)
+    displacements = np.empty(comm_size, dtype=np.int32)
+    local_count = np.asarray(array_data.size, dtype=np.int32)
+    counts = np.empty(comm_size, dtype=np.int32)
+    total_count = np.empty(1, dtype=np.int32)
 
     #Exclusive scan to determine displacements
     comm.Exscan(local_count, local_displacement, op=MPI.SUM)
