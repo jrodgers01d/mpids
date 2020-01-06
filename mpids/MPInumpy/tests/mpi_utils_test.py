@@ -365,6 +365,7 @@ class ScatterVTest(unittest.TestCase):
         self.shapes_2d = \
             np.array([2, 2] * self.size, dtype=np.int32).reshape(self.size, 2)
 
+
     def arrays_are_equivelant(self, array_1, array_2):
         self.assertEqual(array_1.dtype, array_2.dtype)
         self.assertEqual(array_1.shape, array_2.shape)

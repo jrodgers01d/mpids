@@ -68,7 +68,6 @@ def broadcast_array(array_data, comm=MPI.COMM_WORLD, root=0):
 
     return array_data
 
-
 #TODO find elegant way to handle type checking in this
 def scatter_v(array_data, displacements, shapes, comm=MPI.COMM_WORLD, root=0):
     rank = comm.Get_rank()
