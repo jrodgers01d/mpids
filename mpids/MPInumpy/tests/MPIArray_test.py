@@ -67,8 +67,8 @@ class MPIArrayDefaultTest(unittest.TestCase):
         # Default distribution
         parms['dist'] = 'b'
         #Add 1 to avoid divide by zero errors/warnings
-        np_data = (np.array(list(range(25))).reshape(5,5) + 1)
-        parms['data'] = np_data.tolist()
+        np_data = np.array(list(range(25))).reshape(5,5) + 1
+        parms['data'] = np_data
         local_data_map = {0: np_data[:2],
                           1: np_data[2:3],
                           2: np_data[3:4],
@@ -168,7 +168,6 @@ class MPIArrayDefaultTest(unittest.TestCase):
         self.assertEqual(None, self.mpi_array.__array_finalize__(None))
         self.assertEqual(self.np_local_array.__str__(), self.mpi_array.__str__())
         self.assertTrue(np.alltrue(self.np_local_array == self.mpi_array.__array__()))
-
 
 
     def test_dunder_binary_operations(self):

@@ -363,13 +363,14 @@ class UtilsDefaultTest(unittest.TestCase):
         parms['procs'] = MPI.COMM_WORLD.Get_size()
         parms['rank'] = MPI.COMM_WORLD.Get_rank()
         parms['data'] = list(range(10))
+        parms['data_shape'] = np.shape(parms['data'])
         parms['data_2d'] = np.array(list(range(20))).reshape(5,4)
+        parms['data_2d_shape'] = parms['data_2d'].shape
         # Default distribution
         parms['dist'] = 'b'
         parms['comm_dims'] = [parms['procs']]
         parms['comm_coord'] = [parms['rank']]
         parms['dist_to_dims'] = 1
-        parms['single_dim_support'] = True
         rank_local_data_map = {0 : parms['data'][0:3],
                                1 : parms['data'][3:6],
                                2 : parms['data'][6:8],
@@ -384,6 +385,8 @@ class UtilsDefaultTest(unittest.TestCase):
                                1 : {0 : (3, 6)},
                                2 : {0 : (6, 8)},
                                3 : {0 : (8, 10)}}
+        parms['local_data_shape'] = np.shape(parms['local_data'])
+        parms['local_data_2d_shape'] = parms['local_data_2d'].shape
         parms['local_to_global'] = local_to_global_map[parms['rank']]
         local_to_global_2d_map = {0 : {0 : (0, 2), 1 : (0, 4)},
                                   1 : {0 : (2, 3), 1 : (0, 4)},
@@ -398,14 +401,17 @@ class UtilsDefaultTest(unittest.TestCase):
         self.procs = parms.get('procs')
         self.rank = parms.get('rank')
         self.data = parms.get('data')
+        self.data_shape = parms.get('data_shape')
         self.data_2d = parms.get('data_2d')
+        self.data_2d_shape = parms.get('data_2d_shape')
         self.dist = parms.get('dist')
         self.comm_dims = parms.get('comm_dims')
         self.comm_coord = parms.get('comm_coord')
         self.dist_to_dims = parms.get('dist_to_dims')
-        self.single_dim_support = parms.get('single_dim_support')
         self.local_data = parms.get('local_data')
         self.local_data_2d = parms.get('local_data_2d')
+        self.local_data_shape = parms.get('local_data_shape')
+        self.local_data_2d_shape = parms.get('local_data_2d_shape')
         self.local_to_global = parms.get('local_to_global')
         self.local_to_global_2d = parms.get('local_to_global_2d')
 
@@ -429,19 +435,11 @@ class UtilsDefaultTest(unittest.TestCase):
 
     def test_determine_local_data(self):
         # 1-D Data
-        if self.single_dim_support:
-            self.assertEqual((self.local_data, self.local_to_global),
-                     determine_local_data(self.data,
-                                          self.dist,
-                                          self.comm_dims,
-                                          self.comm_coord))
-        else:
-            # Test cases where dim input data != dim distribution
-            with self.assertRaises(InvalidDistributionError):
-                determine_local_data(self.data,
-                                     self.dist,
-                                     self.comm_dims,
-                                     self.comm_coord)
+        self.assertEqual((self.local_data, self.local_to_global),
+                         determine_local_data(self.data,
+                                              self.dist,
+                                              self.comm_dims,
+                                              self.comm_coord))
 
         # 2-D Data
         local_data_2d, local_to_global = \
@@ -454,6 +452,22 @@ class UtilsDefaultTest(unittest.TestCase):
         self.assertEqual(self.local_to_global_2d, local_to_global)
 
 
+    def test_determine_local_data_from_shape(self):
+        # 1-D Data
+        self.assertEqual((self.local_data_shape, self.local_to_global),
+                         determine_local_data_from_shape(self.data_shape,
+                                                         self.dist,
+                                                         self.comm_dims,
+                                                         self.comm_coord))
+
+        # 2-D data
+        self.assertEqual((self.local_data_2d_shape, self.local_to_global_2d),
+                         determine_local_data_from_shape(self.data_2d_shape,
+                                                         self.dist,
+                                                         self.comm_dims,
+                                                         self.comm_coord))
+
+
 class UtilsUndistributedTest(UtilsDefaultTest):
 
     def create_setUp_parms(self):
@@ -461,14 +475,17 @@ class UtilsUndistributedTest(UtilsDefaultTest):
         parms['procs'] = MPI.COMM_WORLD.Get_size()
         parms['rank'] = MPI.COMM_WORLD.Get_rank()
         parms['data'] = list(range(10))
+        parms['data_shape'] = np.shape(parms['data'])
         parms['data_2d'] = np.array(list(range(20))).reshape(5,4)
+        parms['data_2d_shape'] = parms['data_2d'].shape
         # Undistributed distribution
         parms['dist'] = 'u'
         parms['comm_dims'] = None
         parms['comm_coord'] = None
-        parms['single_dim_support'] = True
         parms['local_data'] = parms['data']
         parms['local_data_2d'] = parms['data_2d']
+        parms['local_data_shape'] = parms['data_shape']
+        parms['local_data_2d_shape'] = parms['data_2d_shape']
         parms['local_to_global'] = None
         parms['local_to_global_2d'] = None
         return parms

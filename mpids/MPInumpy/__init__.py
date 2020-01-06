@@ -1,5 +1,3 @@
-from .array import *
+from .array_creation import *
 from .MPIArray import *
 from ._linalg import *
-
-__all__ = ['MPIArray', 'array', 'matmul']

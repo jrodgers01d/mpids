@@ -4,8 +4,9 @@ import numpy as np
 from mpids.MPInumpy.errors import IndexError, InvalidDistributionError, \
                                   NotSupportedError
 
-__all__ = ['determine_local_data', 'get_block_index', 'get_cart_coords',
-           'get_comm_dims', 'global_to_local_key', 'distribution_to_dimensions',
+__all__ = ['determine_local_data', 'determine_local_data_from_shape',
+           'get_block_index', 'get_cart_coords', 'get_comm_dims',
+           'global_to_local_key', 'distribution_to_dimensions',
            'is_undistributed', 'is_row_block_distributed']
 
 def determine_local_data(array_data, dist, comm_dims, comm_coord):
@@ -53,6 +54,57 @@ def determine_local_data(array_data, dist, comm_dims, comm_coord):
             local_to_global[axis] = (0, axis_length)
 
     return array_data[slice(row_start, row_end)], local_to_global
+
+
+def determine_local_data_from_shape(array_shape, dist, comm_dims, comm_coord):
+    """ Determine array like data to be distributed among processes from
+        expected shape.
+
+    Parameters
+    ----------
+    array_shape : int, tuple of int
+        Shape of data to distribute.
+    dist : str, list, tuple
+        Specified distribution of data among processes.
+        Default value 'b' : Block, *
+        Supported types:
+            'b' : Block, *
+            'u' : Undistributed
+    procs: int
+        Size/number of processes in communicator
+    rank : int
+        Process rank in communicator
+
+    Returns
+    -------
+    local_shape : tuple
+        Shape of determined for local array
+    local_to_global : dictionary
+        Dictionary specifying global index start/end of data by axis.
+        Format:
+            key, value = axis, [inclusive start, exclusive end)
+            {0: (start_index, end_index),
+             1: (start_index, end_index),
+             ...}
+    """
+    if is_undistributed(dist):
+        local_to_global = None
+        return array_shape, local_to_global
+
+    local_to_global = {}
+    local_shape = []
+    for axis, axis_length in enumerate(array_shape):
+        if axis == 0:
+            row_start, row_end = get_block_index(axis_length,
+                                                 comm_dims[0],
+                                                 comm_coord[0])
+            local_to_global[axis] = (row_start, row_end)
+            local_shape.append(row_end - row_start)
+        else:
+            local_to_global[axis] = (0, axis_length)
+            local_shape.append(axis_length)
+
+    return tuple(local_shape), local_to_global
 
 
 def distribution_to_dimensions(distribution, procs):

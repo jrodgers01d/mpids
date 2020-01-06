@@ -7,6 +7,8 @@ from mpids.MPInumpy.distributions import Distribution_Dict
 from mpids.MPInumpy.errors import NotSupportedError
 from mpids.MPInumpy.utils import get_comm_dims, get_cart_coords
 
+__all__ = ['matmul']
+
 def matmul(a, b, out=None, comm=MPI.COMM_WORLD, dist='b'):
     if out is not None:
         raise NotSupportedError("'out' field not supported")

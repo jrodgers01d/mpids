@@ -16,7 +16,7 @@ class Undistributed(MPIArray):
                                         self.local_to_global)
         indexed_result = self.base.__getitem__(key)
         #Return undistributed copy of data
-        return self.__class__(indexed_result, dtype=self.dtype, comm=self.comm)
+        return self.__class__(indexed_result, comm=self.comm)
 
 
     #Unique properties to MPIArray
@@ -61,7 +61,7 @@ class Undistributed(MPIArray):
         self.check_reduction_parms(**kwargs)
         local_max = np.asarray(self.base.max(**kwargs))
         global_max = self.custom_reduction(MPI.MAX, local_max, **kwargs)
-        return Undistributed(global_max, dtype=global_max.dtype, comm=self.comm)
+        return Undistributed(global_max, comm=self.comm)
 
 
     def mean(self, **kwargs):
@@ -72,14 +72,14 @@ class Undistributed(MPIArray):
         else:
             global_mean = global_sum * 1. / self.globalsize
 
-        return Undistributed(global_mean, dtype=global_mean.dtype, comm=self.comm)
+        return Undistributed(global_mean, comm=self.comm)
 
 
     def min(self, **kwargs):
         self.check_reduction_parms(**kwargs)
         local_min = np.asarray(self.base.min(**kwargs))
         global_min = self.custom_reduction(MPI.MIN, local_min, **kwargs)
-        return Undistributed(global_min, dtype=global_min.dtype, comm=self.comm)
+        return Undistributed(global_min, comm=self.comm)
 
 
     def std(self, **kwargs):
@@ -105,14 +105,14 @@ class Undistributed(MPIArray):
             global_std = np.sqrt(
                     global_sum_square_diff * 1. / self.globalsize)
 
-        return Undistributed(global_std, dtype=global_std.dtype, comm=self.comm)
+        return Undistributed(global_std, comm=self.comm)
 
 
     def sum(self, **kwargs):
         self.check_reduction_parms(**kwargs)
         local_sum = np.asarray(self.base.sum(**kwargs))
         global_sum = self.custom_reduction(MPI.SUM, local_sum, **kwargs)
-        return Undistributed(global_sum, dtype=global_sum.dtype, comm=self.comm)
+        return Undistributed(global_sum, comm=self.comm)
 
 
     def custom_reduction(self, operation, local_red, axis=None, dtype=None,
@@ -121,4 +121,4 @@ class Undistributed(MPIArray):
 
 
     def collect_data(self):
-        return Undistributed(self.data, dtype=self.dtype, comm=self.comm)
+        return self.__class__(self, comm=self.comm)
