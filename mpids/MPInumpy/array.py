@@ -2,7 +2,7 @@ from mpi4py import MPI
 
 from mpids.MPInumpy.distributions import Distribution_Dict
 from mpids.MPInumpy.utils import determine_local_data, \
-                                 get_comm_dims,\
+                                 get_comm_dims,        \
                                  get_cart_coords
 
 
