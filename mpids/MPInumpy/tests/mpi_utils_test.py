@@ -341,5 +341,104 @@ class BroadcastArrayTest(unittest.TestCase):
             self.arrays_are_equivelant(local_data, self.data_2d_float)
 
 
+class ScatterVTest(unittest.TestCase):
+
+    def setUp(self):
+        self.comm = MPI.COMM_WORLD
+        self.rank = self.comm.Get_rank()
+        self.size = self.comm.Get_size()
+        self.data_1d_int = np.array([1, 1] * self.size, dtype=np.int32)
+        self.expected_data_1d_int = np.array([1, 1], dtype=np.int32)
+        self.data_1d_float = np.array([1, 1] * self.size, dtype=np.float)
+        self.expected_data_1d_float = np.array([1, 1], dtype=np.float)
+        self.displacements_1d = \
+            np.array([rank * 2 for rank in range(self.size)], dtype=np.int32)
+        self.shapes_1d = np.array([2] * self.size, dtype=np.int32)
+        self.data_2d_int = \
+            np.array([1, 1, 1, 1] * self.size, dtype=np.int32).reshape(self.size * 2, 2)
+        self.expected_data_2d_int = np.array([1, 1, 1, 1], dtype=np.int32).reshape(2,2)
+        self.data_2d_float = \
+            np.array([1, 1, 1, 1] * self.size, dtype=np.float).reshape(self.size * 2, 2)
+        self.expected_data_2d_float = np.array([1, 1, 1, 1], dtype=np.float).reshape(2,2)
+        self.displacements_2d = \
+            np.array([rank * 4 for rank in range(self.size)], dtype=np.int32)
+        self.shapes_2d = \
+            np.array([2, 2] * self.size, dtype=np.int32).reshape(self.size, 2)
+
+    def arrays_are_equivelant(self, array_1, array_2):
+        self.assertEqual(array_1.dtype, array_2.dtype)
+        self.assertEqual(array_1.shape, array_2.shape)
+        self.assertEqual(array_1.size, array_2.size)
+        self.assertTrue(np.alltrue((array_1) == (array_2)))
+
+
+    def test_scatter_v_1d_int_array_from_all_ranks(self):
+        for root in range(self.size):
+            local_data = None
+            shapes = None
+            displacements = None
+            self.assertTrue(local_data is None)
+            self.assertTrue(shapes is None)
+            self.assertTrue(displacements is None)
+            if self.rank == root:
+                local_data = self.data_1d_int
+                shapes = self.shapes_1d
+                displacements = self.displacements_1d
+            local_data = \
+                scatter_v(local_data, displacements, shapes, self.comm, root=root)
+            self.arrays_are_equivelant(local_data, self.expected_data_1d_int)
+
+
+    def test_scatter_v_1d_float_array_from_all_ranks(self):
+        for root in range(self.size):
+            local_data = None
+            shapes = None
+            displacements = None
+            self.assertTrue(local_data is None)
+            self.assertTrue(shapes is None)
+            self.assertTrue(displacements is None)
+            if self.rank == root:
+                local_data = self.data_1d_float
+                shapes = self.shapes_1d
+                displacements = self.displacements_1d
+            local_data = \
+                scatter_v(local_data, displacements, shapes, self.comm, root=root)
+            self.arrays_are_equivelant(local_data, self.expected_data_1d_float)
+
+
+    def test_scatter_v_2d_int_array_from_all_ranks(self):
+        for root in range(self.size):
+            local_data = None
+            shapes = None
+            displacements = None
+            self.assertTrue(local_data is None)
+            self.assertTrue(shapes is None)
+            self.assertTrue(displacements is None)
+            if self.rank == root:
+                local_data = self.data_2d_int
+                shapes = self.shapes_2d
+                displacements = self.displacements_2d
+            local_data = \
+                scatter_v(local_data, displacements, shapes, self.comm, root=root)
+            self.arrays_are_equivelant(local_data, self.expected_data_2d_int)
+
+
+    def test_scatter_v_2d_float_array_from_all_ranks(self):
+        for root in range(self.size):
+            local_data = None
+            shapes = None
+            displacements = None
+            self.assertTrue(local_data is None)
+            self.assertTrue(shapes is None)
+            self.assertTrue(displacements is None)
+            if self.rank == root:
+                local_data = self.data_2d_float
+                shapes = self.shapes_2d
+                displacements = self.displacements_2d
+            local_data = \
+                scatter_v(local_data, displacements, shapes, self.comm, root=root)
+            self.arrays_are_equivelant(local_data, self.expected_data_2d_float)
+
+
 if __name__ == '__main__':
     unittest.main()

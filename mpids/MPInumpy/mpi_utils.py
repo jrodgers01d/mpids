@@ -3,7 +3,7 @@ import numpy as np
 
 from mpids.MPInumpy.errors import TypeError
 
-__all__ = ['all_gather_v', 'broadcast_array']
+__all__ = ['all_gather_v', 'broadcast_array', 'scatter_v']
 
 def all_gather_v(array_data, shape=None, comm=MPI.COMM_WORLD):
     if not isinstance(array_data, np.ndarray):
@@ -35,7 +35,7 @@ def all_gather_v(array_data, shape=None, comm=MPI.COMM_WORLD):
 
     return gathered_array
 
-
+#TODO find elegant way to handle type checking in this
 def broadcast_array(array_data, comm=MPI.COMM_WORLD, root=0):
     rank = comm.Get_rank()
     #Transmit information needed to reconstruct array
@@ -67,3 +67,27 @@ def broadcast_array(array_data, comm=MPI.COMM_WORLD, root=0):
     comm.Bcast([array_data, array_data.size, mpi_dtype], root=root)
 
     return array_data
+
+
+#TODO find elegant way to handle type checking in this
+def scatter_v(array_data, displacements, shapes, comm=MPI.COMM_WORLD, root=0):
+    rank = comm.Get_rank()
+    #Transmit information needed to reconstruct array
+    displacements = broadcast_array(displacements, root=root)
+    shapes = broadcast_array(shapes, root=root)
+#TODO: Look into str/char buffer send for this operation
+    if rank == root:
+        array_dtype = np.sctype2char(array_data.dtype)
+    else:
+        array_dtype = None
+    array_dtype = comm.bcast(array_dtype, root=root)
+
+    counts = [np.prod(shape) for shape in shapes]
+    local_data = np.empty(shapes[rank], dtype=np.dtype(array_dtype))
+
+    #Scatter the array
+    mpi_dtype = MPI._typedict[array_dtype]
+    comm.Scatterv([array_data, counts, displacements, mpi_dtype],
+                  local_data, root=root)
+
+    return local_data
