@@ -106,7 +106,7 @@ def write_all (buf, outputfile, comm=MPI.COMM_WORLD, \
         fh = MPI.File.Open(comm, outputfile, mode)
 
         buf_list = []
-        for key,value in buf.iteritems():
+        for key,value in buf.items():
             temp = str(key) + ": " + str(value)
             buf_list.append(temp)
 
@@ -117,7 +117,7 @@ def write_all (buf, outputfile, comm=MPI.COMM_WORLD, \
         nemax = np.asarray(max_elem)
         comm.Allreduce ( ne, nemax, op=MPI.MAX)
 
-        num_write_iterations = nemax / write_elem_per_iter
+        num_write_iterations = nemax // write_elem_per_iter
         if ( nemax % write_elem_per_iter):
             num_write_iterations = num_write_iterations + 1
 
@@ -143,8 +143,10 @@ def write_all (buf, outputfile, comm=MPI.COMM_WORLD, \
             comm.Barrier() 
             if tracing and rank == 0:
                 print(write_iter, "  File write")
+            
+            bytebuff = line.encode('utf-8')
+            fh.Write_ordered(bytebuff)
 
-            fh.Write_ordered("%s" % line)
         fh.Close()
 
 

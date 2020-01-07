@@ -39,16 +39,16 @@ def __get_index(dict_len, procs, rank):
 
 
 def __groupfunction( item):
-            global __comm, __lastrank 
-            size = __comm.Get_size()
+        global __comm, __lastrank 
+        size = __comm.Get_size()
             
 
-            for i in range ( __lastrank, size ):
+        for i in range ( __lastrank, size ):
                 s, e = __get_index(float(712), size, i)
                 for j in range ( s, e):
                     itemstring = str(item[0])
                     if itemstring.startswith(tuple('([{')):
-                            itemstring = itemstring[2:]
+                        itemstring = itemstring[2:]
 
                     if  len(itemstring) == 1:
                         starting = itemstring
@@ -59,10 +59,11 @@ def __groupfunction( item):
                     if starting == __startletters[j]:
                         __lastrank=i
                         return i
+        return i
 
 
 
-def Counter_all (tokens, comm=MPI.COMM_WORLD, tokens_per_iter=10000, tracing=False):
+def Counter_all (tokens, comm=MPI.COMM_WORLD, tokens_per_iter=20000, tracing=False):
 
             __init_bib()
             global __comm, __lastrank
@@ -75,7 +76,7 @@ def Counter_all (tokens, comm=MPI.COMM_WORLD, tokens_per_iter=10000, tracing=Fal
             nm_max = np.asarray (int(0))
             comm.Allreduce (nm, nm_max, op=MPI.MAX)
 
-            num_iterations = nm_max / (tokens_per_iter)
+            num_iterations = nm_max // (tokens_per_iter)
             if ( nm_max % tokens_per_iter ):
                 num_iterations = num_iterations + 1
 
@@ -93,12 +94,12 @@ def Counter_all (tokens, comm=MPI.COMM_WORLD, tokens_per_iter=10000, tracing=Fal
                 firstindex = lastindex
                 if firstindex < length:
                     lastindex = (iter+1) * tokens_per_iter
-                if lastindex > length:
-                    lastindex = length
+                    if lastindex > length:
+                            lastindex = length
                 
                 partial_tokens = tokens[firstindex:lastindex]
                 word_count = Counter(partial_tokens)
-                
+
                 od = OrderedDict(sorted(word_count.items(), key=lambda t: t[0]))
                 __lastrank = 0
                 odd = sorted(od.items(), key=__groupfunction)
@@ -118,9 +119,9 @@ def Counter_all (tokens, comm=MPI.COMM_WORLD, tokens_per_iter=10000, tracing=Fal
                     localwordcount[recvfrom] = comm.recv ( source=recvfrom, tag=478 )
                     sreq.wait()
                     
-                for key,value  in localwordcount.iteritems():
+                for key,value  in localwordcount.items():
                     if value: 
-                        for k, v in value.iteritems():
+                        for k, v in value.items():
                             for j in v:
                                 if j[0] not in final_wcount:
                                     final_wcount[j[0]] = int(j[1])
