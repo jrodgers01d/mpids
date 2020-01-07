@@ -6,6 +6,7 @@ from mpids.MPInumpy.distributions import *
 from mpids.MPInumpy.errors import InvalidDistributionError
 
 class ArrayCreationErrorsPropegatedTest(unittest.TestCase):
+
     def test_unsupported_distribution(self):
         data = np.array(list(range(10)))
         comm = MPI.COMM_WORLD
@@ -68,44 +69,49 @@ class EmptyDefaultTest(unittest.TestCase):
 
     def create_setUp_parms(self):
         parms = {}
-        shape = (5, 4)
+        parms['shape'] = (5, 4)
         parms['comm'] = MPI.COMM_WORLD
         # Default distribution
         parms['dist'] = 'b'
         parms['dist_class'] = RowBlock
-        parms['mpi_np_empty'] = mpi_np.empty(shape,
-                                             comm=parms['comm'],
-                                             dist=parms['dist'])
         return parms
 
 
     def setUp(self):
         parms = self.create_setUp_parms()
+        self.shape = parms['shape']
         self.comm = parms['comm']
         self.dist = parms['dist']
         self.dist_class = parms['dist_class']
-        self.mpi_np_empty = parms['mpi_np_empty']
+        self.rank = self.comm.Get_rank()
+        self.size = self.comm.Get_size()
 
 
-    def test_return_behavior(self):
-        self.assertTrue(isinstance(self.mpi_np_empty, mpi_np.MPIArray))
-        self.assertTrue(isinstance(self.mpi_np_empty, self.dist_class))
-        self.assertEqual(self.mpi_np_empty.comm, self.comm)
-        self.assertEqual(self.mpi_np_empty.dist, self.dist)
+    def test_return_behavior_from_all_ranks(self):
+        for root in range(self.size):
+            shape = None
+            self.assertTrue(shape is None)
+            if self.rank == root:
+                shape = self.shape
+            mpi_np_empty = mpi_np.empty(shape,
+                                        comm=self.comm,
+                                        root=root,
+                                        dist=self.dist)
+            self.assertTrue(isinstance(mpi_np_empty, mpi_np.MPIArray))
+            self.assertTrue(isinstance(mpi_np_empty, self.dist_class))
+            self.assertEqual(mpi_np_empty.comm, self.comm)
+            self.assertEqual(mpi_np_empty.dist, self.dist)
 
 
 class EmptyUndistributedTest(EmptyDefaultTest):
 
     def create_setUp_parms(self):
         parms = {}
-        shape = (5, 4)
+        parms['shape'] = (5, 4)
         parms['comm'] = MPI.COMM_WORLD
         # Undistributed distribution
         parms['dist'] = 'u'
         parms['dist_class'] = Undistributed
-        parms['mpi_np_empty'] = mpi_np.empty(shape,
-                                             comm=parms['comm'],
-                                             dist=parms['dist'])
         return parms
 
 
@@ -113,45 +119,50 @@ class OnesDefaultTest(unittest.TestCase):
 
     def create_setUp_parms(self):
         parms = {}
-        shape = (5, 4)
+        parms['shape'] = (5, 4)
         parms['comm'] = MPI.COMM_WORLD
         # Default distribution
         parms['dist'] = 'b'
         parms['dist_class'] = RowBlock
-        parms['mpi_np_ones'] = mpi_np.ones(shape,
-                                            comm=parms['comm'],
-                                            dist=parms['dist'])
         return parms
 
 
     def setUp(self):
         parms = self.create_setUp_parms()
+        self.shape = parms['shape']
         self.comm = parms['comm']
         self.dist = parms['dist']
         self.dist_class = parms['dist_class']
-        self.mpi_np_ones = parms['mpi_np_ones']
+        self.rank = self.comm.Get_rank()
+        self.size = self.comm.Get_size()
 
 
-    def test_return_behavior(self):
-        self.assertTrue(isinstance(self.mpi_np_ones, mpi_np.MPIArray))
-        self.assertTrue(isinstance(self.mpi_np_ones, self.dist_class))
-        self.assertEqual(self.mpi_np_ones.comm, self.comm)
-        self.assertEqual(self.mpi_np_ones.dist, self.dist)
-        self.assertTrue(np.alltrue((self.mpi_np_ones) == (1)))
+    def test_return_behavior_from_all_ranks(self):
+        for root in range(self.size):
+            shape = None
+            self.assertTrue(shape is None)
+            if self.rank == root:
+                shape = self.shape
+            mpi_np_ones = mpi_np.ones(shape,
+                                      comm=self.comm,
+                                      root=root,
+                                      dist=self.dist)
+            self.assertTrue(isinstance(mpi_np_ones, mpi_np.MPIArray))
+            self.assertTrue(isinstance(mpi_np_ones, self.dist_class))
+            self.assertEqual(mpi_np_ones.comm, self.comm)
+            self.assertEqual(mpi_np_ones.dist, self.dist)
+            self.assertTrue(np.alltrue((mpi_np_ones) == (1)))
 
 
 class OnesUndistributedTest(OnesDefaultTest):
 
     def create_setUp_parms(self):
         parms = {}
-        shape = (5, 4)
+        parms['shape'] = (5, 4)
         parms['comm'] = MPI.COMM_WORLD
         # Undistributed distribution
         parms['dist'] = 'u'
         parms['dist_class'] = Undistributed
-        parms['mpi_np_ones'] = mpi_np.ones(shape,
-                                           comm=parms['comm'],
-                                           dist=parms['dist'])
         return parms
 
 
@@ -159,45 +170,50 @@ class ZerosDefaultTest(unittest.TestCase):
 
     def create_setUp_parms(self):
         parms = {}
-        shape = (5, 4)
+        parms['shape'] = (5, 4)
         parms['comm'] = MPI.COMM_WORLD
         # Default distribution
         parms['dist'] = 'b'
         parms['dist_class'] = RowBlock
-        parms['mpi_np_zeros'] = mpi_np.zeros(shape,
-                                             comm=parms['comm'],
-                                             dist=parms['dist'])
         return parms
 
 
     def setUp(self):
         parms = self.create_setUp_parms()
+        self.shape = parms['shape']
         self.comm = parms['comm']
         self.dist = parms['dist']
         self.dist_class = parms['dist_class']
-        self.mpi_np_zeros = parms['mpi_np_zeros']
+        self.rank = self.comm.Get_rank()
+        self.size = self.comm.Get_size()
 
 
-    def test_return_behavior(self):
-        self.assertTrue(isinstance(self.mpi_np_zeros, mpi_np.MPIArray))
-        self.assertTrue(isinstance(self.mpi_np_zeros, self.dist_class))
-        self.assertEqual(self.mpi_np_zeros.comm, self.comm)
-        self.assertEqual(self.mpi_np_zeros.dist, self.dist)
-        self.assertTrue(np.alltrue((self.mpi_np_zeros) == (0)))
+    def test_return_behavior_from_all_ranks(self):
+        for root in range(self.size):
+            shape = None
+            self.assertTrue(shape is None)
+            if self.rank == root:
+                shape = self.shape
+            mpi_np_zeros = mpi_np.zeros(shape,
+                                        comm=self.comm,
+                                        root=root,
+                                        dist=self.dist)
+            self.assertTrue(isinstance(mpi_np_zeros, mpi_np.MPIArray))
+            self.assertTrue(isinstance(mpi_np_zeros, self.dist_class))
+            self.assertEqual(mpi_np_zeros.comm, self.comm)
+            self.assertEqual(mpi_np_zeros.dist, self.dist)
+            self.assertTrue(np.alltrue((mpi_np_zeros) == (0)))
 
 
 class ZerosUndistributedTest(ZerosDefaultTest):
 
     def create_setUp_parms(self):
         parms = {}
-        shape = (5, 4)
+        parms['shape'] = (5, 4)
         parms['comm'] = MPI.COMM_WORLD
         # Undistributed distribution
         parms['dist'] = 'u'
         parms['dist_class'] = Undistributed
-        parms['mpi_np_zeros'] = mpi_np.zeros(shape,
-                                             comm=parms['comm'],
-                                             dist=parms['dist'])
         return parms
 
 

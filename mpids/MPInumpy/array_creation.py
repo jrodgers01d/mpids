@@ -6,11 +6,12 @@ from mpids.MPInumpy.utils import determine_local_data,            \
                                  determine_local_data_from_shape, \
                                  get_comm_dims,                   \
                                  get_cart_coords
+from mpids.MPInumpy.mpi_utils import broadcast_shape
 
 __all__ = ['array', 'empty', 'ones', 'zeros']
 
 def array(array_data, dtype=None, copy=True, order=None, subok=False, ndmin=0,
-          comm=MPI.COMM_WORLD, dist='b'):
+          comm=MPI.COMM_WORLD, root=0, dist='b'):
     """ Create MPInumpyArray Object on all procs in comm.
         See docstring for mpids.MPInumpy.MPIArray
 
@@ -70,7 +71,8 @@ def array(array_data, dtype=None, copy=True, order=None, subok=False, ndmin=0,
                                    local_to_global=local_to_global)
 
 
-def empty(shape, dtype=np.float64, order='C', comm=MPI.COMM_WORLD, dist='b'):
+def empty(shape, dtype=np.float64, order='C',
+          comm=MPI.COMM_WORLD, root=0, dist='b'):
     """ Create an empty MPInumpyArray Object, without initializing entries,
         on all procs in comm. See docstring for mpids.MPInumpy.MPIArray
 
@@ -103,8 +105,11 @@ def empty(shape, dtype=np.float64, order='C', comm=MPI.COMM_WORLD, dist='b'):
     comm_dims = get_comm_dims(size, dist)
     comm_coord = get_cart_coords(comm_dims, size, rank)
 
+    array_shape = shape if rank == root else None
+    array_shape = broadcast_shape(array_shape, comm=comm, root=root)
+
     local_shape, local_to_global  = \
-        determine_local_data_from_shape(shape, dist, comm_dims, comm_coord)
+        determine_local_data_from_shape(array_shape, dist, comm_dims, comm_coord)
 
     np_local_data = np.empty(local_shape, dtype=dtype, order=order)
 
@@ -115,7 +120,8 @@ def empty(shape, dtype=np.float64, order='C', comm=MPI.COMM_WORLD, dist='b'):
                                    local_to_global=local_to_global)
 
 
-def ones(shape, dtype=np.float64, order='C', comm=MPI.COMM_WORLD, dist='b'):
+def ones(shape, dtype=np.float64, order='C',
+         comm=MPI.COMM_WORLD, root=0, dist='b'):
     """ Create an MPInumpyArray Object with entries filled with ones
         on all procs in comm. See docstring for mpids.MPInumpy.MPIArray
 
@@ -148,8 +154,11 @@ def ones(shape, dtype=np.float64, order='C', comm=MPI.COMM_WORLD, dist='b'):
     comm_dims = get_comm_dims(size, dist)
     comm_coord = get_cart_coords(comm_dims, size, rank)
 
+    array_shape = shape if rank == root else None
+    array_shape = broadcast_shape(array_shape, comm=comm, root=root)
+
     local_shape, local_to_global  = \
-        determine_local_data_from_shape(shape, dist, comm_dims, comm_coord)
+        determine_local_data_from_shape(array_shape, dist, comm_dims, comm_coord)
 
     np_local_data = np.ones(local_shape, dtype=dtype, order=order)
 
@@ -160,7 +169,8 @@ def ones(shape, dtype=np.float64, order='C', comm=MPI.COMM_WORLD, dist='b'):
                                    local_to_global=local_to_global)
 
 
-def zeros(shape, dtype=np.float64, order='C', comm=MPI.COMM_WORLD, dist='b'):
+def zeros(shape, dtype=np.float64, order='C',
+          comm=MPI.COMM_WORLD, root=0, dist='b'):
     """ Create an MPInumpyArray Object with entries filled with zeros
         on all procs in comm. See docstring for mpids.MPInumpy.MPIArray
 
@@ -193,8 +203,11 @@ def zeros(shape, dtype=np.float64, order='C', comm=MPI.COMM_WORLD, dist='b'):
     comm_dims = get_comm_dims(size, dist)
     comm_coord = get_cart_coords(comm_dims, size, rank)
 
+    array_shape = shape if rank == root else None
+    array_shape = broadcast_shape(array_shape, comm=comm, root=root)
+
     local_shape, local_to_global  = \
-        determine_local_data_from_shape(shape, dist, comm_dims, comm_coord)
+        determine_local_data_from_shape(array_shape, dist, comm_dims, comm_coord)
 
     np_local_data = np.zeros(local_shape, dtype=dtype, order=order)
 

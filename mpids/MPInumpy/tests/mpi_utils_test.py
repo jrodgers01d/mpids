@@ -282,6 +282,36 @@ class AllGatherVTest(unittest.TestCase):
         self.arrays_are_equivelant(gathered_data, expected_gathered_data)
 
 
+class BroadcastShapeTest(unittest.TestCase):
+
+    def setUp(self):
+        self.shape_1d = np.array(list(range(25))).shape
+        self.shape_2d = np.array(list(range(25))).reshape(5,5).shape
+        self.comm = MPI.COMM_WORLD
+        self.rank = self.comm.Get_rank()
+        self.size = self.comm.Get_size()
+
+
+    def test_broadcasting_1d_shape_from_all_ranks(self):
+        for root in range(self.size):
+            local_shape = None
+            self.assertTrue(local_shape is None)
+            if self.rank == root:
+                local_shape = self.shape_1d
+            local_shape = broadcast_shape(local_shape, comm=self.comm, root=root)
+            self.assertEqual(local_shape, self.shape_1d)
+
+
+    def test_broadcasting_2d_shape_from_all_ranks(self):
+        for root in range(self.size):
+            local_shape = None
+            self.assertTrue(local_shape is None)
+            if self.rank == root:
+                local_shape = self.shape_2d
+            local_shape = broadcast_shape(local_shape, comm=self.comm, root=root)
+            self.assertEqual(tuple(local_shape), self.shape_2d)
+
+
 class BroadcastArrayTest(unittest.TestCase):
 
     def setUp(self):
