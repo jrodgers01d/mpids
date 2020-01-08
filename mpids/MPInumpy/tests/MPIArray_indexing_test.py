@@ -12,7 +12,7 @@ class MPIArrayIndexingDefaultTest(unittest.TestCase):
         parms['comm'] = MPI.COMM_WORLD
         # Default distribution
         parms['dist'] = 'b'
-        parms['data'] = np.array(list(range(25))).reshape(5,5)
+        parms['data'] = np.arange(25).reshape(5,5)
         return parms
 
 
@@ -462,7 +462,7 @@ class MPIArrayIndexingUndistributedTest(MPIArrayIndexingDefaultTest):
         parms['comm'] = MPI.COMM_WORLD
         # Undistributed distribution
         parms['dist'] = 'u'
-        parms['data'] = np.array(list(range(25))).reshape(5,5)
+        parms['data'] = np.arange(25).reshape(5,5)
         return parms
 
 

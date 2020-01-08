@@ -8,7 +8,7 @@ from mpids.MPInumpy.errors import InvalidDistributionError
 class ArrayCreationErrorsPropegatedTest(unittest.TestCase):
 
     def test_unsupported_distribution(self):
-        data = np.array(list(range(10)))
+        data = np.arange(10)
         comm = MPI.COMM_WORLD
         with self.assertRaises(InvalidDistributionError):
             mpi_np.array(data, comm=comm, dist='bananas')
@@ -26,7 +26,7 @@ class ArrayDefaultTest(unittest.TestCase):
 
     def create_setUp_parms(self):
         parms = {}
-        parms['np_data'] = np.array(list(range(20))).reshape(5,4)
+        parms['np_data'] = np.arange(20).reshape(5,4)
         parms['array_like_data'] = parms['np_data'].tolist()
         parms['comm'] = MPI.COMM_WORLD
         # Default distribution
@@ -82,7 +82,7 @@ class ArrayUndistributedTest(ArrayDefaultTest):
 
     def create_setUp_parms(self):
         parms = {}
-        parms['np_data'] = np.array(list(range(20))).reshape(5,4)
+        parms['np_data'] = np.arange(20).reshape(5,4)
         parms['array_like_data'] = parms['np_data'].tolist()
         parms['comm'] = MPI.COMM_WORLD
         # Undistributed distribution

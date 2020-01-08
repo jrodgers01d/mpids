@@ -67,7 +67,7 @@ class MPIArrayDefaultTest(unittest.TestCase):
         # Default distribution
         parms['dist'] = 'b'
         #Add 1 to avoid divide by zero errors/warnings
-        np_data = np.array(list(range(25))).reshape(5,5) + 1
+        np_data = np.arange(25).reshape(5,5) + 1
         parms['data'] = np_data
         local_data_map = {0: np_data[:2],
                           1: np_data[2:3],
@@ -348,7 +348,7 @@ class MPIArrayUndistributedTest(MPIArrayDefaultTest):
         # Undistributed distribution
         parms['dist'] = 'u'
         #Add 1 to avoid divide by zero errors/warnings
-        parms['data'] = (np.array(list(range(25))).reshape(5,5) + 1).tolist()
+        parms['data'] = (np.arange(25).reshape(5,5) + 1).tolist()
         parms['local_data'] = parms['data']
         parms['comm_dims'] = None
         parms['comm_coord'] = None

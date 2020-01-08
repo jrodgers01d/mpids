@@ -15,7 +15,7 @@ class AllGatherVTest(unittest.TestCase):
         self.local_data_2d = \
             np.array([self.rank] * self.num_procs**2).reshape(self.num_procs,
                                                               self.num_procs)
-        self.global_scalar = np.array(list(range(self.num_procs)))
+        self.global_scalar = np.arange(self.num_procs)
         self.global_data_1d = \
             np.array([[proc] * self.num_procs for proc in range(self.num_procs)]
                 ).reshape(self.num_procs, self.num_procs)
@@ -285,8 +285,8 @@ class AllGatherVTest(unittest.TestCase):
 class BroadcastShapeTest(unittest.TestCase):
 
     def setUp(self):
-        self.shape_1d = np.array(list(range(25))).shape
-        self.shape_2d = np.array(list(range(25))).reshape(5,5).shape
+        self.shape_1d = np.arange(25).shape
+        self.shape_2d = np.arange(25).reshape(5,5).shape
         self.comm = MPI.COMM_WORLD
         self.rank = self.comm.Get_rank()
         self.size = self.comm.Get_size()
@@ -315,10 +315,10 @@ class BroadcastShapeTest(unittest.TestCase):
 class BroadcastArrayTest(unittest.TestCase):
 
     def setUp(self):
-        self.data_1d_int = np.array(list(range(25)), dtype = np.int32)
-        self.data_1d_float = np.array(list(range(25)), dtype = np.float)
-        self.data_2d_int = np.array(list(range(25)), dtype = np.int32).reshape(5,5)
-        self.data_2d_float = np.array(list(range(25)), dtype = np.float).reshape(5,5)
+        self.data_1d_int = np.arange(25, dtype = np.int32)
+        self.data_1d_float = np.arange(25, dtype = np.float)
+        self.data_2d_int = np.arange(25, dtype = np.int32).reshape(5,5)
+        self.data_2d_float = np.arange(25, dtype = np.float).reshape(5,5)
         self.comm = MPI.COMM_WORLD
         self.rank = self.comm.Get_rank()
         self.size = self.comm.Get_size()

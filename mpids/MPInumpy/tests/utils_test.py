@@ -323,7 +323,7 @@ class UtilsDistributionIndependentTest(unittest.TestCase):
 
 
     def test_format_indexed_result(self):
-        test_matrix = np.array(list(range(16))).reshape(4,4)
+        test_matrix = np.arange(16).reshape(4,4)
 
         np_scalar = test_matrix[0,0]
         undesired_scalar_shape = np_scalar.shape
@@ -364,7 +364,7 @@ class UtilsDefaultTest(unittest.TestCase):
         parms['rank'] = MPI.COMM_WORLD.Get_rank()
         parms['data'] = list(range(10))
         parms['data_shape'] = np.shape(parms['data'])
-        parms['data_2d'] = np.array(list(range(20))).reshape(5,4)
+        parms['data_2d'] = np.arange(20).reshape(5,4)
         parms['data_2d_shape'] = parms['data_2d'].shape
         # Default distribution
         parms['dist'] = 'b'
@@ -476,7 +476,7 @@ class UtilsUndistributedTest(UtilsDefaultTest):
         parms['rank'] = MPI.COMM_WORLD.Get_rank()
         parms['data'] = list(range(10))
         parms['data_shape'] = np.shape(parms['data'])
-        parms['data_2d'] = np.array(list(range(20))).reshape(5,4)
+        parms['data_2d'] = np.arange(20).reshape(5,4)
         parms['data_2d_shape'] = parms['data_2d'].shape
         # Undistributed distribution
         parms['dist'] = 'u'

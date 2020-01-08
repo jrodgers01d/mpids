@@ -8,8 +8,8 @@ class LinAlgTest(unittest.TestCase):
 
     def setUp(self):
         self.comm = MPI.COMM_WORLD
-        self.np_array_a = np.array(list(range(16))).reshape(4,4)
-        self.np_array_b = np.array(list(range(16))).reshape(4,4) + 1
+        self.np_array_a = np.arange(16).reshape(4,4)
+        self.np_array_b = np.arange(16).reshape(4,4) + 1
 
     def test_unsupported_functionality(self):
         #Use of 'out' field
