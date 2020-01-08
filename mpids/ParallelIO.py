@@ -34,8 +34,17 @@ def __file_info(inputpath, comm):
         nr_of_files=len(filenames)
 
         indices=[]
-        for i in range (rank, nr_of_files, size):
-            indices.append(i)
+        #for i in range (rank, nr_of_files, size):
+        #    indices.append(i)
+
+        for i in range (0, (nr_of_files//size + 1), 2):
+            thisindex = (i*size + rank)
+            if ( thisindex < nr_of_files ) :
+                indices.append(thisindex)
+            j = i+2
+            thisindex =  (j*size - rank -1)
+            if ( thisindex  < nr_of_files ) :
+                    indices.append (thisindex )
 
         return nr_of_files, filenames, indices
 
