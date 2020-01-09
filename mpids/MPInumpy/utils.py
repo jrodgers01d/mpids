@@ -4,10 +4,17 @@ import numpy as np
 from mpids.MPInumpy.errors import IndexError, InvalidDistributionError, \
                                   NotSupportedError
 
-__all__ = ['determine_local_shape_and_mapping', 'get_block_index',
-           'get_cart_coords', 'get_comm_dims', 'global_to_local_key',
-           'distribution_to_dimensions', 'is_undistributed',
-           'is_row_block_distributed','slice_local_data_and_determine_mapping']
+from mpids.MPInumpy.mpi_utils import all_gather_v,                \
+                                     broadcast_array,             \
+                                     broadcast_shape,             \
+                                     get_comm_size, get_rank,     \
+                                     scatter_v
+
+__all__ = ['determine_local_shape_and_mapping', 'distribute_array',
+           'distribute_shape', 'get_block_index', 'get_cart_coords',
+           'get_comm_dims', 'global_to_local_key', 'distribution_to_dimensions',
+           'is_undistributed', 'is_row_block_distributed',
+           'slice_local_data_and_determine_mapping']
 
 
 def determine_local_shape_and_mapping(array_shape, dist, comm_dims, comm_coord):
@@ -59,6 +66,135 @@ def determine_local_shape_and_mapping(array_shape, dist, comm_dims, comm_coord):
             local_shape.append(axis_length)
 
     return tuple(local_shape), local_to_global
+
+
+def distribute_array(array_data, dist, comm=MPI.COMM_WORLD, root=0):
+    """ Distribute global array like object among MPI processes base on
+    specified distribution.
+
+    Parameters
+    ----------
+    array_data : array_like
+        Array like data to be distributed among processes.
+    dist : str, list, tuple
+        Specified distribution of data among processes.
+        Default value 'b' : Block, *
+        Supported types:
+            'b' : Block, *
+            'u' : Undistributed
+    comm : MPI Communicator, optional
+        MPI process communication object.  If none specified
+        defaults to MPI.COMM_WORLD
+    root : int, optional
+        Rank of root process that has the local shape data. If none specified
+        defaults to 0.
+
+    Returns
+    -------
+    local_shape : tuple
+        Local shape determined for process(rank)
+    comm_dims : list, None
+        Dimensions of cartesian grid
+    coordinates : list, None
+        Coordinates of rank in grid
+    local_to_global : dictionary
+        Dictionary specifying global index start/end of data by axis.
+        Format:
+            key, value = axis, [inclusive start, exclusive end)
+            {0: (start_index, end_index),
+             1: (start_index, end_index),
+             ...}
+    """
+    if is_undistributed(dist):
+        local_data = broadcast_array(np.asarray(array_data),
+                                     comm=comm,
+                                     root=root)
+        comm_dims = None
+        comm_coord = None
+        local_to_global = None
+    else:
+        size = comm.Get_size()
+        rank = comm.Get_rank()
+
+        comm_dims = get_comm_dims(size, dist)
+        comm_coord = get_cart_coords(comm_dims, size, rank)
+        array_shape = np.shape(array_data) if rank == root else None
+        array_shape = broadcast_shape(array_shape, comm=comm, root=root)
+
+        local_shape, local_to_global = \
+            determine_local_shape_and_mapping(array_shape,
+                                              dist,
+                                              comm_dims,
+                                              comm_coord)
+        shapes = all_gather_v(np.asarray(local_shape),
+                              shape=(size, len(local_shape)),
+                              comm=comm)
+        # Creation and conditioning of displacements list
+        displacements = np.roll(np.cumsum(np.prod(shapes, axis=1)),1)
+        displacements[0] = 0
+
+        local_data = scatter_v(np.asarray(array_data),
+                               displacements,
+                               shapes,
+                               comm=comm,
+                               root=root)
+
+    return local_data, comm_dims, comm_coord, local_to_global
+
+
+def distribute_shape(shape, dist, comm=MPI.COMM_WORLD, root=0):
+    """ Distribute global array shape among MPI processes base on specified
+    distribution.
+
+    Parameters
+    ----------
+    array_shape : int, tuple of int
+        Shape of data to distribute.
+    dist : str, list, tuple
+        Specified distribution of data among processes.
+        Default value 'b' : Block, *
+        Supported types:
+            'b' : Block, *
+            'u' : Undistributed
+    comm : MPI Communicator, optional
+        MPI process communication object.  If none specified
+        defaults to MPI.COMM_WORLD
+    root : int, optional
+        Rank of root process that has the local shape data. If none specified
+        defaults to 0.
+
+    Returns
+    -------
+    local_shape : tuple
+        Local shape determined for process(rank)
+    comm_dims : list, None
+        Dimensions of cartesian grid
+    coordinates : list, None
+        Coordinates of rank in grid
+    local_to_global : dictionary
+        Dictionary specifying global index start/end of data by axis.
+        Format:
+            key, value = axis, [inclusive start, exclusive end)
+            {0: (start_index, end_index),
+             1: (start_index, end_index),
+             ...}
+    """
+    size = comm.Get_size()
+    rank = comm.Get_rank()
+
+    comm_dims = get_comm_dims(size, dist)
+    comm_coord = get_cart_coords(comm_dims, size, rank)
+
+    array_shape = shape if rank == root else None
+    array_shape = broadcast_shape(array_shape, comm=comm, root=root)
+
+    local_shape, local_to_global  = \
+        determine_local_shape_and_mapping(array_shape,
+                                          dist,
+                                          comm_dims,
+                                          comm_coord)
+
+    return local_shape, comm_dims, comm_coord, local_to_global
 
 
 def distribution_to_dimensions(distribution, procs):
@@ -365,7 +501,7 @@ def is_row_block_distributed(distribution):
     """
     return distribution[0] == 'b' and len(distribution) == 1
 
-
+#NOTE: Legacy method, good candidate for removal
 def slice_local_data_and_determine_mapping(array_data, dist, comm_dims, comm_coord):
     """ Slice array like data to be distributed among processes and determine
         its local to global mapping

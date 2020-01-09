@@ -2,14 +2,7 @@ from mpi4py import MPI
 import numpy as np
 
 from mpids.MPInumpy.distributions import Distribution_Dict
-from mpids.MPInumpy.utils import determine_local_shape_and_mapping, \
-                                 get_comm_dims,                   \
-                                 get_cart_coords,                 \
-                                 is_undistributed
-from mpids.MPInumpy.mpi_utils import all_gather_v,                \
-                                     broadcast_array,             \
-                                     broadcast_shape,             \
-                                     scatter_v                    \
+from mpids.MPInumpy.utils import distribute_array, distribute_shape
 
 __all__ = ['array', 'empty', 'ones', 'zeros']
 
@@ -51,39 +44,8 @@ def array(array_data, dtype=None, copy=True, order=None, subok=False, ndmin=0,
     MPIArray : numpy.ndarray sub class
         Distributed among processes.
     """
-    size = comm.Get_size()
-    rank = comm.Get_rank()
-
-    if is_undistributed(dist):
-        local_data = broadcast_array(np.asarray(array_data),
-                                     comm=comm,
-                                     root=root)
-        comm_dims = None
-        comm_coord = None
-        local_to_global = None
-    else:
-        comm_dims = get_comm_dims(size, dist)
-        comm_coord = get_cart_coords(comm_dims, size, rank)
-        array_shape = np.shape(array_data) if rank == root else None
-        array_shape = broadcast_shape(array_shape, comm=comm, root=root)
-
-        local_shape, local_to_global = \
-            determine_local_shape_and_mapping(array_shape,
-                                              dist,
-                                              comm_dims,
-                                              comm_coord)
-        shapes = all_gather_v(np.asarray(local_shape),
-                              shape=(size, len(local_shape)),
-                              comm=comm)
-        # Creation and conditioning of displacements list
-        displacements = np.roll(np.cumsum(np.prod(shapes, axis=1)),1)
-        displacements[0] = 0
-
-        local_data = scatter_v(np.asarray(array_data),
-                               displacements,
-                               shapes,
-                               comm=comm,
-                               root=root)
+    local_data, comm_dims, comm_coord, local_to_global = \
+        distribute_array(array_data, dist, comm=comm, root=root)
 
     np_local_data = np.array(local_data,
                              dtype=dtype,
@@ -127,20 +89,8 @@ def empty(shape, dtype=np.float64, order='C',
     MPIArray : numpy.ndarray sub class
         Distributed among processes with unintialized values.
     """
-    size = comm.Get_size()
-    rank = comm.Get_rank()
-
-    comm_dims = get_comm_dims(size, dist)
-    comm_coord = get_cart_coords(comm_dims, size, rank)
-
-    array_shape = shape if rank == root else None
-    array_shape = broadcast_shape(array_shape, comm=comm, root=root)
-
-    local_shape, local_to_global  = \
-        determine_local_shape_and_mapping(array_shape,
-                                          dist,
-                                          comm_dims,
-                                          comm_coord)
+    local_shape, comm_dims, comm_coord, local_to_global = \
+        distribute_shape(shape, dist, comm=comm, root=root)
 
     np_local_data = np.empty(local_shape, dtype=dtype, order=order)
 
@@ -179,20 +129,8 @@ def ones(shape, dtype=np.float64, order='C',
     MPIArray : numpy.ndarray sub class
         Distributed among processes with values all equal to one.
     """
-    size = comm.Get_size()
-    rank = comm.Get_rank()
-
-    comm_dims = get_comm_dims(size, dist)
-    comm_coord = get_cart_coords(comm_dims, size, rank)
-
-    array_shape = shape if rank == root else None
-    array_shape = broadcast_shape(array_shape, comm=comm, root=root)
-
-    local_shape, local_to_global  = \
-        determine_local_shape_and_mapping(array_shape,
-                                          dist,
-                                          comm_dims,
-                                          comm_coord)
+    local_shape, comm_dims, comm_coord, local_to_global = \
+        distribute_shape(shape, dist, comm=comm, root=root)
 
     np_local_data = np.ones(local_shape, dtype=dtype, order=order)
 
@@ -231,20 +169,8 @@ def zeros(shape, dtype=np.float64, order='C',
     MPIArray : numpy.ndarray sub class
         Distributed among processes with values all equal to zero.
     """
-    size = comm.Get_size()
-    rank = comm.Get_rank()
-
-    comm_dims = get_comm_dims(size, dist)
-    comm_coord = get_cart_coords(comm_dims, size, rank)
-
-    array_shape = shape if rank == root else None
-    array_shape = broadcast_shape(array_shape, comm=comm, root=root)
-
-    local_shape, local_to_global  = \
-        determine_local_shape_and_mapping(array_shape,
-                                          dist,
-                                          comm_dims,
-                                          comm_coord)
+    local_shape, comm_dims, comm_coord, local_to_global = \
+        distribute_shape(shape, dist, comm=comm, root=root)
 
     np_local_data = np.zeros(local_shape, dtype=dtype, order=order)
 

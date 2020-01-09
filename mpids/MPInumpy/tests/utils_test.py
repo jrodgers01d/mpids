@@ -433,6 +433,55 @@ class UtilsDefaultTest(unittest.TestCase):
                  distribution_to_dimensions(self.dist, self.procs))
 
 
+    def test_distribute_array(self):
+        # 1-D Data
+        local_data, comm_dims, comm_coord, local_to_global = \
+            distribute_array(self.data, self.dist)
+        self.assertEqual((self.comm_dims, self.comm_coord, self.local_to_global),
+                         (comm_dims, comm_coord, local_to_global))
+        self.assertTrue(np.alltrue(self.local_data == local_data))
+
+        # # 2-D Data
+        local_data_2d, comm_dims, comm_coord, local_to_global_2d = \
+            distribute_array(self.data_2d, self.dist)
+        self.assertEqual((self.comm_dims, self.comm_coord, self.local_to_global_2d),
+                         (comm_dims, comm_coord, local_to_global_2d))
+        self.assertTrue(np.alltrue(self.local_data_2d == local_data_2d))
+
+
+    def test_distribute_shape(self):
+        # 1-D Data
+        local_shape, comm_dims, comm_coord, local_to_global = \
+            distribute_shape(self.data_shape, self.dist)
+        self.assertEqual(
+            (self.local_data_shape, self.comm_dims, self.comm_coord, self.local_to_global),
+            (tuple(local_shape), comm_dims, comm_coord, local_to_global))
+
+
+        # 2-D data
+        local_shape_2d, comm_dims, comm_coord, local_to_global_2d = \
+            distribute_shape(self.data_2d_shape, self.dist)
+        self.assertEqual(
+            (self.local_data_2d_shape, self.comm_dims, self.comm_coord, self.local_to_global_2d),
+            (tuple(local_shape_2d), comm_dims, comm_coord, local_to_global_2d))
+
+
+    def test_determine_local_shape_and_mapping(self):
+        # 1-D Data
+        self.assertEqual((self.local_data_shape, self.local_to_global),
+                         determine_local_shape_and_mapping(self.data_shape,
+                                                           self.dist,
+                                                           self.comm_dims,
+                                                           self.comm_coord))
+
+        # 2-D data
+        self.assertEqual((self.local_data_2d_shape, self.local_to_global_2d),
+                         determine_local_shape_and_mapping(self.data_2d_shape,
+                                                           self.dist,
+                                                           self.comm_dims,
+                                                           self.comm_coord))
+
+
     def test_slice_local_data_and_determine_mapping(self):
         # 1-D Data
         self.assertEqual((self.local_data, self.local_to_global),
@@ -450,22 +499,6 @@ class UtilsDefaultTest(unittest.TestCase):
 
         self.assertTrue(np.alltrue(self.local_data_2d == local_data_2d))
         self.assertEqual(self.local_to_global_2d, local_to_global)
-
-
-    def test_determine_local_shape_and_mapping(self):
-        # 1-D Data
-        self.assertEqual((self.local_data_shape, self.local_to_global),
-                         determine_local_shape_and_mapping(self.data_shape,
-                                                           self.dist,
-                                                           self.comm_dims,
-                                                           self.comm_coord))
-
-        # 2-D data
-        self.assertEqual((self.local_data_2d_shape, self.local_to_global_2d),
-                         determine_local_shape_and_mapping(self.data_2d_shape,
-                                                           self.dist,
-                                                           self.comm_dims,
-                                                           self.comm_coord))
 
 
 class UtilsUndistributedTest(UtilsDefaultTest):
