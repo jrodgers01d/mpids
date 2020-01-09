@@ -3,7 +3,8 @@ import numpy as np
 
 from mpids.MPInumpy.errors import TypeError
 
-__all__ = ['all_gather_v', 'broadcast_array', 'broadcast_shape', 'scatter_v']
+__all__ = ['all_gather_v', 'broadcast_array', 'broadcast_shape',
+           'get_comm', 'get_comm_size','get_rank', 'scatter_v']
 
 def all_gather_v(array_data, shape=None, comm=MPI.COMM_WORLD):
     """ Gather distributed array data to all processes
@@ -127,6 +128,56 @@ def broadcast_shape(shape, comm=MPI.COMM_WORLD, root=0):
     comm.Bcast(array_shape, root=root)
 
     return array_shape
+
+
+def get_comm():
+    """ Get default world communicator
+
+    Parameters
+    ----------
+    None
+
+    Returns
+    -------
+    World_Comm : MPI.COMM_WORLD
+        Default communicator
+    """
+    return MPI.COMM_WORLD
+
+
+def get_comm_size(comm=MPI.COMM_WORLD):
+    """ Get number of MPI processes(size) in communicator
+
+    Parameters
+    ----------
+    comm : MPI Communicator, optional
+        MPI process communication object.  If none specified
+        defaults to MPI.COMM_WORLD
+
+    Returns
+    -------
+    size : int
+        Number of MPI Processes in communicator
+    """
+    return comm.Get_size()
+
+
+def get_rank(comm=MPI.COMM_WORLD):
+    """ Get rank of MPI process in communicator
+
+    Parameters
+    ----------
+    comm : MPI Communicator, optional
+        MPI process communication object.  If none specified
+        defaults to MPI.COMM_WORLD
+
+    Returns
+    -------
+    rank : int
+        Rank of process
+    """
+    return comm.Get_rank()
+
 
 #TODO find elegant way to handle type checking in this
 def scatter_v(array_data, displacements, shapes, comm=MPI.COMM_WORLD, root=0):

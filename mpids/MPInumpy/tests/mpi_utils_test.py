@@ -5,6 +5,21 @@ import numpy as np
 from mpids.MPInumpy.mpi_utils import *
 from mpids.MPInumpy.errors import TypeError
 
+
+class HelperGetters(unittest.TestCase):
+
+    def test_get_comm_provides_default_mpi_comm(self):
+        self.assertEqual(MPI.COMM_WORLD, get_comm())
+
+
+    def test_get_rank_provides_mpi_process_rank(self):
+        self.assertEqual(MPI.COMM_WORLD.rank, get_rank())
+
+
+    def test_get_comm_size_provides_mpi_comm_size(self):
+        self.assertEqual(MPI.COMM_WORLD.size, get_comm_size())
+
+
 class AllGatherVTest(unittest.TestCase):
 
     def setUp(self):
