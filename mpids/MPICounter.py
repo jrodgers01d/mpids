@@ -63,7 +63,7 @@ def __groupfunction( item):
 
 
 
-def Counter_all (tokens, comm=MPI.COMM_WORLD, tokens_per_iter=20000, tracing=False):
+def Counter_all (tokens, comm=MPI.COMM_WORLD, tokens_per_iter=100000, tracing=False):
 
             __init_bib()
             global __comm, __lastrank
