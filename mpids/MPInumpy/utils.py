@@ -86,7 +86,7 @@ def distribute_array(array_data, dist, comm=MPI.COMM_WORLD, root=0):
         MPI process communication object.  If none specified
         defaults to MPI.COMM_WORLD
     root : int, optional
-        Rank of root process that has the local shape data. If none specified
+        Rank of root process that has the local array data. If none specified
         defaults to 0.
 
     Returns

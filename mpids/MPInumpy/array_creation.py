@@ -4,7 +4,53 @@ import numpy as np
 from mpids.MPInumpy.distributions import Distribution_Dict
 from mpids.MPInumpy.utils import distribute_array, distribute_shape
 
-__all__ = ['array', 'empty', 'ones', 'zeros']
+__all__ = ['arange', 'array', 'empty', 'ones', 'zeros']
+
+def arange(*args, dtype=None, comm=MPI.COMM_WORLD, root=0, dist='b'):
+    """ Create an empty MPInumpyArray Object, without initializing entries,
+        on all procs in comm. See docstring for mpids.MPInumpy.MPIArray
+
+    Parameters
+    ----------
+    start : int, optional
+        Start of interval
+    stop : int
+        End of interval
+    step : int, optional
+        Spacing between values. Default step size is 1.
+    dtype : data-type, optional
+        Desired data-type for the array. Default is None
+    comm : MPI Communicator, optional
+        MPI process communication object.  If none specified
+        defaults to MPI.COMM_WORLD
+    root : int, optional
+        Rank of root process that has the global start, stop, step information.
+        If none specified defaults to 0.
+    dist : str, list, tuple
+        Specified distribution of data among processes.
+        Default value 'b' : Block, *
+        Supported types:
+            'b' : Block, *
+            'u' : Undistributed
+
+    Returns
+    -------
+    MPIArray : numpy.ndarray sub class
+        Distributed array of evenly spaced arguments among processes.
+    """
+    array_data = np.arange(*args, dtype=dtype) if comm.rank == root else None
+
+    local_data, comm_dims, comm_coord, local_to_global = \
+        distribute_array(array_data, dist, comm=comm, root=root)
+
+    np_local_data = np.array(local_data, dtype=dtype)
+
+    return Distribution_Dict[dist](np_local_data,
+                                   comm=comm,
+                                   comm_dims=comm_dims,
+                                   comm_coord=comm_coord,
+                                   local_to_global=local_to_global)
+
 
 def array(array_data, dtype=None, copy=True, order=None, subok=False, ndmin=0,
           comm=MPI.COMM_WORLD, root=0, dist='b'):
@@ -32,6 +78,9 @@ def array(array_data, dtype=None, copy=True, order=None, subok=False, ndmin=0,
     comm : MPI Communicator, optional
         MPI process communication object.  If none specified
         defaults to MPI.COMM_WORLD
+    root : int, optional
+        Rank of root process that has the global array data. If none specified
+        defaults to 0.
     dist : str, list, tuple
         Specified distribution of data among processes.
         Default value 'b' : Block, *
@@ -77,6 +126,9 @@ def empty(shape, dtype=np.float64, order='C',
     comm : MPI Communicator, optional
         MPI process communication object.  If none specified
         defaults to MPI.COMM_WORLD
+    root : int, optional
+        Rank of root process that has the global shape data. If none specified
+        defaults to 0.
     dist : str, list, tuple
         Specified distribution of data among processes.
         Default value 'b' : Block, *
@@ -117,6 +169,9 @@ def ones(shape, dtype=np.float64, order='C',
     comm : MPI Communicator, optional
         MPI process communication object.  If none specified
         defaults to MPI.COMM_WORLD
+    root : int, optional
+        Rank of root process that has the global shape data. If none specified
+        defaults to 0.
     dist : str, list, tuple
         Specified distribution of data among processes.
         Default value 'b' : Block, *
@@ -157,6 +212,9 @@ def zeros(shape, dtype=np.float64, order='C',
     comm : MPI Communicator, optional
         MPI process communication object.  If none specified
         defaults to MPI.COMM_WORLD
+    root : int, optional
+        Rank of root process that has the global shape data. If none specified
+        defaults to 0.
     dist : str, list, tuple
         Specified distribution of data among processes.
         Default value 'b' : Block, *

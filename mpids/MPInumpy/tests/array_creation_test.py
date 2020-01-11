@@ -91,6 +91,53 @@ class ArrayUndistributedTest(ArrayDefaultTest):
         return parms
 
 
+class ArangeDefaultTest(unittest.TestCase):
+
+    def create_setUp_parms(self):
+        parms = {}
+        parms['comm'] = MPI.COMM_WORLD
+        # Default distribution
+        parms['dist'] = 'b'
+        parms['dist_class'] = RowBlock
+        return parms
+
+
+    def setUp(self):
+        parms = self.create_setUp_parms()
+        self.comm = parms['comm']
+        self.dist = parms['dist']
+        self.dist_class = parms['dist_class']
+        self.rank = self.comm.Get_rank()
+        self.size = self.comm.Get_size()
+
+
+    def test_return_behavior_from_all_ranks(self):
+        for root in range(self.size):
+            stop = None
+            self.assertTrue(stop is None)
+            if self.rank == root:
+                stop = 20
+            mpi_np_empty = mpi_np.arange(stop,
+                                         comm=self.comm,
+                                         root=root,
+                                         dist=self.dist)
+            self.assertTrue(isinstance(mpi_np_empty, mpi_np.MPIArray))
+            self.assertTrue(isinstance(mpi_np_empty, self.dist_class))
+            self.assertEqual(mpi_np_empty.comm, self.comm)
+            self.assertEqual(mpi_np_empty.dist, self.dist)
+
+
+class ArangeUndistributedTest(ArangeDefaultTest):
+
+    def create_setUp_parms(self):
+        parms = {}
+        parms['comm'] = MPI.COMM_WORLD
+        # Undistributed distribution
+        parms['dist'] = 'u'
+        parms['dist_class'] = Undistributed
+        return parms
+
+
 class EmptyDefaultTest(unittest.TestCase):
 
     def create_setUp_parms(self):
