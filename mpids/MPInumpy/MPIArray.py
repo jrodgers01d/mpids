@@ -268,3 +268,8 @@ class MPIArray(np.ndarray):
         """
         raise NotImplementedError(
             "Implement a method to collect distributed array")
+
+
+    def reshape(self, *args):
+        raise NotImplementedError(
+            "Implement a method to reshape distributed array")

@@ -2,7 +2,8 @@ from mpi4py import MPI
 import numpy as np
 
 from mpids.MPInumpy.MPIArray import MPIArray
-from mpids.MPInumpy.utils import _format_indexed_result, global_to_local_key
+from mpids.MPInumpy.errors import ValueError
+from mpids.MPInumpy.utils import _format_indexed_result, global_to_local_key, distribute_array
 from mpids.MPInumpy.mpi_utils import all_gather_v
 from mpids.MPInumpy.distributions.Undistributed import Undistributed
 
@@ -161,3 +162,20 @@ class RowBlock(MPIArray):
     def collect_data(self):
         global_data = all_gather_v(self, shape=self.globalshape, comm=self.comm)
         return Undistributed(global_data, comm=self.comm)
+
+
+    def reshape(self, *args):
+        if np.prod(args) != self.globalsize:
+            raise ValueError("cannot reshape global array of size",
+                             self.globalsize,"into shape", tuple(args))
+
+        global_data = all_gather_v(self, shape=tuple(args), comm=self.comm)
+
+        local_data, comm_dims, comm_coord, local_to_global = \
+            distribute_array(global_data, self.dist, comm=self.comm, root=0)
+
+        return self.__class__(np.copy(local_data),
+                              comm=self.comm,
+                              comm_dims=comm_dims,
+                              comm_coord=comm_coord,
+                              local_to_global=local_to_global)

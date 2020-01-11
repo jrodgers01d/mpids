@@ -2,6 +2,7 @@ from mpi4py import MPI
 import numpy as np
 
 from mpids.MPInumpy.MPIArray import MPIArray
+from mpids.MPInumpy.errors import ValueError
 from mpids.MPInumpy.utils import global_to_local_key
 
 """
@@ -122,3 +123,10 @@ class Undistributed(MPIArray):
 
     def collect_data(self):
         return self.__class__(self, comm=self.comm)
+
+
+    def reshape(self, *args):
+        if np.prod(args) != self.globalsize:
+            raise ValueError("cannot reshape global array of size",
+                             self.globalsize,"into shape", tuple(args))
+        return self.__class__(self.base.reshape(*args), comm=self.comm)

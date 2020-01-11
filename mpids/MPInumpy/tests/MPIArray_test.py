@@ -56,6 +56,9 @@ class MPIArrayAbstractBaseClassTest(unittest.TestCase):
         with self.assertRaises(NotImplementedError):
             self.mpi_array.collect_data()
 
+        with self.assertRaises(NotImplementedError):
+            self.mpi_array.reshape()
+
 
 class MPIArrayDefaultTest(unittest.TestCase):
 
@@ -337,6 +340,77 @@ class MPIArrayDefaultTest(unittest.TestCase):
         #Check collected values
         self.assertTrue(np.alltrue((collected_array) == (self.np_array)))
 
+    def test_reshape_method(self):
+        flatten_along_axis_0 = \
+            self.mpi_array.reshape(1, self.mpi_array.globalsize)
+        np_flatten_along_axis_0 = self.np_array.reshape(1, self.np_array.size)
+
+        #Check updated global properties
+        self.assertEqual(flatten_along_axis_0.dist, self.mpi_array.dist)
+        self.assertEqual(flatten_along_axis_0.globalsize, self.mpi_array.globalsize)
+        self.assertEqual(flatten_along_axis_0.globalshape, (1, self.mpi_array.globalsize))
+        self.assertEqual(flatten_along_axis_0.globalndim, self.mpi_array.globalndim)
+        self.assertEqual(flatten_along_axis_0.comm_dims, self.mpi_array.comm_dims)
+        self.assertEqual(flatten_along_axis_0.comm_coord, self.mpi_array.comm_coord)
+        if isinstance(flatten_along_axis_0, Undistributed):
+            self.assertEqual(flatten_along_axis_0.local_to_global, self.mpi_array.local_to_global)
+        else:
+            #Test developed with Row Block as only existing distribution
+            if self.rank == 0:
+                self.assertEqual(flatten_along_axis_0.local_to_global,
+                                {0: (0, 1), 1: (0, 25)})
+            else: # Empty
+                self.assertEqual(flatten_along_axis_0.local_to_global,
+                                {0: (1, 1), 1: (0, 25)})
+
+        #Check contents
+        if isinstance(flatten_along_axis_0, Undistributed):
+            self.assertTrue(np.alltrue(np_flatten_along_axis_0 == flatten_along_axis_0))
+        else:
+            #Test developed with Row Block as only existing distribution
+            if self.rank == 0:
+                self.assertTrue(np.alltrue(np_flatten_along_axis_0 == flatten_along_axis_0))
+            else: # Empty
+                self.assertEqual(0, flatten_along_axis_0.size)
+
+
+        flatten_along_axis_1 = \
+            self.mpi_array.reshape(self.mpi_array.globalsize, 1)
+        np_flatten_along_axis_1 = self.np_array.reshape(self.np_array.size, 1)
+
+        #Check updated global properties
+        self.assertEqual(flatten_along_axis_1.dist, self.mpi_array.dist)
+        self.assertEqual(flatten_along_axis_1.globalsize, self.mpi_array.globalsize)
+        self.assertEqual(flatten_along_axis_1.globalshape, (self.mpi_array.globalsize, 1))
+        self.assertEqual(flatten_along_axis_1.globalndim, self.mpi_array.globalndim)
+        self.assertEqual(flatten_along_axis_1.comm_dims, self.mpi_array.comm_dims)
+        self.assertEqual(flatten_along_axis_1.comm_coord, self.mpi_array.comm_coord)
+        if isinstance(flatten_along_axis_1, Undistributed):
+            self.assertEqual(flatten_along_axis_1.local_to_global, self.mpi_array.local_to_global)
+#TODO: Expand these test
+        # else:
+        #     #Test developed with Row Block as only existing distribution
+        #     if self.rank == 0:
+        #         self.assertEqual(flatten_along_axis_1.local_to_global,
+        #                         {0: (0, 25), 1: (0, 1)})
+        #     else: # Empty
+        #         self.assertEqual(flatten_along_axis_1.local_to_global,
+        #                         {0: (0, 25), 1: (1, 1)})
+
+        #Check contents
+        if isinstance(flatten_along_axis_1, Undistributed):
+            self.assertTrue(np.alltrue(np_flatten_along_axis_1 == flatten_along_axis_1))
+        # else:
+        #     #Test developed with Row Block as only existing distribution
+        #     if self.rank == 0:
+        #         self.assertTrue(np.alltrue(np_flatten_along_axis_0 == flatten_along_axis_1))
+        #     else: # Empty
+        #         self.assertEqual(0, flatten_along_axis_1.size)
+
+
+        #Check invalid reshape results in Value error
+        with self.assertRaises(ValueError):
+            self.mpi_array.reshape(self.mpi_array.globalshape * 2)
 
 class MPIArrayUndistributedTest(MPIArrayDefaultTest):
 

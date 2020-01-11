@@ -3,8 +3,9 @@ import numpy as np
 
 from mpids.MPInumpy.errors import TypeError
 
-__all__ = ['all_gather_v', 'broadcast_array', 'broadcast_shape',
-           'get_comm', 'get_comm_size','get_rank', 'scatter_v']
+__all__ = ['all_gather_v', 'all_to_all_v', 'broadcast_array',
+           'broadcast_shape', 'get_comm', 'get_comm_size',
+           'get_rank', 'scatter_v']
 
 def all_gather_v(array_data, shape=None, comm=MPI.COMM_WORLD):
     """ Gather distributed array data to all processes
@@ -52,6 +53,41 @@ def all_gather_v(array_data, shape=None, comm=MPI.COMM_WORLD):
                     [gathered_array, (counts, displacements), mpi_dtype])
 
     return gathered_array
+
+
+def all_to_all_v(array_data, send_shapes, send_displacements, recv_shapes,
+                 recv_displacements, comm=MPI.COMM_WORLD):
+    """ Gather distributed array data to all processes
+
+    Parameters
+    ----------
+    array_data : numpy.ndarray
+        Numpy array data distributed among processes.
+    shape : int, tuple of int, None
+        Final desired shape of gathered array data
+    comm : MPI Communicator, optional
+        MPI process communication object.  If none specified
+        defaults to MPI.COMM_WORLD
+
+    Returns
+    -------
+    gathered_array : numpy.ndarray
+        Collected numpy array from all process in MPI Comm.
+    """
+    rank = comm.Get_rank()
+
+    send_counts = [np.prod(shape) for shape in send_shapes]
+    recv_counts = [np.prod(shape) for shape in recv_shapes]
+    local_recv_shape = [sum(dim) for dim in zip(*recv_shapes)]
+
+    recv_local_array = np.empty(local_recv_shape, dtype=array_data.dtype)
+    mpi_dtype = MPI._typedict[np.sctype2char(array_data.dtype)]
+    comm.Alltoallv(
+        [array_data, (send_counts, send_displacements), mpi_dtype],
+        [recv_local_array, (recv_counts, recv_displacements), mpi_dtype])
+
+    return recv_local_array
+
 
 #TODO find elegant way to handle type checking in this
 def broadcast_array(array_data, comm=MPI.COMM_WORLD, root=0):
