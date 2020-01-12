@@ -271,5 +271,19 @@ class MPIArray(np.ndarray):
 
 
     def reshape(self, *args):
+        """ Reshape distributed array.
+
+        Parameters
+        ----------
+        new_shape : int, tuple of ints
+            Desired shape that's compatible with the previous one.  To be
+            compatible the total number of elements(product of shape) must
+            be equal to the existing shape.
+
+        Returns
+        -------
+        MPIArray : numpy.ndarray sub class
+            Distributed MPIArray with new shape.
+        """
         raise NotImplementedError(
             "Implement a method to reshape distributed array")

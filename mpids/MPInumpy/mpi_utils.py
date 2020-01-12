@@ -57,22 +57,83 @@ def all_gather_v(array_data, shape=None, comm=MPI.COMM_WORLD):
 
 def all_to_all_v(array_data, send_shapes, send_displacements, recv_shapes,
                  recv_displacements, comm=MPI.COMM_WORLD):
-    """ Gather distributed array data to all processes
+    """ All to all exchange of distributed array data among processes in
+        communicator.
 
     Parameters
     ----------
     array_data : numpy.ndarray
         Numpy array data distributed among processes.
-    shape : int, tuple of int, None
-        Final desired shape of gathered array data
+    send_shapes : numpy.ndarray
+        Numpy array of numpy.ndarray shape representations that specifies the
+        current shape of the distributed array data among processes in the
+        communicator.
+        Notes:
+            Acting as counts in typical all_to_all_v operation. The send_shapes
+            will be unique to each rank/process in the communicator.
+        Requirements:
+            Array length must be equal to the number of ranks in specified comm.
+        Format:
+            send_shapes[rank] = (length_axis0, length_axis1, ...)
+            ex:
+                send_shapes[0] = (2, 3)
+                send_shapes[1] = (1, 3)
+                send_shapes[2] = (1, 3)
+                ...
+    send_displacements : numpy.ndarray
+        Numpy array of integers that specifies the element start local
+        in the original array_data array that should be transmitted to a given
+        process.
+        Requirements:
+            Array length must be equal to the number of ranks in specified comm.
+            The send_displacements will be unique to each rank/process in the
+            communicator.
+        Format:
+            send_disp[rank] = start index in array_data buffer for given rank
+            send_disp[0] = 0
+            send_disp[1] = length of array data assigned to rank 0
+            send_disp[2] = length of array data assigned to rank 0 + 1
+            send_disp[3] = length of array data assigned to rank 0 + 1 + 2
+            ...
+    recv_shapes : numpy.ndarray
+        Numpy array of numpy.ndarray shape representations that specifies the
+        expected recieved shape of the distributed array data among processes
+        in the communicator.
+        Notes:
+            Acting as counts in typical all_to_all_v operation. The recv_shapes
+            will be unique to each rank/process in the communicator.
+        Requirements:
+            Array length must be equal to the number of ranks in specified comm.
+        Format:
+            recv_shapes[rank] = (length_axis0, length_axis1, ...)
+            ex:
+                recv_shapes[0] = (2, 3)
+                recv_shapes[1] = (1, 3)
+                recv_shapes[2] = (1, 3)
+                ...
+    recv_displacements : numpy.ndarray
+        Numpy array of integers that specifies the element start local
+        in the local distributed array that should be received from a given
+        process.
+        Requirements:
+            Array length must be equal to the number of ranks in specified comm.
+            The recv_displacements will be unique to each rank/process in the
+            communicator.
+        Format:
+            recv_disp[rank] = start index in local array buffer for given rank
+            recv_disp[0] = 0
+            recv_disp[1] = length of array data assigned to rank 0
+            recv_disp[2] = length of array data assigned to rank 0 + 1
+            recv_disp[3] = length of array data assigned to rank 0 + 1 + 2
+            ...
     comm : MPI Communicator, optional
         MPI process communication object.  If none specified
         defaults to MPI.COMM_WORLD
 
     Returns
     -------
-    gathered_array : numpy.ndarray
-        Collected numpy array from all process in MPI Comm.
+    recv_local_array : numpy.ndarray
+        Constructed local numpy array from all process in MPI Comm.
     """
     rank = comm.Get_rank()
 
@@ -87,7 +148,6 @@ def all_to_all_v(array_data, send_shapes, send_displacements, recv_shapes,
         [recv_local_array, (recv_counts, recv_displacements), mpi_dtype])
 
     return recv_local_array
-
 
 #TODO find elegant way to handle type checking in this
 def broadcast_array(array_data, comm=MPI.COMM_WORLD, root=0):
@@ -213,7 +273,6 @@ def get_rank(comm=MPI.COMM_WORLD):
         Rank of process
     """
     return comm.Get_rank()
-
 
 #TODO find elegant way to handle type checking in this
 def scatter_v(array_data, displacements, shapes, comm=MPI.COMM_WORLD, root=0):
