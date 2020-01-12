@@ -61,7 +61,7 @@ def _row_block_mat_mult(a, b, comm=MPI.COMM_WORLD):
     comm_coord = get_cart_coords(comm_dims, size, rank)
 
     return Distribution_Dict['b'](C.getValues(range(A_row_start, A_row_end),
-                                              range(a_global_cols)),
+                                              range(b_global_cols)),
                                               comm=comm,
                                               comm_dims=comm_dims,
                                               comm_coord=comm_coord)
