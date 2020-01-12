@@ -38,6 +38,7 @@ def arange(*args, dtype=None, comm=MPI.COMM_WORLD, root=0, dist='b'):
     MPIArray : numpy.ndarray sub class
         Distributed array of evenly spaced arguments among processes.
     """
+#TODO: There's got to be a more elegant way to do this
     array_data = np.arange(*args, dtype=dtype) if comm.rank == root else None
 
     local_data, comm_dims, comm_coord, local_to_global = \
