@@ -3,7 +3,7 @@ import numpy as np
 
 from mpids.MPInumpy.errors import TypeError
 
-__all__ = ['all_gather_v', 'all_to_all_v', 'broadcast_array',
+__all__ = ['all_gather_v', 'all_to_all', 'all_to_all_v', 'broadcast_array',
            'broadcast_shape', 'get_comm', 'get_comm_size',
            'get_rank', 'scatter_v']
 
@@ -54,11 +54,44 @@ def all_gather_v(array_data, shape=None, comm=MPI.COMM_WORLD):
 
     return gathered_array
 
+def all_to_all(array_data, comm=MPI.COMM_WORLD):
+    """ All to all exchange of distributed array data among processes in
+        communicator.
+
+    Parameters
+    ----------
+    array_data : numpy.ndarray
+        Numpy array data distributed among processes.
+        Requirements:
+            Array length must be equal to the number of ranks in specified comm.
+    comm : MPI Communicator, optional
+        MPI process communication object.  If none specified
+        defaults to MPI.COMM_WORLD
+
+    Returns
+    -------
+    all_to_all_exchanged : numpy.ndarray
+        Collected numpy array from all process in MPI Comm.
+    """
+    size = comm.Get_size()
+
+    if not isinstance(array_data, np.ndarray):
+        raise TypeError('invalid data type for all_to_all.')
+    if array_data.ndim > 1:
+        raise ValueError('array must be a single dimension.')
+    if len(array_data) != size or array_data.ndim != 1:
+        raise ValueError('length of array must be equal to size of communicator.')
+
+    all_to_all_exchanged = np.empty(array_data.size, dtype=array_data.dtype)
+    comm.Alltoall(array_data, all_to_all_exchanged)
+
+    return all_to_all_exchanged
+
 
 def all_to_all_v(array_data, send_shapes, send_displacements, recv_shapes,
                  recv_displacements, comm=MPI.COMM_WORLD):
     """ All to all exchange of distributed array data among processes in
-        communicator.
+        communicator where each exchange is unique.
 
     Parameters
     ----------
@@ -135,6 +168,7 @@ def all_to_all_v(array_data, send_shapes, send_displacements, recv_shapes,
     recv_local_array : numpy.ndarray
         Constructed local numpy array from all process in MPI Comm.
     """
+#TODO: Think about type checking here
     rank = comm.Get_rank()
 
     send_counts = [np.prod(shape) for shape in send_shapes]

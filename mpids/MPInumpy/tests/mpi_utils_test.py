@@ -296,6 +296,60 @@ class AllGatherVTest(unittest.TestCase):
         gathered_data = all_gather_v(local_data, shape=expected_gathered_data.shape)
         self.arrays_are_equivelant(gathered_data, expected_gathered_data)
 
+class AllToAllTest(unittest.TestCase):
+
+    def setUp(self):
+        self.num_procs = MPI.COMM_WORLD.Get_size()
+        self.rank = MPI.COMM_WORLD.Get_rank()
+
+    def test_supplying_a_non_numpy_array_raise_type_error(self):
+        data_int = 1
+        data_list = [1,2]
+        data_tuple = (1,2)
+        data_dict = {0: 1, 2: 3}
+
+        with self.assertRaises(TypeError):
+            all_to_all(data_int)
+        with self.assertRaises(TypeError):
+            all_to_all(data_list)
+        with self.assertRaises(TypeError):
+            all_to_all(data_tuple)
+        with self.assertRaises(TypeError):
+            all_to_all(data_dict)
+
+
+    def test_supplying_np_array_w_len_not_equal_to_comm_size_raise_value_error(self):
+        self.assertEqual(4, self.num_procs)
+
+        with self.assertRaises(ValueError):
+            all_to_all(np.arange(3))
+        with self.assertRaises(ValueError):
+            all_to_all(np.arange(5))
+
+
+    def test_supplying_np_array_w_dims_not_equal_to_one_raise_value_error(self):
+
+        with self.assertRaises(ValueError):
+            all_to_all(np.ones((self.num_procs,1)))
+        with self.assertRaises(ValueError):
+            all_to_all(np.ones((self.num_procs,1,1)))
+
+
+    def arrays_are_equivelant(self, array_1, array_2):
+        self.assertEqual(array_1.dtype, array_2.dtype)
+        self.assertEqual(array_1.shape, array_2.shape)
+        self.assertEqual(array_1.size, array_2.size)
+        self.assertTrue(np.alltrue((array_1) == (array_2)))
+
+
+    def test_all_to_all_with_value_equal_to_rank(self):
+        local_array = np.empty(self.num_procs, dtype=np.int32)
+        local_array.fill(self.rank)
+        expected_result = np.arange(self.num_procs, dtype=np.int32)
+
+        result = all_to_all(local_array)
+        self.arrays_are_equivelant(result, expected_result)
+
 
 class AllToAllVTest(unittest.TestCase):
 
