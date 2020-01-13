@@ -10,11 +10,11 @@ from mpids.MPInumpy.mpi_utils import all_gather_v,                \
                                      get_comm_size, get_rank,     \
                                      scatter_v
 
-__all__ = ['determine_local_shape_and_mapping', 'distribute_array',
-           'distribute_shape', 'get_block_index', 'get_cart_coords',
-           'get_comm_dims', 'global_to_local_key', 'distribution_to_dimensions',
-           'is_undistributed', 'is_row_block_distributed',
-           'slice_local_data_and_determine_mapping']
+__all__ = ['determine_local_shape_and_mapping', 'determine_global_offset',
+           'distribute_array', 'distribute_shape', 'get_block_index',
+           'get_cart_coords', 'get_comm_dims', 'global_to_local_key',
+           'distribution_to_dimensions', 'is_undistributed',
+           'is_row_block_distributed', 'slice_local_data_and_determine_mapping']
 
 
 def determine_local_shape_and_mapping(array_shape, dist, comm_dims, comm_coord):
@@ -31,10 +31,10 @@ def determine_local_shape_and_mapping(array_shape, dist, comm_dims, comm_coord):
         Supported types:
             'b' : Block, *
             'u' : Undistributed
-    procs: int
-        Size/number of processes in communicator
-    rank : int
-        Process rank in communicator
+    comm_dims : list, None
+        Dimensions of cartesian grid
+    coordinates : list, None
+        Coordinates of rank in grid
 
     Returns
     -------
@@ -66,6 +66,121 @@ def determine_local_shape_and_mapping(array_shape, dist, comm_dims, comm_coord):
             local_shape.append(axis_length)
 
     return tuple(local_shape), local_to_global
+
+
+def determine_global_offset(index, global_shape):
+    """ Determine global offset of specified index based on shape of global
+    array.  The result is conceptually equivalent to the offset(in data items)
+    of the element at the specified index if it was one contiguous vector of
+    elements.
+
+    Parameters
+    ----------
+    index : list of ints
+        Global indices.
+    global_shape: list, tuple
+        Shape of distributed array.
+
+    Returns
+    -------
+    global_offset: int
+        Offset in number of elements from start of global array.
+    """
+    if not isinstance(index, list): raise TypeError("index must be a list")
+    if len(index) != len(global_shape):
+        raise ValueError(
+            "number of elements in index and global shape must be equal")
+
+    if len(global_shape) == 1:
+        global_offset = index[0]
+    else:
+        strides = [1]
+        for i, stride in enumerate(global_shape[1:]):
+            strides.append(strides[i] * stride)
+
+        index.reverse()
+        global_offset = 0
+        for dim, num in enumerate(index):
+            global_offset += num * strides[dim]
+
+    return int(global_offset)
+
+
+# def determine_redistribution_from_shape(current_shape, desired_shape, dist,
+#                                         comm=MPI.COMM_WORLD):
+#     """ Determine information required to redistribute distributed array.
+#
+#     Parameters
+#     ----------
+#     current_shape : int, tuple of int
+#         Current global shape of distributed array.
+#     desired_shape : int, tuple of int
+#         Global shape array data should be mapped to.
+#     dist : str, list, tuple
+#         Specified distribution of data among processes.
+#         Default value 'b' : Block, *
+#         Supported types:
+#             'b' : Block, *
+#             'u' : Undistributed
+#     comm : MPI Communicator, optional
+#         MPI process communication object.  If none specified
+#         defaults to MPI.COMM_WORLD
+#
+#     Returns
+#     -------
+#     send_shapes : numpy.ndarray
+#         Numpy array of numpy.ndarray shape representations that specifies the
+#         current shape of the distributed array data among processes in the
+#         communicator.
+#     send_displacements : numpy.ndarray
+#         Numpy array of integers that specifies the element start local
+#         in the original array_data array that should be transmitted to a given
+#         process.
+#     recv_shapes : numpy.ndarray
+#         Numpy array of numpy.ndarray shape representations that specifies the
+#         expected recieved shape of the distributed array data among processes
+#         in the communicator.
+#     recv_displacements : numpy.ndarray
+#         Numpy array of integers that specifies the element start local
+#         in the local distributed array that should be received from a given
+#         process.
+#     """
+#     size = comm.Get_size()
+#     rank = comm.Get_size()
+#     comm_dims = get_comm_dims(size, dist)
+#     total_elements = np.prod(current_shape)
+#     current_ndim = len(current_shape)
+#     desired_ndim = len(desired_shape)
+#     current_index_pad = [0] * (current_ndim - 1)
+#     desired_index_pad = [0] * (desired_ndim - 1)
+#
+#     #Data is partitioned off of the leading dimension
+#     current_leading_dim = current_shape[0]
+#     current_remaining_dim = np.prod(current_shape[1:])
+#     desired_leading_dim = desired_shape[0]
+#     desired_remaining_dim = np.prod(desired_shape[1:])
+#
+#     current_offsets = {}
+#     desired_offsets = {}
+#     for global_rank in range(size):
+#         current_partition_start, _ = get_block_index(current_leading_dim,
+#                                                      size,
+#                                                      global_rank)
+#         index = [current_partition_start] + current_index_pad
+#         current_offsets[global_rank] = determine_global_offset(index, current_shape)
+#
+#         desired_partiton_start, _ = get_block_index(desired_leading_dim,
+#                                                     size,
+#                                                     global_rank)
+#         index = [desired_partiton_start] + desired_index_pad
+#         desired_offsets[global_rank] = determine_global_offset(index, current_shape)
+#
+#     #Leading dimension is getting smaller
+#     if current_offsets[rank] < desired_offsets[rank]:
+#         for global_rank in range(rank):
+#             if desired_offsets[global_rank] * desired_remaining_dim < current_offsets[rank]:
+#                 pass
+#
 
 
 def distribute_array(array_data, dist, comm=MPI.COMM_WORLD, root=0):

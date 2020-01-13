@@ -356,6 +356,53 @@ class UtilsDistributionIndependentTest(unittest.TestCase):
         self.assertEqual(empty_array.data.tolist(), formated_empty_array_tuple_slice.data.tolist())
 
 
+    def test_determine_global_offset(self):
+        #1D
+        global_shape = (10,)
+        self.assertEqual(0, determine_global_offset([0], global_shape))
+        self.assertEqual(5, determine_global_offset([5], global_shape))
+        self.assertEqual(9, determine_global_offset([9], global_shape))
+
+        # #2D
+        global_shape = (3, 3)
+        self.assertEqual(1, determine_global_offset([0, 1], global_shape))
+        self.assertEqual(2, determine_global_offset([0, 2], global_shape))
+        self.assertEqual(8, determine_global_offset([2, 2], global_shape))
+
+        #3D
+        global_shape = (3, 3, 3)
+        self.assertEqual(9, determine_global_offset([1, 0, 0], global_shape))
+        self.assertEqual(3, determine_global_offset([0, 1, 0], global_shape))
+        self.assertEqual(1, determine_global_offset([0, 0, 1], global_shape))
+        self.assertEqual(12, determine_global_offset([1, 1, 0], global_shape))
+        self.assertEqual(4, determine_global_offset([0, 1, 1], global_shape))
+        self.assertEqual(13, determine_global_offset([1, 1, 1], global_shape))
+
+        #4D
+        global_shape = (2, 2, 2, 2)
+        self.assertEqual(0, determine_global_offset([0, 0, 0, 0], global_shape))
+        self.assertEqual(8, determine_global_offset([1, 0, 0, 0], global_shape))
+        self.assertEqual(4, determine_global_offset([0, 1, 0, 0], global_shape))
+        self.assertEqual(2, determine_global_offset([0, 0, 1, 0], global_shape))
+        self.assertEqual(1, determine_global_offset([0, 0, 0, 1], global_shape))
+        self.assertEqual(12, determine_global_offset([1, 1, 0, 0], global_shape))
+        self.assertEqual(6, determine_global_offset([0, 1, 1, 0], global_shape))
+        self.assertEqual(3, determine_global_offset([0, 0, 1, 1], global_shape))
+        self.assertEqual(9, determine_global_offset([1, 0, 0, 1], global_shape))
+        self.assertEqual(10, determine_global_offset([1, 0, 1, 0], global_shape))
+        self.assertEqual(5, determine_global_offset([0, 1, 0, 1], global_shape))
+
+        #Index must be a list
+        with self.assertRaises(TypeError):
+            determine_global_offset(1, (2,3))
+        with self.assertRaises(TypeError):
+            determine_global_offset((2,), (2,3))
+
+        #Index length must equal global shape length
+        with self.assertRaises(ValueError):
+            determine_global_offset([1], (2,3))
+
+
 class UtilsDefaultTest(unittest.TestCase):
 
     def create_setUp_parms(self):
