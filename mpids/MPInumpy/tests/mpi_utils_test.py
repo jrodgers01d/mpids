@@ -298,6 +298,7 @@ class AllGatherVTest(unittest.TestCase):
 
 
 class AllToAllVTest(unittest.TestCase):
+
     def setUp(self):
         self.comm = MPI.COMM_WORLD
         self.rank = self.comm.Get_rank()
