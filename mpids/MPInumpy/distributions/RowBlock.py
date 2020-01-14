@@ -169,6 +169,7 @@ class RowBlock(MPIArray):
             raise ValueError("cannot reshape global array of size",
                              self.globalsize,"into shape", tuple(args))
 
+#TODO Replace with all_to_all_v imeplementation
         global_data = all_gather_v(self, shape=tuple(args), comm=self.comm)
 
         local_data, comm_dims, comm_coord, local_to_global = \

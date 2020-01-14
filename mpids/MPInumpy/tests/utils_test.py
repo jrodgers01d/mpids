@@ -3,9 +3,9 @@ import unittest.mock as mock
 import numpy as np
 from mpi4py import MPI
 from mpids.MPInumpy.utils import *
-from mpids.MPInumpy.utils import _format_indexed_result,\
-                                 _global_to_local_key_int,  \
-                                 _global_to_local_key_slice,\
+from mpids.MPInumpy.utils import _format_indexed_result,     \
+                                 _global_to_local_key_int,   \
+                                 _global_to_local_key_slice, \
                                  _global_to_local_key_tuple
 from mpids.MPInumpy.errors import IndexError, InvalidDistributionError, \
                                   NotSupportedError
@@ -401,6 +401,92 @@ class UtilsDistributionIndependentTest(unittest.TestCase):
         #Index length must equal global shape length
         with self.assertRaises(ValueError):
             determine_global_offset([1], (2,3))
+
+
+    def test_determine_redistribution_counts_from_shape(self):
+        dist = 'b'
+#TODO: Above does not really do anything, see utils
+        rank = MPI.COMM_WORLD.rank
+        #Emulate a 4x4 matrix row distributed on a 4 process comm.
+        ##reshaping to a 2x8
+        current_shape = (4,4)
+        desired_shape = (2,8)
+        send_counts, recv_counts = \
+            determine_redistribution_counts_from_shape(current_shape,
+                                                       desired_shape,
+                                                       dist)
+        self.assertTrue(isinstance(send_counts, np.ndarray))
+        self.assertTrue(isinstance(recv_counts, np.ndarray))
+        if rank == 0:
+            self.assertTrue(np.alltrue(np.array([4,0,0,0]) == send_counts))
+            self.assertTrue(np.alltrue(np.array([4,4,0,0]) == recv_counts))
+        elif rank == 1:
+            self.assertTrue(np.alltrue(np.array([4,0,0,0]) == send_counts))
+            self.assertTrue(np.alltrue(np.array([0,0,4,4]) == recv_counts))
+        else:
+            self.assertTrue(np.alltrue(np.array([0,4,0,0]) == send_counts))
+            self.assertTrue(np.alltrue(np.array([0,0,0,0]) == recv_counts))
+
+        # #reshaping 5x5 to a 1x25
+        current_shape = (5,5)
+        desired_shape = (1,25)
+        send_counts, recv_counts = \
+            determine_redistribution_counts_from_shape(current_shape,
+                                                       desired_shape,
+                                                       dist)
+        self.assertTrue(isinstance(send_counts, np.ndarray))
+        self.assertTrue(isinstance(recv_counts, np.ndarray))
+        if rank == 0:
+            self.assertTrue(np.alltrue(np.array([10,0,0,0]) == send_counts))
+            self.assertTrue(np.alltrue(np.array([10,5,5,5]) == recv_counts))
+        else:
+            self.assertTrue(np.alltrue(np.array([5,0,0,0]) == send_counts))
+            self.assertTrue(np.alltrue(np.array([0,0,0,0]) == recv_counts))
+
+        #reshaping 4x3 to a 3x4
+        current_shape = (4,3)
+        desired_shape = (3,4)
+        send_counts, recv_counts = \
+            determine_redistribution_counts_from_shape(current_shape,
+                                                       desired_shape,
+                                                       dist)
+        self.assertTrue(isinstance(send_counts, np.ndarray))
+        self.assertTrue(isinstance(recv_counts, np.ndarray))
+        if rank == 0:
+            self.assertTrue(np.alltrue(np.array([3,0,0,0]) == send_counts))
+            self.assertTrue(np.alltrue(np.array([3,1,0,0]) == recv_counts))
+        elif rank == 1:
+            self.assertTrue(np.alltrue(np.array([1,2,0,0]) == send_counts))
+            self.assertTrue(np.alltrue(np.array([0,2,2,0]) == recv_counts))
+        elif rank == 2:
+            self.assertTrue(np.alltrue(np.array([0,2,1,0]) == send_counts))
+            self.assertTrue(np.alltrue(np.array([0,0,1,3]) == recv_counts))
+        else:
+            self.assertTrue(np.alltrue(np.array([0,0,3,0]) == send_counts))
+            self.assertTrue(np.alltrue(np.array([0,0,0,0]) == recv_counts))
+
+
+        #reshaping 3x3x3 to a 9x3
+        current_shape = (3,3,3)
+        desired_shape = (9,3)
+        send_counts, recv_counts = \
+            determine_redistribution_counts_from_shape(current_shape,
+                                                       desired_shape,
+                                                       dist)
+        self.assertTrue(isinstance(send_counts, np.ndarray))
+        self.assertTrue(isinstance(recv_counts, np.ndarray))
+        if rank == 0:
+            self.assertTrue(np.alltrue(np.array([9,0,0,0]) == send_counts))
+            self.assertTrue(np.alltrue(np.array([9,0,0,0]) == recv_counts))
+        elif rank == 1:
+            self.assertTrue(np.alltrue(np.array([0,6,3,0]) == send_counts))
+            self.assertTrue(np.alltrue(np.array([0,6,0,0]) == recv_counts))
+        elif rank == 2:
+            self.assertTrue(np.alltrue(np.array([0,0,3,6]) == send_counts))
+            self.assertTrue(np.alltrue(np.array([0,3,3,0]) == recv_counts))
+        else:
+            self.assertTrue(np.alltrue(np.array([0,0,0,0]) == send_counts))
+            self.assertTrue(np.alltrue(np.array([0,0,6,0]) == recv_counts))
 
 
 class UtilsDefaultTest(unittest.TestCase):
