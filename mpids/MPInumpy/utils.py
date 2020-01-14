@@ -178,8 +178,7 @@ def determine_redistribution_counts_from_shape(current_shape, desired_shape,
             continue
 
         for offset in range(current_offset, current_offset + current_remaining_dim):
-            if (offset >= partition_min and
-                offset <  parition_max):
+            if (offset >= partition_min and offset < parition_max):
                 send_counts[global_rank] += 1
 
     #Use all to all to distribute what's being sent
