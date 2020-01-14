@@ -119,7 +119,7 @@ def determine_redistribution_counts_from_shape(current_shape, desired_shape,
         Current global shape of distributed array.
     desired_shape : int, tuple of int
         Global shape array data should be mapped to.
-#TODO: Rething the need for dist, it's practically irrevelant here
+#TODO: Rethink the need for dist, it's practically irrevelant here
     dist : str, list, tuple
         Specified distribution of data among processes.
         Default value 'b' : Block, *
@@ -167,13 +167,19 @@ def determine_redistribution_counts_from_shape(current_shape, desired_shape,
     current_remaining_dim = np.prod(current_shape[1:]) * current_over_paritioning
     desired_remaining_dim = np.prod(desired_shape[1:])
     send_counts = np.zeros(size, dtype=np.int32)
-    for offset in range(current_offset, current_offset + current_remaining_dim):
-        for global_rank in range(size):
-            partition_start = global_desired_partioning[global_rank][0]
-            partition_stop  = global_desired_partioning[global_rank][1]
+    for global_rank in range(size):
+        partition_start = global_desired_partioning[global_rank][0]
+        partition_stop  = global_desired_partioning[global_rank][1]
+        partition_min = partition_start * desired_remaining_dim
+        parition_max = partition_stop * desired_remaining_dim
+        #Trying to reduce the number of iterations
+        if (current_offset > parition_max or
+            current_offset + current_remaining_dim < partition_min):
+            continue
 
-            if (offset >= partition_start * desired_remaining_dim and
-                offset <  partition_stop * desired_remaining_dim):
+        for offset in range(current_offset, current_offset + current_remaining_dim):
+            if (offset >= partition_min and
+                offset <  parition_max):
                 send_counts[global_rank] += 1
 
     #Use all to all to distribute what's being sent
