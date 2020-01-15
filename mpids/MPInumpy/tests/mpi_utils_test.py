@@ -3,6 +3,7 @@ from mpi4py import MPI
 import numpy as np
 
 from mpids.MPInumpy.mpi_utils import *
+from mpids.MPInumpy.mpi_utils import _displacments_from_counts
 from mpids.MPInumpy.errors import TypeError
 
 
@@ -374,91 +375,171 @@ class AllToAllVTest(unittest.TestCase):
         self.assertTrue(np.alltrue((array_1) == (array_2)))
 
 
-    def test_all_to_all_v_transfer_all_1d_int_to_all_ranks(self):
-        dist_shape = self.distributed_data_1d_int.shape
-        empty_shape = self.empty_int.shape
-        send_displacements = [0] * self.size
+    def test_displacements_from_counts_helper_method_works(self):
+        """This helper method computes the displacements off of the assumption
+           that the entire local array contents are being replaced.
+           A correct result is one that zeros the last counts entry, adds up
+           all values, and rolls all values back by one index.
+        """
+        #Fully populated counts
+        counts = np.array([2, 2, 2, 2])
+        expected_displacements = np.array([0, 2, 4, 6])
+        computed_displacements = _displacments_from_counts(counts)
+        self.arrays_are_equivelant(expected_displacements, computed_displacements)
 
+        #First element populated
+        counts = np.array([1, 0, 0, 0])
+        expected_displacements = np.array([0, 0, 0, 0])
+        computed_displacements = _displacments_from_counts(counts)
+        self.arrays_are_equivelant(expected_displacements, computed_displacements)
+
+        #Second element populated
+        counts = np.array([0, 1, 0, 0])
+        expected_displacements = np.array([0, 0, 0, 0])
+        computed_displacements = _displacments_from_counts(counts)
+        self.arrays_are_equivelant(expected_displacements, computed_displacements)
+
+        #Third element populated
+        counts = np.array([0, 0, 1, 0])
+        expected_displacements = np.array([0, 0, 0, 0])
+        computed_displacements = _displacments_from_counts(counts)
+        self.arrays_are_equivelant(expected_displacements, computed_displacements)
+
+        #Fourth element populated
+        counts = np.array([0, 0, 0, 1])
+        expected_displacements = np.array([0, 0, 0, 0])
+        computed_displacements = _displacments_from_counts(counts)
+        self.arrays_are_equivelant(expected_displacements, computed_displacements)
+
+        #First two elements populated
+        counts = np.array([1, 2, 0, 0])
+        expected_displacements = np.array([0, 1, 1, 1])
+        computed_displacements = _displacments_from_counts(counts)
+        self.arrays_are_equivelant(expected_displacements, computed_displacements)
+
+        #First and third elements populated
+        counts = np.array([1, 0, 2, 0])
+        expected_displacements = np.array([0, 1, 1, 1])
+        computed_displacements = _displacments_from_counts(counts)
+        self.arrays_are_equivelant(expected_displacements, computed_displacements)
+
+        #First and Fourth elements populated
+        counts = np.array([1, 0, 0, 3])
+        expected_displacements = np.array([0, 1, 1, 1])
+        computed_displacements = _displacments_from_counts(counts)
+        self.arrays_are_equivelant(expected_displacements, computed_displacements)
+
+        #Second and Third elements populated
+        counts = np.array([0, 2, 1, 0])
+        expected_displacements = np.array([0, 0, 2, 2])
+        computed_displacements = _displacments_from_counts(counts)
+        self.arrays_are_equivelant(expected_displacements, computed_displacements)
+
+        #Second and Fourth elements populated
+        counts = np.array([0, 3, 0, 9])
+        expected_displacements = np.array([0, 0, 3, 3])
+        computed_displacements = _displacments_from_counts(counts)
+        self.arrays_are_equivelant(expected_displacements, computed_displacements)
+
+        #Third and Fourth elements populated
+        counts = np.array([0, 0, 21, 9])
+        expected_displacements = np.array([0, 0, 0, 21])
+        computed_displacements = _displacments_from_counts(counts)
+        self.arrays_are_equivelant(expected_displacements, computed_displacements)
+
+
+    def test_all_to_all_v_transfer_all_1d_int_to_all_ranks(self):
         for root in range(self.size):
             if self.rank == root:
-                send_shapes = \
-                    [empty_shape] * self.rank + [dist_shape] + [empty_shape] * (self.size - self.rank - 1)
-                recv_shapes = [dist_shape] * self.size
-                recv_displacements = self.displacements_1d
+                send_list = root * [0] + [2] + [0] * (self.size - root- 1)
+                recv_list = [2] * self.size
+                send_counts = np.array(send_list)
+                recv_counts = np.array(recv_list)
                 expected_received_array = self.data_1d_int
             else:
-                send_shapes = \
-                    [empty_shape] * root + [dist_shape] + [empty_shape] * (self.size - root - 1)
-                recv_shapes = [empty_shape] * self.size
-                recv_displacements = [0] * self.size
+                send_list = root * [0] + [2] + [0] * (self.size - root - 1)
+                recv_list = [0] * self.size
+                send_counts = np.array(send_list)
+                recv_counts = np.array(recv_list)
                 expected_received_array = self.empty_int
 
-            received_array = all_to_all_v(
-                self.distributed_data_1d_int, send_shapes, send_displacements,
-                recv_shapes, recv_displacements)
+            received_array = \
+                all_to_all_v(self.distributed_data_1d_int, send_counts, recv_counts)
 
             self.arrays_are_equivelant(received_array, expected_received_array)
 
 
     def test_all_to_all_v_transfer_all_1d_float_to_all_ranks(self):
-        dist_shape = self.distributed_data_1d_float.shape
-        empty_shape = self.empty_float.shape
-        send_displacements = [0] * self.size
-
         for root in range(self.size):
             if self.rank == root:
-                send_shapes = \
-                    [empty_shape] * self.rank + [dist_shape] + [empty_shape] * (self.size - self.rank - 1)
-                recv_shapes = [dist_shape] * self.size
-                recv_displacements = self.displacements_1d
+                send_list = root * [0] + [2] + [0] * (self.size - root- 1)
+                recv_list = [2] * self.size
+                send_counts = np.array(send_list)
+                recv_counts = np.array(recv_list)
                 expected_received_array = self.data_1d_float
             else:
-                send_shapes = \
-                    [empty_shape] * root + [dist_shape] + [empty_shape] * (self.size - root - 1)
-                recv_shapes = [empty_shape] * self.size
-                recv_displacements = [0] * self.size
+                send_list = root * [0] + [2] + [0] * (self.size - root - 1)
+                recv_list = [0] * self.size
+                send_counts = np.array(send_list)
+                recv_counts = np.array(recv_list)
                 expected_received_array = self.empty_float
 
-            received_array = all_to_all_v(
-                self.distributed_data_1d_float, send_shapes, send_displacements,
-                recv_shapes, recv_displacements)
+            received_array = \
+                all_to_all_v(self.distributed_data_1d_float, send_counts, recv_counts)
 
             self.arrays_are_equivelant(received_array, expected_received_array)
 
 
-    # def test_all_to_all_v_transfer_1d_data_to_first_two_ranks(self):
-    #     dist_shape = self.distributed_data_1d_int.shape
-    #     empty_shape = self.empty_int.shape
-    #     send_displacements = [0] * self.size
-    #
-    #     if self.rank == 0:
-    #         send_shapes = [dist_shape, empty_shape, empty_shape, empty_shape]
-    #         recv_shapes = [dist_shape, dist_shape, empty_shape, empty_shape]
-    #         recv_displacements = [0, 2, 0, 0]
-    #         expected_received_array = \
-    #             np.concatenate((self.distributed_data_1d_int, self.distributed_data_1d_int))
-    #     if self.rank == 1:
-    #         send_shapes = [dist_shape, empty_shape, empty_shape, empty_shape]
-    #         recv_shapes = [empty_shape, empty_shape, dist_shape, dist_shape]
-    #         recv_displacements = [0, 0, 0, 2]
-    #         expected_received_array = \
-    #             np.concatenate((self.distributed_data_1d_int, self.distributed_data_1d_int))
-    #     else:
-    #         send_shapes = [empty_shape, dist_shape, empty_shape, empty_shape]
-    #         recv_shapes = [empty_shape] * self.size
-    #         recv_displacements = [0] * self.size
-    #         expected_received_array = self.empty_int
-    #
-    #         print('send_shapes', send_shapes)
-    #         print('send_displacements', send_displacements)
-    #         print('recv_shapes', recv_shapes)
-    #         print('recv_displacements', recv_displacements)
-    #
-    #         received_array = all_to_all_v(
-    #             self.distributed_data_1d_int, send_shapes, send_displacements,
-    #             recv_shapes, recv_displacements)
-    #
-    #         self.arrays_are_equivelant(received_array, expected_received_array)
+    def test_all_to_all_v_transfer_all_1d_int_to_all_ranks_w_displacements(self):
+        for root in range(self.size):
+            if self.rank == root:
+                send_list = root * [0] + [2] + [0] * (self.size - root- 1)
+                recv_list = [2] * self.size
+                send_counts = np.array(send_list)
+                recv_counts = np.array(recv_list)
+                send_displacements = np.array([0] * self.size)
+                recv_displacements = np.array([0, 2, 4, 6])
+                expected_received_array = self.data_1d_int
+            else:
+                send_list = root * [0] + [2] + [0] * (self.size - root - 1)
+                recv_list = [0] * self.size
+                send_counts = np.array(send_list)
+                recv_counts = np.array(recv_list)
+                send_displacements = np.array([0] * self.size)
+                recv_displacements = np.array([0] * self.size)
+                expected_received_array = self.empty_int
+
+            received_array = \
+                all_to_all_v(self.distributed_data_1d_int, send_counts, recv_counts,
+                             send_displacements, recv_displacements)
+
+            self.arrays_are_equivelant(received_array, expected_received_array)
+
+
+    def test_all_to_all_v_transfer_all_1d_int_to_all_ranks_changing_shape(self):
+        for root in range(self.size):
+            if self.rank == root:
+                send_list = root * [0] + [2] + [0] * (self.size - root- 1)
+                recv_list = [2] * self.size
+                send_counts = np.array(send_list)
+                recv_counts = np.array(recv_list)
+                recv_shape = (1, self.data_1d_int.size)
+                expected_received_array = self.data_1d_int.reshape(1, self.data_1d_int.size)
+            else:
+                send_list = root * [0] + [2] + [0] * (self.size - root - 1)
+                recv_list = [0] * self.size
+                send_counts = np.array(send_list)
+                recv_counts = np.array(recv_list)
+                send_displacements = np.array([0] * self.size)
+                recv_displacements = np.array([0] * self.size)
+                recv_shape = (0, 0)
+                expected_received_array = self.empty_int.reshape(0, 0)
+
+            received_array = \
+                all_to_all_v(self.distributed_data_1d_int, send_counts, recv_counts,
+                             recv_shape=recv_shape)
+
+            self.arrays_are_equivelant(received_array, expected_received_array)
 
 
 class BroadcastShapeTest(unittest.TestCase):

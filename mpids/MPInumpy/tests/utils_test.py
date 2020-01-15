@@ -3,7 +3,7 @@ import unittest.mock as mock
 import numpy as np
 from mpi4py import MPI
 from mpids.MPInumpy.utils import *
-from mpids.MPInumpy.utils import _format_indexed_result,     \
+from mpids.MPInumpy.utils import format_indexed_result,     \
                                  _global_to_local_key_int,   \
                                  _global_to_local_key_slice, \
                                  _global_to_local_key_tuple
@@ -322,13 +322,13 @@ class UtilsDistributionIndependentTest(unittest.TestCase):
             global_to_local_key([0, 1], globalshape, local_to_global)
 
 
-    def test_format_indexed_result(self):
+    def testformat_indexed_result(self):
         test_matrix = np.arange(16).reshape(4,4)
 
         np_scalar = test_matrix[0,0]
         undesired_scalar_shape = np_scalar.shape
         desired_scalar_shape =(1,)
-        formated_np_scalar = _format_indexed_result((0, 0), np_scalar)
+        formated_np_scalar = format_indexed_result((0, 0), np_scalar)
         self.assertEqual((), undesired_scalar_shape)
         self.assertEqual(desired_scalar_shape, formated_np_scalar.shape)
         self.assertEqual(np_scalar, formated_np_scalar)
@@ -339,19 +339,19 @@ class UtilsDistributionIndependentTest(unittest.TestCase):
         desired_empty_shape =(0, 0)
         self.assertEqual((0, 4), undesired_empty_shape)
 
-        formated_empty_array_int = _format_indexed_result(1, empty_array)
+        formated_empty_array_int = format_indexed_result(1, empty_array)
         self.assertEqual(desired_scalar_empty_shape, formated_empty_array_int.shape)
         self.assertEqual(empty_array.data.tolist(), formated_empty_array_int.data.tolist())
 
-        formated_empty_array_slice = _format_indexed_result(slice(1,1), empty_array)
+        formated_empty_array_slice = format_indexed_result(slice(1,1), empty_array)
         self.assertEqual(desired_empty_shape, formated_empty_array_slice.shape)
         self.assertEqual(empty_array.data.tolist(), formated_empty_array_slice.data.tolist())
 
-        formated_empty_array_tuple_int = _format_indexed_result((1, 1), empty_array)
+        formated_empty_array_tuple_int = format_indexed_result((1, 1), empty_array)
         self.assertEqual(desired_scalar_empty_shape, formated_empty_array_tuple_int.shape)
         self.assertEqual(empty_array.data.tolist(), formated_empty_array_tuple_int.data.tolist())
 
-        formated_empty_array_tuple_slice = _format_indexed_result((slice(1,1), slice(1,1)), empty_array)
+        formated_empty_array_tuple_slice = format_indexed_result((slice(1,1), slice(1,1)), empty_array)
         self.assertEqual(desired_empty_shape, formated_empty_array_tuple_slice.shape)
         self.assertEqual(empty_array.data.tolist(), formated_empty_array_tuple_slice.data.tolist())
 

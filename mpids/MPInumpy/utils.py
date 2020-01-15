@@ -164,8 +164,8 @@ def determine_redistribution_counts_from_shape(current_shape, desired_shape,
                                              comm=comm)
 
     current_over_paritioning = current_partition_end - current_partition_start
-    current_remaining_dim = np.prod(current_shape[1:]) * current_over_paritioning
-    desired_remaining_dim = np.prod(desired_shape[1:])
+    current_remaining_dim = int(np.prod(current_shape[1:]) * current_over_paritioning)
+    desired_remaining_dim = int(np.prod(desired_shape[1:]))
     send_counts = np.zeros(size, dtype=np.int32)
     for global_rank in range(size):
         partition_start = global_desired_partioning[global_rank][0]
@@ -342,7 +342,7 @@ def distribution_to_dimensions(distribution, procs):
         'Invalid distribution encountered: {}'.format(distribution))
 
 
-def _format_indexed_result(global_key, indexed_result):
+def format_indexed_result(global_key, indexed_result):
     """ Helper method to format __getitem__ index based result
         distribution as a MPIArray.
 

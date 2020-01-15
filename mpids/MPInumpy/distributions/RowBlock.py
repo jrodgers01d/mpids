@@ -3,8 +3,12 @@ import numpy as np
 
 from mpids.MPInumpy.MPIArray import MPIArray
 from mpids.MPInumpy.errors import ValueError
-from mpids.MPInumpy.utils import _format_indexed_result, global_to_local_key, distribute_array
-from mpids.MPInumpy.mpi_utils import all_gather_v
+from mpids.MPInumpy.utils import determine_redistribution_counts_from_shape, \
+                                 distribute_shape,                           \
+                                 format_indexed_result,                      \
+                                 global_to_local_key
+
+from mpids.MPInumpy.mpi_utils import all_gather_v, all_to_all_v
 from mpids.MPInumpy.distributions.Undistributed import Undistributed
 
 
@@ -19,7 +23,7 @@ class RowBlock(MPIArray):
                                         self.globalshape,
                                         self.local_to_global)
         indexed_result = self.base.__getitem__(local_key)
-        indexed_result = _format_indexed_result(key, indexed_result)
+        indexed_result = format_indexed_result(key, indexed_result)
 
         distributed_result =  self.__class__(np.copy(indexed_result),
                                              comm=self.comm,
@@ -168,12 +172,18 @@ class RowBlock(MPIArray):
         if np.prod(args) != self.globalsize:
             raise ValueError("cannot reshape global array of size",
                              self.globalsize,"into shape", tuple(args))
+#TODO: Clean this nonsense up
+        local_shape, comm_dims, comm_coord, local_to_global = \
+            distribute_shape(args, self.dist, comm=self.comm)
 
-#TODO Replace with all_to_all_v imeplementation
-        global_data = all_gather_v(self, shape=tuple(args), comm=self.comm)
+        send_counts, recv_counts = \
+            determine_redistribution_counts_from_shape(self.globalshape,
+                                                       args,
+                                                       self.dist,
+                                                       comm=self.comm)
 
-        local_data, comm_dims, comm_coord, local_to_global = \
-            distribute_array(global_data, self.dist, comm=self.comm, root=0)
+        local_data = all_to_all_v(self, send_counts, recv_counts,
+                                  recv_shape=local_shape, comm=self.comm)
 
         return self.__class__(np.copy(local_data),
                               comm=self.comm,
