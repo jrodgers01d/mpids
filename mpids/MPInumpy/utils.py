@@ -168,10 +168,10 @@ def determine_redistribution_counts_from_shape(current_shape, desired_shape,
     desired_remaining_dim = int(np.prod(desired_shape[1:]))
     send_counts = np.zeros(size, dtype=np.int32)
     for global_rank in range(size):
-        partition_start = global_desired_partioning[global_rank][0]
-        partition_stop  = global_desired_partioning[global_rank][1]
+        partition_start, partition_stop = global_desired_partioning[global_rank]
         partition_min = partition_start * desired_remaining_dim
         parition_max = partition_stop * desired_remaining_dim
+
         #Trying to reduce the number of iterations
         if (current_offset > parition_max or
             current_offset + current_remaining_dim < partition_min):
