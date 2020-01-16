@@ -155,11 +155,11 @@ def determine_redistribution_counts_from_shape(current_shape, desired_shape,
 
     desired_leading_dim = desired_shape[0]
     #Distribute work of determining desired partitioning
-    desired_partioning = np.zeros(2, dtype=np.int32)
-    desired_partioning[0], desired_partioning[1] = \
-        get_block_index(desired_leading_dim, size, rank)
+    desired_partitoning = \
+        np.array(get_block_index(desired_leading_dim, size, rank),
+                 dtype=np.int32)
     #Collect global start/stops of rank based partitions
-    global_desired_partioning = all_gather_v(desired_partioning,
+    global_desired_partitoning = all_gather_v(desired_partitoning,
                                              shape=(size, 2),
                                              comm=comm)
 
@@ -168,23 +168,32 @@ def determine_redistribution_counts_from_shape(current_shape, desired_shape,
     desired_remaining_dim = int(np.prod(desired_shape[1:]))
     send_counts = np.zeros(size, dtype=np.int32)
     for global_rank in range(size):
-        partition_start, partition_stop = global_desired_partioning[global_rank]
+        partition_start, partition_stop = global_desired_partitoning[global_rank]
         partition_min = partition_start * desired_remaining_dim
-        parition_max = partition_stop * desired_remaining_dim
+        partition_max = partition_stop * desired_remaining_dim
 
         #Trying to reduce the number of iterations
-        if (current_offset > parition_max or
-            current_offset + current_remaining_dim < partition_min):
+        if __is_offset_beyond_bounds(current_offset, current_remaining_dim,
+                                     partition_min, partition_max):
             continue
 
         for offset in range(current_offset, current_offset + current_remaining_dim):
-            if (offset >= partition_min and offset < parition_max):
+            if (offset >= partition_min and offset < partition_max):
                 send_counts[global_rank] += 1
 
     #Use all to all to distribute what's being sent
     recv_counts = all_to_all(send_counts, comm=comm)
 
     return send_counts, recv_counts
+
+
+def __is_offset_beyond_bounds(current_offset, current_remaining_dim,
+                              partition_min, partition_max):
+    """ Helper method to check if current global offset is outside bounds
+        of target repartiton.
+    """
+    return (current_offset > partition_max or
+        current_offset + current_remaining_dim < partition_min)
 
 
 def distribute_array(array_data, dist, comm=MPI.COMM_WORLD, root=0):

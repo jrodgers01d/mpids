@@ -49,9 +49,9 @@ class RowBlock(MPIArray):
         axis0_len = self.custom_reduction(MPI.SUM, np.asarray(self.shape[0]))
         comm_shape = [int(axis0_len[0])]
         if len(self.shape) == 2:
-                axis1_len = self.custom_reduction(MPI.MAX,
+                axis_len = self.custom_reduction(MPI.MAX,
                                                   np.asarray(self.shape[1]))
-                comm_shape.append(int(axis1_len[0]))
+                comm_shape.append(int(axis_len[0]))
 
         self._globalshape = tuple(comm_shape)
 
