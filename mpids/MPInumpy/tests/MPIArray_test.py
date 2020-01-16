@@ -51,9 +51,6 @@ class MPIArrayAbstractBaseClassTest(unittest.TestCase):
             self.mpi_array.sum()
 
         with self.assertRaises(NotImplementedError):
-            self.mpi_array.custom_reduction(None, None)
-
-        with self.assertRaises(NotImplementedError):
             self.mpi_array.collect_data()
 
         with self.assertRaises(NotImplementedError):

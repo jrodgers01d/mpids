@@ -46,11 +46,11 @@ class RowBlock(MPIArray):
         return self._globalshape
 
     def __globalshape(self):
-        axis0_len = self.custom_reduction(MPI.SUM, np.asarray(self.shape[0]))
+        axis0_len = self.__custom_reduction(MPI.SUM, np.asarray(self.shape[0]))
         comm_shape = [int(axis0_len[0])]
         if len(self.shape) == 2:
-                axis_len = self.custom_reduction(MPI.MAX,
-                                                  np.asarray(self.shape[1]))
+                axis_len = self.__custom_reduction(MPI.MAX,
+                                                   np.asarray(self.shape[1]))
                 comm_shape.append(int(axis_len[0]))
 
         self._globalshape = tuple(comm_shape)
@@ -94,7 +94,7 @@ class RowBlock(MPIArray):
     def max(self, **kwargs):
         self.check_reduction_parms(**kwargs)
         local_max = np.asarray(self.base.max(**kwargs))
-        global_max = self.custom_reduction(MPI.MAX, local_max, **kwargs)
+        global_max = self.__custom_reduction(MPI.MAX, local_max, **kwargs)
         return Undistributed(global_max, comm=self.comm)
 
 
@@ -112,7 +112,7 @@ class RowBlock(MPIArray):
     def min(self, **kwargs):
         self.check_reduction_parms(**kwargs)
         local_min = np.asarray(self.base.min(**kwargs))
-        global_min = self.custom_reduction(MPI.MIN, local_min, **kwargs)
+        global_min = self.__custom_reduction(MPI.MIN, local_min, **kwargs)
         return Undistributed(global_min, comm=self.comm)
 
 
@@ -130,10 +130,10 @@ class RowBlock(MPIArray):
         local_square_diff = (self - local_mean)**2
         local_sum_square_diff = np.asarray(local_square_diff.base.sum(**kwargs))
         global_sum_square_diff = \
-            self.custom_reduction(MPI.SUM,
-                                  local_sum_square_diff,
-                                  dtype=local_sum_square_diff.dtype,
-                                  **kwargs)
+            self.__custom_reduction(MPI.SUM,
+                                    local_sum_square_diff,
+                                    dtype=local_sum_square_diff.dtype,
+                                    **kwargs)
         if axis is not None:
             global_std = np.sqrt(
                 global_sum_square_diff * 1. / self.globalshape[axis])
@@ -146,11 +146,11 @@ class RowBlock(MPIArray):
     def sum(self, **kwargs):
         self.check_reduction_parms(**kwargs)
         local_sum = np.asarray(self.base.sum(**kwargs))
-        global_sum = self.custom_reduction(MPI.SUM, local_sum, **kwargs)
+        global_sum = self.__custom_reduction(MPI.SUM, local_sum, **kwargs)
         return Undistributed(global_sum, comm=self.comm)
 
 
-    def custom_reduction(self, operation, local_red, axis=None, dtype=None,
+    def __custom_reduction(self, operation, local_red, axis=None, dtype=None,
                          out=None):
         if dtype is None: dtype = local_red.dtype
 

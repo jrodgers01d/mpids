@@ -249,11 +249,6 @@ class MPIArray(np.ndarray):
         return
 
 
-    def custom_reduction(self, operation, local_red, axis=None,
-                         dtype=None, out=None):
-        raise NotImplementedError("Implement a custom reduction")
-
-
     def collect_data(self):
         """ Collect/Reconstruct distributed array.
 
