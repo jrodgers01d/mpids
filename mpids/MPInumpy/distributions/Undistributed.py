@@ -10,7 +10,6 @@ from mpids.MPInumpy.utils import global_to_local_key
 """
 class Undistributed(MPIArray):
 
-#TODO: Resolve this namespace requirement
     def __getitem__(self, key):
         local_key = global_to_local_key(key,
                                         self.globalshape,

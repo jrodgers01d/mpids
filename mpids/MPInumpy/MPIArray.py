@@ -73,7 +73,10 @@ class MPIArray(np.ndarray):
         self._globalndim = getattr(obj, '_globalndim', None)
 
 
-#TODO: Resolve this namespace requirement
+    def __iter__(self):
+        return self.base.__iter__()
+
+
     def __getitem__(self, key):
         raise NotImplementedError(
             "Implement a custom __getitem__ method")
