@@ -28,9 +28,9 @@ def arange(*args, dtype=None, comm=MPI.COMM_WORLD, root=0, dist='b'):
         If none specified defaults to 0.
     dist : str, list, tuple
         Specified distribution of data among processes.
-        Default value 'b' : Block, *
+        Default value 'b' : Block
         Supported types:
-            'b' : Block, *
+            'b' : Block
             'u' : Undistributed
 
     Returns
@@ -84,9 +84,9 @@ def array(array_data, dtype=None, copy=True, order=None, subok=False, ndmin=0,
         defaults to 0.
     dist : str, list, tuple
         Specified distribution of data among processes.
-        Default value 'b' : Block, *
+        Default value 'b' : Block
         Supported types:
-            'b' : Block, *
+            'b' : Block
             'u' : Undistributed
 
     Returns
@@ -132,9 +132,9 @@ def empty(shape, dtype=np.float64, order='C',
         defaults to 0.
     dist : str, list, tuple
         Specified distribution of data among processes.
-        Default value 'b' : Block, *
+        Default value 'b' : Block
         Supported types:
-            'b' : Block, *
+            'b' : Block
             'u' : Undistributed
 
     Returns
@@ -175,9 +175,9 @@ def ones(shape, dtype=np.float64, order='C',
         defaults to 0.
     dist : str, list, tuple
         Specified distribution of data among processes.
-        Default value 'b' : Block, *
+        Default value 'b' : Block
         Supported types:
-            'b' : Block, *
+            'b' : Block
             'u' : Undistributed
 
     Returns
@@ -218,9 +218,9 @@ def zeros(shape, dtype=np.float64, order='C',
         defaults to 0.
     dist : str, list, tuple
         Specified distribution of data among processes.
-        Default value 'b' : Block, *
+        Default value 'b' : Block
         Supported types:
-            'b' : Block, *
+            'b' : Block
             'u' : Undistributed
 
     Returns

@@ -31,7 +31,7 @@ class ArrayDefaultTest(unittest.TestCase):
         parms['comm'] = MPI.COMM_WORLD
         # Default distribution
         parms['dist'] = 'b'
-        parms['dist_class'] = RowBlock
+        parms['dist_class'] = Block
         return parms
 
 
@@ -98,7 +98,7 @@ class ArangeDefaultTest(unittest.TestCase):
         parms['comm'] = MPI.COMM_WORLD
         # Default distribution
         parms['dist'] = 'b'
-        parms['dist_class'] = RowBlock
+        parms['dist_class'] = Block
         return parms
 
 
@@ -146,7 +146,7 @@ class EmptyDefaultTest(unittest.TestCase):
         parms['comm'] = MPI.COMM_WORLD
         # Default distribution
         parms['dist'] = 'b'
-        parms['dist_class'] = RowBlock
+        parms['dist_class'] = Block
         return parms
 
 
@@ -196,7 +196,7 @@ class OnesDefaultTest(unittest.TestCase):
         parms['comm'] = MPI.COMM_WORLD
         # Default distribution
         parms['dist'] = 'b'
-        parms['dist_class'] = RowBlock
+        parms['dist_class'] = Block
         return parms
 
 
@@ -247,7 +247,7 @@ class ZerosDefaultTest(unittest.TestCase):
         parms['comm'] = MPI.COMM_WORLD
         # Default distribution
         parms['dist'] = 'b'
-        parms['dist_class'] = RowBlock
+        parms['dist_class'] = Block
         return parms
 
 

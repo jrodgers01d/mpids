@@ -144,6 +144,7 @@ class MPIArrayDefaultTest(unittest.TestCase):
         self.assertTrue(isinstance(self.mpi_array.globalndim, int))
         self.assertTrue(isinstance(self.mpi_array.globalshape, tuple))
         self.assertTrue(isinstance(self.mpi_array.globalshape[0], int))
+        self.assertTrue(isinstance(self.mpi_array.globalshape[1], int))
 
         #Replicated numpy.ndarray properties
         self.assertTrue(np.alltrue(self.np_local_array.T == self.mpi_array.T))

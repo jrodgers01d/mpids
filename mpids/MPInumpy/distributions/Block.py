@@ -13,9 +13,9 @@ from mpids.MPInumpy.distributions.Undistributed import Undistributed
 
 
 """
-    RowBlock implementation of MPIArray abstract base class.
+    Block implementation of MPIArray abstract base class.
 """
-class RowBlock(MPIArray):
+class Block(MPIArray):
 
 #TODO: Resolve this namespace requirement
     def __getitem__(self, key):
@@ -46,12 +46,24 @@ class RowBlock(MPIArray):
         return self._globalshape
 
     def __globalshape(self):
-        axis0_len = self.__custom_reduction(MPI.SUM, np.asarray(self.shape[0]))
-        comm_shape = [int(axis0_len[0])]
-        if len(self.shape) == 2:
+        local_ndim = np.asarray(self.ndim, dtype=np.int32)
+        max_ndim = np.empty(1, dtype=np.int32)
+        self.comm.Allreduce(local_ndim, max_ndim, op=MPI.MAX)
+        #Pad local shape with zeros until it matches the global maximum ndim
+        padded_shape = np.pad(self.shape, (0, max_ndim[0] - local_ndim))
+
+        comm_shape = []
+        for axis in range(max_ndim[0]):
+            #Leading partition
+            if axis == 0:
+                axis_len = self.__custom_reduction(MPI.SUM,
+                                                   np.asarray(padded_shape[axis]))
+            else:
+                #Max necessary for resolving empty slicing
                 axis_len = self.__custom_reduction(MPI.MAX,
-                                                   np.asarray(self.shape[1]))
-                comm_shape.append(int(axis_len[0]))
+                                                   np.asarray(padded_shape[axis]))
+
+            comm_shape.append(int(axis_len[0]))
 
         self._globalshape = tuple(comm_shape)
 
@@ -151,13 +163,13 @@ class RowBlock(MPIArray):
 
 
     def __custom_reduction(self, operation, local_red, axis=None, dtype=None,
-                         out=None):
+                           out=None):
         if dtype is None: dtype = local_red.dtype
 
         if axis is None or axis == 0:
             global_red = np.empty(local_red.size, dtype=dtype)
             self.comm.Allreduce(local_red, global_red, op=operation)
-        if axis == 1:
+        else:
             global_red = all_gather_v(local_red, comm=self.comm)
 
         return global_red
@@ -172,7 +184,7 @@ class RowBlock(MPIArray):
         if np.prod(args) != self.globalsize:
             raise ValueError("cannot reshape global array of size",
                              self.globalsize,"into shape", tuple(args))
-#TODO: Clean this nonsense up
+
         local_shape, comm_dims, comm_coord, local_to_global = \
             distribute_shape(args, self.dist, comm=self.comm)
 
@@ -181,7 +193,7 @@ class RowBlock(MPIArray):
                                                        args,
                                                        self.dist,
                                                        comm=self.comm)
-
+        # Get new local data from personalized data exchange
         local_data = all_to_all_v(self, send_counts, recv_counts,
                                   recv_shape=local_shape, comm=self.comm)
 

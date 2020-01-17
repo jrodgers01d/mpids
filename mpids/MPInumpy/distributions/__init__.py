@@ -1,8 +1,8 @@
 from .Undistributed import Undistributed
-from .RowBlock import RowBlock
+from .Block import Block
 
-__all__ = ['Undistributed', 'RowBlock']
+__all__ = ['Undistributed', 'Block']
 
 
-Distribution_Dict = {'b' : RowBlock,
+Distribution_Dict = {'b' : Block,
                      'u' : Undistributed}

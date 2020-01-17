@@ -30,9 +30,9 @@ def determine_local_shape_and_mapping(array_shape, dist, comm_dims, comm_coord):
         Shape of data to distribute.
     dist : str, list, tuple
         Specified distribution of data among processes.
-        Default value 'b' : Block, *
+        Default value 'b' : Block
         Supported types:
-            'b' : Block, *
+            'b' : Block
             'u' : Undistributed
     comm_dims : list, None
         Dimensions of cartesian grid
@@ -122,9 +122,9 @@ def determine_redistribution_counts_from_shape(current_shape, desired_shape,
 #TODO: Rethink the need for dist, it's practically irrevelant here
     dist : str, list, tuple
         Specified distribution of data among processes.
-        Default value 'b' : Block, *
+        Default value 'b' : Block
         Supported types:
-            'b' : Block, *
+            'b' : Block
             'u' : Undistributed
     comm : MPI Communicator, optional
         MPI process communication object.  If none specified
@@ -206,9 +206,9 @@ def distribute_array(array_data, dist, comm=MPI.COMM_WORLD, root=0):
         Array like data to be distributed among processes.
     dist : str, list, tuple
         Specified distribution of data among processes.
-        Default value 'b' : Block, *
+        Default value 'b' : Block
         Supported types:
-            'b' : Block, *
+            'b' : Block
             'u' : Undistributed
     comm : MPI Communicator, optional
         MPI process communication object.  If none specified
@@ -280,9 +280,9 @@ def distribute_shape(shape, dist, comm=MPI.COMM_WORLD, root=0):
         Shape of data to distribute.
     dist : str, list, tuple
         Specified distribution of data among processes.
-        Default value 'b' : Block, *
+        Default value 'b' : Block
         Supported types:
-            'b' : Block, *
+            'b' : Block
             'u' : Undistributed
     comm : MPI Communicator, optional
         MPI process communication object.  If none specified
@@ -332,9 +332,9 @@ def distribution_to_dimensions(distribution, procs):
     ----------
     distribution : str, list, tuple
         Specified distribution of data among processes.
-        Default value 'b' : Block, *
+        Default value 'b' : Block
         Supported types:
-            'b' : Block, *
+            'b' : Block
             'u' : Undistributed
     procs: int
         Size/number of processes in communicator
@@ -468,9 +468,9 @@ def get_comm_dims(procs, dist):
         Size/number of processes in communicator
     dist : str, list, tuple
         Specified distribution of data among processes.
-        Default value 'b' : Block, *
+        Default value 'b' : Block
         Supported types:
-            'b' : Block, *
+            'b' : Block
             'u' : Undistributed
 
     Returns
@@ -599,9 +599,9 @@ def is_undistributed(distribution):
     ----------
     distribution : str, list, tuple
         Specified distribution of data among processes.
-        Default value 'b' : Block, *
+        Default value 'b' : Block
         Supported types:
-            'b' : Block, *
+            'b' : Block
             'u' : Undistributed
 
     Returns
@@ -618,9 +618,9 @@ def is_row_block_distributed(distribution):
     ----------
     distribution : str, list, tuple
         Specified distribution of data among processes.
-        Default value 'b' : Block, *
+        Default value 'b' : Block
         Supported types:
-            'b' : Block, *
+            'b' : Block
             'u' : Undistributed
 
     Returns
@@ -640,9 +640,9 @@ def slice_local_data_and_determine_mapping(array_data, dist, comm_dims, comm_coo
         Array like data to be distributed among processes.
     dist : str, list, tuple
         Specified distribution of data among processes.
-        Default value 'b' : Block, *
+        Default value 'b' : Block
         Supported types:
-            'b' : Block, *
+            'b' : Block
             'u' : Undistributed
     comm_dims : list
         Division of processes in cartesian grid
