@@ -22,13 +22,13 @@ class UtilsDistributionIndependentTest(unittest.TestCase):
 
     def test_distribution_checks(self):
         undist = 'u'
-        row_block = 'b'
+        block = 'b'
 
         self.assertTrue(is_undistributed(undist))
-        self.assertFalse(is_undistributed(row_block))
+        self.assertFalse(is_undistributed(block))
 
-        self.assertTrue(is_row_block_distributed(row_block))
-        self.assertFalse(is_row_block_distributed(undist))
+        self.assertTrue(is_block_distributed(block))
+        self.assertFalse(is_block_distributed(undist))
 
 
     def test_get_block_index(self):

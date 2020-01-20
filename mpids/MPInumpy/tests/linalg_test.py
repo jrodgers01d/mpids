@@ -43,7 +43,7 @@ class LinAlgTest(unittest.TestCase):
             np.matmul(self.np_array_a, self.np_array_b) == \
             mpi_np.matmul(mpi_array_a, self.np_array_b)))
 
-    def test_row_block_distribution_matmul(self):
+    def test_block_distribution_matmul(self):
         rank = self.comm.Get_rank()
         mpi_array_a = mpi_np.array(self.np_array_a, dist='b')
         mpi_array_b = mpi_np.array(self.np_array_b, dist='b')
@@ -54,7 +54,7 @@ class LinAlgTest(unittest.TestCase):
             mpi_np.matmul(mpi_array_a, mpi_array_b)))
 
 
-    def test_under_partitioned_row_block_distribution_matmul(self):
+    def test_under_partitioned_block_distribution_matmul(self):
         #Current version of code will under partition a 2x8 matrix.
         #Want to make sure logic is sound with petsc4py.
         np_8x2_array = self.np_array_a.reshape(8,2)

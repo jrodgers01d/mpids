@@ -23,10 +23,10 @@ def matmul(a, b, out=None, comm=MPI.COMM_WORLD, dist='b'):
     if a.dist == b.dist == 'u':
         return Distribution_Dict[dist](np_matmul(a, b), comm=comm)
 
-    return _row_block_mat_mult(a, b, comm=comm)
+    return _block_mat_mult(a, b, comm=comm)
 
 
-def _row_block_mat_mult(a, b, comm=MPI.COMM_WORLD):
+def _block_mat_mult(a, b, comm=MPI.COMM_WORLD):
     a_global_rows, a_global_cols = a.globalshape
     a_local_rows, a_local_cols = a.shape
     b_global_rows, b_global_cols = b.globalshape

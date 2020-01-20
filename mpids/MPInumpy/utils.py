@@ -16,7 +16,7 @@ __all__ = ['determine_local_shape_and_mapping',
            'determine_global_offset', 'distribute_array', 'distribute_shape',
            'get_block_index', 'get_cart_coords', 'get_comm_dims',
            'global_to_local_key', 'distribution_to_dimensions',
-           'is_undistributed', 'is_row_block_distributed',
+           'is_undistributed', 'is_block_distributed',
            'slice_local_data_and_determine_mapping']
 
 
@@ -345,7 +345,7 @@ def distribution_to_dimensions(distribution, procs):
         Seed for determinging processes per cartesian coordinate
         direction.
     """
-    if is_row_block_distributed(distribution):
+    if is_block_distributed(distribution):
         return 1
     raise InvalidDistributionError(
         'Invalid distribution encountered: {}'.format(distribution))
@@ -611,7 +611,7 @@ def is_undistributed(distribution):
     return distribution == 'u'
 
 
-def is_row_block_distributed(distribution):
+def is_block_distributed(distribution):
     """ Check if distribution is of type row block
 
     Parameters
