@@ -89,7 +89,7 @@ class Undistributed(MPIArray):
 
 
     def reshape(self, *args):
-        if np.prod(args) != self.globalsize:
+        if np.prod(args) != self.globalsize and np.prod(args) > 0:
             raise ValueError("cannot reshape global array of size",
                              self.globalsize,"into shape", tuple(args))
         return self.__class__(self.base.reshape(*args), comm=self.comm)

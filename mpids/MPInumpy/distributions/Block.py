@@ -104,8 +104,11 @@ class Block(MPIArray):
     #Custom reduction method implementations
     def max(self, **kwargs):
         self.check_reduction_parms(**kwargs)
+        axis = kwargs.get('axis')
         local_max = np.asarray(self.base.max(**kwargs))
         global_max = self.__custom_reduction(MPI.MAX, local_max, **kwargs)
+        if self.globalndim > 2 and axis is not None:
+            global_max = self.__higher_dimension_reduction_reshape(global_max, axis)
         return Undistributed(global_max, comm=self.comm)
 
 
@@ -122,8 +125,11 @@ class Block(MPIArray):
 
     def min(self, **kwargs):
         self.check_reduction_parms(**kwargs)
+        axis = kwargs.get('axis')
         local_min = np.asarray(self.base.min(**kwargs))
         global_min = self.__custom_reduction(MPI.MIN, local_min, **kwargs)
+        if self.globalndim > 2 and axis is not None:
+            global_min = self.__higher_dimension_reduction_reshape(global_min, axis)
         return Undistributed(global_min, comm=self.comm)
 
 
@@ -131,12 +137,12 @@ class Block(MPIArray):
         axis = kwargs.get('axis')
         local_mean = self.mean(**kwargs)
 
-        if axis == 1:
-            row_min, row_max = self.local_to_global[0]
-            local_mean = local_mean[row_min: row_max]
-#TODO: Explore np kwarg 'keepdims' to avoid force transpose
-            #Force a transpose
-            local_mean = local_mean.reshape(self.shape[0], 1)
+        if axis is not None and axis > 0:
+            block_min, block_max = self.local_to_global[0]
+            local_mean = local_mean[block_min: block_max]
+            if self.globalndim - 1 == axis:
+                #Force a transpose
+                local_mean = local_mean.reshape(-1, 1)
 
         local_square_diff = (self - local_mean)**2
         local_sum_square_diff = np.asarray(local_square_diff.base.sum(**kwargs))
@@ -146,18 +152,24 @@ class Block(MPIArray):
                                     dtype=local_sum_square_diff.dtype,
                                     **kwargs)
         if axis is not None:
-            global_std = np.sqrt(
-                global_sum_square_diff * 1. / self.globalshape[axis])
+            global_std = \
+                np.sqrt(global_sum_square_diff * 1. / self.globalshape[axis])
         else:
             global_std = np.sqrt(global_sum_square_diff * 1. / self.globalsize)
+
+        if self.globalndim > 2 and axis is not None:
+            global_std = self.__higher_dimension_reduction_reshape(global_std, axis)
 
         return Undistributed(global_std, comm=self.comm)
 
 
     def sum(self, **kwargs):
         self.check_reduction_parms(**kwargs)
+        axis = kwargs.get('axis')
         local_sum = np.asarray(self.base.sum(**kwargs))
         global_sum = self.__custom_reduction(MPI.SUM, local_sum, **kwargs)
+        if self.globalndim > 2 and axis is not None:
+            global_sum = self.__higher_dimension_reduction_reshape(global_sum, axis)
         return Undistributed(global_sum, comm=self.comm)
 
 
@@ -172,6 +184,11 @@ class Block(MPIArray):
             global_red = all_gather_v(local_red, comm=self.comm)
 
         return global_red
+
+
+    def __higher_dimension_reduction_reshape(self, global_reduction, axis):
+        reduced_shape = np.delete(np.asarray(self.globalshape), axis)
+        return global_reduction.reshape(reduced_shape)
 
 
     def collect_data(self):
