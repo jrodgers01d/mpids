@@ -1,5 +1,7 @@
 import numpy as np
 from mpi4py import MPI
+from mpids.MPInumpy.errors import NotSupportedError
+from mpids.MPInumpy.distributions.Undistributed import Undistributed
 from mpids.MPInumpy.tests.MPIArray_test import MPIArrayDefaultTest
 
 
@@ -119,11 +121,16 @@ class MPIArray4DDefaultTest(MPIArrayDefaultTest):
 
 
     def test_custom_std_higher_dim_method(self):
-        pass
+        if isinstance(self.mpi_array, Undistributed):
+            #Std along specified axies
+            self.assertTrue(np.alltrue(self.np_array.std(axis=2) == self.mpi_array.std(axis=2)))
+            self.assertTrue(np.alltrue(self.np_array.std(axis=3) == self.mpi_array.std(axis=3)))
+        else:
 #TODO: Need to revisit for higher dim
-        #Std along specified axies
-        # self.assertTrue(np.alltrue(self.np_array.std(axis=2) == self.mpi_array.std(axis=2)))
-        # self.assertTrue(np.alltrue(self.np_array.std(axis=3) == self.mpi_array.std(axis=3)))
+            with self.assertRaises(NotSupportedError):
+                self.mpi_array.std(axis=2)
+            with self.assertRaises(NotSupportedError):
+                self.mpi_array.std(axis=3)
 
 
     def test_custom_sum_higher_dim_method(self):
@@ -199,12 +206,19 @@ class MPIArray5DDefaultTest(MPIArrayDefaultTest):
 
 
     def test_custom_std_higher_dim_method(self):
-        pass
+        if isinstance(self.mpi_array, Undistributed):
+            #Std along specified axies
+            self.assertTrue(np.alltrue(self.np_array.std(axis=2) == self.mpi_array.std(axis=2)))
+            self.assertTrue(np.alltrue(self.np_array.std(axis=3) == self.mpi_array.std(axis=3)))
+            self.assertTrue(np.alltrue(self.np_array.std(axis=4) == self.mpi_array.std(axis=4)))
+        else:
 #TODO: Need to revisit for higher dim
-        #Std along specified axies
-        # self.assertTrue(np.alltrue(self.np_array.std(axis=2) == self.mpi_array.std(axis=2)))
-        # self.assertTrue(np.alltrue(self.np_array.std(axis=3) == self.mpi_array.std(axis=3)))
-        # self.assertTrue(np.alltrue(self.np_array.std(axis=4) == self.mpi_array.std(axis=4)))
+            with self.assertRaises(NotSupportedError):
+                self.mpi_array.std(axis=2)
+            with self.assertRaises(NotSupportedError):
+                self.mpi_array.std(axis=3)
+            with self.assertRaises(NotSupportedError):
+                self.mpi_array.std(axis=4)
 
 
     def test_custom_sum_higher_dim_method(self):

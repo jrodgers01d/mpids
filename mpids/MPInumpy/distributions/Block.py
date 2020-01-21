@@ -2,7 +2,7 @@ from mpi4py import MPI
 import numpy as np
 
 from mpids.MPInumpy.MPIArray import MPIArray
-from mpids.MPInumpy.errors import ValueError
+from mpids.MPInumpy.errors import NotSupportedError, ValueError
 from mpids.MPInumpy.utils import determine_redistribution_counts_from_shape, \
                                  distribute_shape,                           \
                                  format_indexed_result,                      \
@@ -134,8 +134,13 @@ class Block(MPIArray):
 
 
     def std(self, **kwargs):
-        axis = kwargs.get('axis')
         local_mean = self.mean(**kwargs)
+
+        axis = kwargs.get('axis')
+#TODO: Need to revisit for higher dim
+        if axis is not None and self.globalndim > 3 and axis > 1:
+            raise NotSupportedError(
+            "axis 0 and 1 only currently supported for 4+ dimensional matrices.")
 
         if axis is not None and axis > 0:
             block_min, block_max = self.local_to_global[0]
