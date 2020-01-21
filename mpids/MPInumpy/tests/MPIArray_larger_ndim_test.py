@@ -1,8 +1,5 @@
-import unittest
 import numpy as np
 from mpi4py import MPI
-import mpids.MPInumpy as mpi_np
-from mpids.MPInumpy.distributions.Undistributed import Undistributed
 from mpids.MPInumpy.tests.MPIArray_test import MPIArrayDefaultTest
 
 
