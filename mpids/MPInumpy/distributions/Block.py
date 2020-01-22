@@ -41,7 +41,7 @@ class Block(MPIArray):
     @property
     def globalshape(self):
         if self._globalshape is None:
-                self.__globalshape()
+            self.__globalshape()
         return self._globalshape
 
     def __globalshape(self):
@@ -70,7 +70,7 @@ class Block(MPIArray):
     @property
     def globalsize(self):
         if self._globalsize is None:
-                self.__globalsize()
+            self.__globalsize()
         return self._globalsize
 
     def __globalsize(self):
@@ -82,7 +82,7 @@ class Block(MPIArray):
     @property
     def globalnbytes(self):
         if self._globalnbytes is None:
-                self.__globalnbytes()
+            self.__globalnbytes()
         return self._globalnbytes
 
     def __globalnbytes(self):
