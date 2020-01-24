@@ -2,6 +2,7 @@ from mpi4py import MPI
 import numpy as np
 
 from mpids.MPInumpy.distributions import Distribution_Dict
+from mpids.MPInumpy.errors import TypeError, ValueError
 from mpids.MPInumpy.utils import distribute_array, distribute_shape
 
 __all__ = ['arange', 'array', 'empty', 'ones', 'zeros']
@@ -111,7 +112,7 @@ def array(array_data, dtype=None, copy=True, order=None, subok=False, ndmin=0,
                                    local_to_global=local_to_global)
 
 
-def empty(shape, dtype=np.float64, order='C',
+def empty(*args, dtype=np.float64, order='C',
           comm=MPI.COMM_WORLD, root=0, dist='b'):
     """ Create an empty MPInumpyArray Object, without initializing entries,
         on all procs in comm. See docstring for mpids.MPInumpy.MPIArray
@@ -142,6 +143,7 @@ def empty(shape, dtype=np.float64, order='C',
     MPIArray : numpy.ndarray sub class
         Distributed among processes with unintialized values.
     """
+    shape = _validate_shape(*args)
     local_shape, comm_dims, comm_coord, local_to_global = \
         distribute_shape(shape, dist, comm=comm, root=root)
 
@@ -154,7 +156,7 @@ def empty(shape, dtype=np.float64, order='C',
                                    local_to_global=local_to_global)
 
 
-def ones(shape, dtype=np.float64, order='C',
+def ones(*args, dtype=np.float64, order='C',
          comm=MPI.COMM_WORLD, root=0, dist='b'):
     """ Create an MPInumpyArray Object with entries filled with ones
         on all procs in comm. See docstring for mpids.MPInumpy.MPIArray
@@ -185,6 +187,7 @@ def ones(shape, dtype=np.float64, order='C',
     MPIArray : numpy.ndarray sub class
         Distributed among processes with values all equal to one.
     """
+    shape = _validate_shape(*args)
     local_shape, comm_dims, comm_coord, local_to_global = \
         distribute_shape(shape, dist, comm=comm, root=root)
 
@@ -197,7 +200,7 @@ def ones(shape, dtype=np.float64, order='C',
                                    local_to_global=local_to_global)
 
 
-def zeros(shape, dtype=np.float64, order='C',
+def zeros(*args, dtype=np.float64, order='C',
           comm=MPI.COMM_WORLD, root=0, dist='b'):
     """ Create an MPInumpyArray Object with entries filled with zeros
         on all procs in comm. See docstring for mpids.MPInumpy.MPIArray
@@ -228,6 +231,7 @@ def zeros(shape, dtype=np.float64, order='C',
     MPIArray : numpy.ndarray sub class
         Distributed among processes with values all equal to zero.
     """
+    shape = _validate_shape(*args)
     local_shape, comm_dims, comm_coord, local_to_global = \
         distribute_shape(shape, dist, comm=comm, root=root)
 
@@ -238,3 +242,22 @@ def zeros(shape, dtype=np.float64, order='C',
                                    comm_dims=comm_dims,
                                    comm_coord=comm_coord,
                                    local_to_global=local_to_global)
+
+
+def _validate_shape(*args):
+    """ Helper method for shape based array creation routines.
+        Verifies user specified shape is either int or tuple of ints
+    """
+    if len(args) != 1:
+        raise TypeError('only positional argument should be shape.')
+    shape = args[0]
+    #Special case for non-root ranks/processes
+    if shape is None:
+        return shape
+    if isinstance(shape, int):
+        return shape
+    if isinstance(shape, tuple):
+        if all([isinstance(dim, int) for dim in shape]):
+            return shape
+
+    raise ValueError('shape must be int or tuple of ints.')

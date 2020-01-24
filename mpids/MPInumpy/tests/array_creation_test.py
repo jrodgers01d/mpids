@@ -1,9 +1,64 @@
 import unittest
+import unittest.mock as mock
 import numpy as np
 from mpi4py import MPI
 import mpids.MPInumpy as mpi_np
 from mpids.MPInumpy.distributions import *
-from mpids.MPInumpy.errors import InvalidDistributionError
+from mpids.MPInumpy.errors import InvalidDistributionError, \
+                                  TypeError,                \
+                                  ValueError
+from mpids.MPInumpy.array_creation import _validate_shape
+
+class ValidateShapeTest(unittest.TestCase):
+
+    def test_int_as_shape(self):
+        self.assertEqual(1, _validate_shape(1))
+        self.assertEqual(10, _validate_shape(10))
+        self.assertEqual(100, _validate_shape(100))
+        self.assertEqual(9999, _validate_shape(9999))
+
+
+    def test_non_int_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            _validate_shape(1.0)
+
+
+    def test_tuple_as_shape(self):
+        self.assertEqual((1, 2), _validate_shape((1, 2)))
+        self.assertEqual((1, 2, 3), _validate_shape((1, 2, 3)))
+        self.assertEqual((1, 2, 3, 4), _validate_shape((1, 2, 3, 4)))
+
+
+    def test_non_tuple_of_ints_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            _validate_shape((1.0, 2))
+        with self.assertRaises(ValueError):
+            _validate_shape((1, 2.0))
+
+
+    def test_series_of_ints_raises_type_error(self):
+        with self.assertRaises(TypeError):
+            _validate_shape(1, 2)
+        with self.assertRaises(TypeError):
+            _validate_shape(1, 2, 3)
+        with self.assertRaises(TypeError):
+            _validate_shape(1, 2, 3, 4)
+
+
+    def test_series_of_tuples_raises_type_error(self):
+        with self.assertRaises(TypeError):
+            _validate_shape((1,), (2,))
+        with self.assertRaises(TypeError):
+            _validate_shape((1, 2), (3,))
+        with self.assertRaises(TypeError):
+            _validate_shape((1,), (2, 3))
+
+
+    def test_special_case_of_None_provided_by_non_root_rank(self):
+        rank = MPI.COMM_WORLD.Get_rank()
+        shape = (1, 2) if rank == 0 else None
+        self.assertEqual(shape, _validate_shape(shape))
+
 
 class ArrayCreationErrorsPropegatedTest(unittest.TestCase):
 
@@ -176,6 +231,25 @@ class EmptyDefaultTest(unittest.TestCase):
             self.assertEqual(mpi_np_empty.dist, self.dist)
 
 
+    def test_validate_shape_called(self):
+        shape_int = 1
+        with mock.patch('mpids.MPInumpy.array_creation._validate_shape') as mock_obj_int:
+            mpi_np.empty(shape_int)
+        mock_obj_int.assert_called_with(shape_int)
+
+        shape_tuple = (1, 2)
+        with mock.patch('mpids.MPInumpy.array_creation._validate_shape') as mock_obj_tuple:
+            mpi_np.empty(shape_tuple)
+        mock_obj_tuple.assert_called_with(shape_tuple)
+
+
+    def test_validate_shape_errors_propegated(self):
+        with mock.patch('mpids.MPInumpy.array_creation._validate_shape',
+                        side_effect = Exception('Mock Execption')) as mock_obj:
+            with self.assertRaises(Exception):
+                mpi_np.empty(1)
+
+
 class EmptyUndistributedTest(EmptyDefaultTest):
 
     def create_setUp_parms(self):
@@ -227,6 +301,25 @@ class OnesDefaultTest(unittest.TestCase):
             self.assertTrue(np.alltrue((mpi_np_ones) == (1)))
 
 
+    def test_validate_shape_called(self):
+        shape_int = 1
+        with mock.patch('mpids.MPInumpy.array_creation._validate_shape') as mock_obj_int:
+            mpi_np.ones(shape_int)
+        mock_obj_int.assert_called_with(shape_int)
+
+        shape_tuple = (1, 2)
+        with mock.patch('mpids.MPInumpy.array_creation._validate_shape') as mock_obj_tuple:
+            mpi_np.ones(shape_tuple)
+        mock_obj_tuple.assert_called_with(shape_tuple)
+
+
+    def test_validate_shape_errors_propegated(self):
+        with mock.patch('mpids.MPInumpy.array_creation._validate_shape',
+                        side_effect = Exception('Mock Execption')) as mock_obj:
+            with self.assertRaises(Exception):
+                mpi_np.ones(1)
+
+
 class OnesUndistributedTest(OnesDefaultTest):
 
     def create_setUp_parms(self):
@@ -276,6 +369,25 @@ class ZerosDefaultTest(unittest.TestCase):
             self.assertEqual(mpi_np_zeros.comm, self.comm)
             self.assertEqual(mpi_np_zeros.dist, self.dist)
             self.assertTrue(np.alltrue((mpi_np_zeros) == (0)))
+
+
+    def test_validate_shape_called(self):
+        shape_int = 1
+        with mock.patch('mpids.MPInumpy.array_creation._validate_shape') as mock_obj_int:
+            mpi_np.zeros(shape_int)
+        mock_obj_int.assert_called_with(shape_int)
+
+        shape_tuple = (1, 2)
+        with mock.patch('mpids.MPInumpy.array_creation._validate_shape') as mock_obj_tuple:
+            mpi_np.zeros(shape_tuple)
+        mock_obj_tuple.assert_called_with(shape_tuple)
+
+
+    def test_validate_shape_errors_propegated(self):
+        with mock.patch('mpids.MPInumpy.array_creation._validate_shape',
+                        side_effect = Exception('Mock Execption')) as mock_obj:
+            with self.assertRaises(Exception):
+                mpi_np.zeros(1)
 
 
 class ZerosUndistributedTest(ZerosDefaultTest):
