@@ -246,7 +246,8 @@ def zeros(*args, dtype=np.float64, order='C',
 
 def _validate_shape(*args):
     """ Helper method for shape based array creation routines.
-        Verifies user specified shape is either int or tuple of ints
+        Verifies user specified shape is either int or tuple of ints.
+        Additional work in case of in is to format it for upcoming broadcast.
     """
     if len(args) != 1:
         raise TypeError('only positional argument should be shape.')
@@ -255,7 +256,7 @@ def _validate_shape(*args):
     if shape is None:
         return shape
     if isinstance(shape, int):
-        return shape
+        return (shape,)
     if isinstance(shape, tuple):
         if all([isinstance(dim, int) for dim in shape]):
             return shape

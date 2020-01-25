@@ -12,10 +12,10 @@ from mpids.MPInumpy.array_creation import _validate_shape
 class ValidateShapeTest(unittest.TestCase):
 
     def test_int_as_shape(self):
-        self.assertEqual(1, _validate_shape(1))
-        self.assertEqual(10, _validate_shape(10))
-        self.assertEqual(100, _validate_shape(100))
-        self.assertEqual(9999, _validate_shape(9999))
+        self.assertEqual((1,), _validate_shape(1))
+        self.assertEqual((10,), _validate_shape(10))
+        self.assertEqual((100,), _validate_shape(100))
+        self.assertEqual((9999,), _validate_shape(9999))
 
 
     def test_non_int_raises_value_error(self):
@@ -197,7 +197,8 @@ class EmptyDefaultTest(unittest.TestCase):
 
     def create_setUp_parms(self):
         parms = {}
-        parms['shape'] = (5, 4)
+        parms['int_shape'] = 4
+        parms['tuple_shape'] = (5, 4)
         parms['comm'] = MPI.COMM_WORLD
         # Default distribution
         parms['dist'] = 'b'
@@ -207,7 +208,8 @@ class EmptyDefaultTest(unittest.TestCase):
 
     def setUp(self):
         parms = self.create_setUp_parms()
-        self.shape = parms['shape']
+        self.int_shape = parms['int_shape']
+        self.tuple_shape = parms['tuple_shape']
         self.comm = parms['comm']
         self.dist = parms['dist']
         self.dist_class = parms['dist_class']
@@ -215,12 +217,28 @@ class EmptyDefaultTest(unittest.TestCase):
         self.size = self.comm.Get_size()
 
 
-    def test_return_behavior_from_all_ranks(self):
+    def test_return_behavior_from_all_ranks_with_int_shape(self):
         for root in range(self.size):
             shape = None
             self.assertTrue(shape is None)
             if self.rank == root:
-                shape = self.shape
+                shape = self.int_shape
+            mpi_np_empty = mpi_np.empty(shape,
+                                        comm=self.comm,
+                                        root=root,
+                                        dist=self.dist)
+            self.assertTrue(isinstance(mpi_np_empty, mpi_np.MPIArray))
+            self.assertTrue(isinstance(mpi_np_empty, self.dist_class))
+            self.assertEqual(mpi_np_empty.comm, self.comm)
+            self.assertEqual(mpi_np_empty.dist, self.dist)
+
+
+    def test_return_behavior_from_all_ranks_with_tuple_shape(self):
+        for root in range(self.size):
+            shape = None
+            self.assertTrue(shape is None)
+            if self.rank == root:
+                shape = self.tuple_shape
             mpi_np_empty = mpi_np.empty(shape,
                                         comm=self.comm,
                                         root=root,
@@ -254,7 +272,8 @@ class EmptyUndistributedTest(EmptyDefaultTest):
 
     def create_setUp_parms(self):
         parms = {}
-        parms['shape'] = (5, 4)
+        parms['int_shape'] = 4
+        parms['tuple_shape'] = (5, 4)
         parms['comm'] = MPI.COMM_WORLD
         # Undistributed distribution
         parms['dist'] = 'u'
@@ -266,7 +285,8 @@ class OnesDefaultTest(unittest.TestCase):
 
     def create_setUp_parms(self):
         parms = {}
-        parms['shape'] = (5, 4)
+        parms['int_shape'] = 4
+        parms['tuple_shape'] = (5, 4)
         parms['comm'] = MPI.COMM_WORLD
         # Default distribution
         parms['dist'] = 'b'
@@ -276,7 +296,8 @@ class OnesDefaultTest(unittest.TestCase):
 
     def setUp(self):
         parms = self.create_setUp_parms()
-        self.shape = parms['shape']
+        self.int_shape = parms['int_shape']
+        self.tuple_shape = parms['tuple_shape']
         self.comm = parms['comm']
         self.dist = parms['dist']
         self.dist_class = parms['dist_class']
@@ -284,12 +305,29 @@ class OnesDefaultTest(unittest.TestCase):
         self.size = self.comm.Get_size()
 
 
-    def test_return_behavior_from_all_ranks(self):
+    def test_return_behavior_from_all_ranks_with_int_shape(self):
         for root in range(self.size):
             shape = None
             self.assertTrue(shape is None)
             if self.rank == root:
-                shape = self.shape
+                shape = self.int_shape
+            mpi_np_ones = mpi_np.ones(shape,
+                                      comm=self.comm,
+                                      root=root,
+                                      dist=self.dist)
+            self.assertTrue(isinstance(mpi_np_ones, mpi_np.MPIArray))
+            self.assertTrue(isinstance(mpi_np_ones, self.dist_class))
+            self.assertEqual(mpi_np_ones.comm, self.comm)
+            self.assertEqual(mpi_np_ones.dist, self.dist)
+            self.assertTrue(np.alltrue((mpi_np_ones) == (1)))
+
+
+    def test_return_behavior_from_all_ranks_with_tuple_shape(self):
+        for root in range(self.size):
+            shape = None
+            self.assertTrue(shape is None)
+            if self.rank == root:
+                shape = self.tuple_shape
             mpi_np_ones = mpi_np.ones(shape,
                                       comm=self.comm,
                                       root=root,
@@ -324,7 +362,8 @@ class OnesUndistributedTest(OnesDefaultTest):
 
     def create_setUp_parms(self):
         parms = {}
-        parms['shape'] = (5, 4)
+        parms['int_shape'] = 4
+        parms['tuple_shape'] = (5, 4)
         parms['comm'] = MPI.COMM_WORLD
         # Undistributed distribution
         parms['dist'] = 'u'
@@ -336,7 +375,8 @@ class ZerosDefaultTest(unittest.TestCase):
 
     def create_setUp_parms(self):
         parms = {}
-        parms['shape'] = (5, 4)
+        parms['int_shape'] = 4
+        parms['tuple_shape'] = (5, 4)
         parms['comm'] = MPI.COMM_WORLD
         # Default distribution
         parms['dist'] = 'b'
@@ -346,7 +386,8 @@ class ZerosDefaultTest(unittest.TestCase):
 
     def setUp(self):
         parms = self.create_setUp_parms()
-        self.shape = parms['shape']
+        self.int_shape = parms['int_shape']
+        self.tuple_shape = parms['tuple_shape']
         self.comm = parms['comm']
         self.dist = parms['dist']
         self.dist_class = parms['dist_class']
@@ -354,12 +395,29 @@ class ZerosDefaultTest(unittest.TestCase):
         self.size = self.comm.Get_size()
 
 
-    def test_return_behavior_from_all_ranks(self):
+    def test_return_behavior_from_all_ranks_with_int_shape(self):
         for root in range(self.size):
             shape = None
             self.assertTrue(shape is None)
             if self.rank == root:
-                shape = self.shape
+                shape = self.int_shape
+            mpi_np_zeros = mpi_np.zeros(shape,
+                                        comm=self.comm,
+                                        root=root,
+                                        dist=self.dist)
+            self.assertTrue(isinstance(mpi_np_zeros, mpi_np.MPIArray))
+            self.assertTrue(isinstance(mpi_np_zeros, self.dist_class))
+            self.assertEqual(mpi_np_zeros.comm, self.comm)
+            self.assertEqual(mpi_np_zeros.dist, self.dist)
+            self.assertTrue(np.alltrue((mpi_np_zeros) == (0)))
+
+
+    def test_return_behavior_from_all_ranks_with_tuple_shape(self):
+        for root in range(self.size):
+            shape = None
+            self.assertTrue(shape is None)
+            if self.rank == root:
+                shape = self.tuple_shape
             mpi_np_zeros = mpi_np.zeros(shape,
                                         comm=self.comm,
                                         root=root,
@@ -394,7 +452,8 @@ class ZerosUndistributedTest(ZerosDefaultTest):
 
     def create_setUp_parms(self):
         parms = {}
-        parms['shape'] = (5, 4)
+        parms['int_shape'] = 4
+        parms['tuple_shape'] = (5, 4)
         parms['comm'] = MPI.COMM_WORLD
         # Undistributed distribution
         parms['dist'] = 'u'
