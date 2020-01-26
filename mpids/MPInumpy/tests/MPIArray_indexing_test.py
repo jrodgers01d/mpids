@@ -2,7 +2,8 @@ import unittest
 import numpy as np
 from mpi4py import MPI
 import mpids.MPInumpy as mpi_np
-from mpids.MPInumpy.errors import IndexError, NotSupportedError
+
+from mpids.MPInumpy.errors import NotSupportedError
 from mpids.MPInumpy.distributions.Undistributed import Undistributed
 
 class MPIArrayIndexingDefaultTest(unittest.TestCase):

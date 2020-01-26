@@ -7,9 +7,7 @@ from mpids.MPInumpy.utils import format_indexed_result,     \
                                  _global_to_local_key_int,   \
                                  _global_to_local_key_slice, \
                                  _global_to_local_key_tuple
-from mpids.MPInumpy.errors import IndexError, InvalidDistributionError, \
-                                  NotSupportedError
-
+from mpids.MPInumpy.errors import InvalidDistributionError, NotSupportedError
 
 class UtilsDistributionIndependentTest(unittest.TestCase):
 

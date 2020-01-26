@@ -1,9 +1,7 @@
 from mpi4py import MPI
 import numpy as np
 
-from mpids.MPInumpy.errors import IndexError, InvalidDistributionError, \
-                                  NotSupportedError
-
+from mpids.MPInumpy.errors import InvalidDistributionError,  NotSupportedError
 from mpids.MPInumpy.mpi_utils import all_gather_v,                \
                                      all_to_all,                  \
                                      broadcast_array,             \

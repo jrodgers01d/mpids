@@ -14,6 +14,7 @@ class MPIArrayIteratorDefaultTest(unittest.TestCase):
         parms['data'] = np.arange(size)
         return parms
 
+
     def setUp(self):
         parms = self.create_setUp_parms()
         self.dist = parms.get('dist')
@@ -27,7 +28,7 @@ class MPIArrayIteratorDefaultTest(unittest.TestCase):
         for val in self.mpi_array:
             self.assertEqual(val, self.rank)
 
-    
+
     def test_enumerate_iteration(self):
         for zero, val in enumerate(self.mpi_array):
             self.assertEqual(zero, 0)
