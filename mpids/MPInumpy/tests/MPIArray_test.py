@@ -1,4 +1,5 @@
 import unittest
+import warnings
 import numpy as np
 from mpi4py import MPI
 import mpids.MPInumpy as mpi_np
@@ -172,6 +173,9 @@ class MPIArrayDefaultTest(unittest.TestCase):
 
 
     def test_dunder_binary_operations(self):
+        #Older versions of numpy will throw RuntimeWarning's for power operations
+        warnings.simplefilter('ignore', category=RuntimeWarning)
+
         self.assertTrue(np.alltrue((self.np_local_array + 2) == (self.mpi_array + 2)))
         self.assertTrue(np.alltrue((3 + self.np_local_array) == (3 + self.mpi_array)))
         self.assertTrue(np.alltrue((self.np_local_array - 2) == (self.mpi_array - 2)))

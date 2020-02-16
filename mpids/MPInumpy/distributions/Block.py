@@ -49,7 +49,9 @@ class Block(MPIArray):
         max_ndim = np.empty(1, dtype=np.int32)
         self.comm.Allreduce(local_ndim, max_ndim, op=MPI.MAX)
         #Pad local shape with zeros until it matches the global maximum ndim
-        padded_shape = np.pad(self.shape, (0, max_ndim[0] - local_ndim))
+        padded_shape = np.pad(self.shape,
+                              (0, max_ndim[0] - local_ndim),
+                              mode='constant')
 
         comm_shape = []
         for axis in range(max_ndim[0]):

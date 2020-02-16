@@ -9,4 +9,4 @@
 module load mpi4py;
 
 paver clean;
-mpiexec -n 4 paver test_mpinumpy;
+mpiexec -n 4 paver test_mpinumpy > mpids_crill_unit.out 2>&1;
