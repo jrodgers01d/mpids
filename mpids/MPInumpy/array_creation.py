@@ -27,7 +27,7 @@ def arange(*args, dtype=None, comm=MPI.COMM_WORLD, root=0, dist='b'):
     root : int, optional
         Rank of root process that has the global start, stop, step information.
         If none specified defaults to 0.
-    dist : str, list, tuple
+    dist : str
         Specified distribution of data among processes.
         Default value 'b' : Block
         Supported types:
@@ -83,7 +83,7 @@ def array(array_data, dtype=None, copy=True, order=None, subok=False, ndmin=0,
     root : int, optional
         Rank of root process that has the global array data. If none specified
         defaults to 0.
-    dist : str, list, tuple
+    dist : str
         Specified distribution of data among processes.
         Default value 'b' : Block
         Supported types:
@@ -131,7 +131,7 @@ def empty(*args, dtype=np.float64, order='C',
     root : int, optional
         Rank of root process that has the global shape data. If none specified
         defaults to 0.
-    dist : str, list, tuple
+    dist : str
         Specified distribution of data among processes.
         Default value 'b' : Block
         Supported types:
@@ -175,7 +175,7 @@ def ones(*args, dtype=np.float64, order='C',
     root : int, optional
         Rank of root process that has the global shape data. If none specified
         defaults to 0.
-    dist : str, list, tuple
+    dist : str
         Specified distribution of data among processes.
         Default value 'b' : Block
         Supported types:
@@ -219,7 +219,7 @@ def zeros(*args, dtype=np.float64, order='C',
     root : int, optional
         Rank of root process that has the global shape data. If none specified
         defaults to 0.
-    dist : str, list, tuple
+    dist : str
         Specified distribution of data among processes.
         Default value 'b' : Block
         Supported types:

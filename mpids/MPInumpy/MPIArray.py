@@ -115,27 +115,72 @@ class MPIArray(np.ndarray):
     #Unique properties to MPIArray
     @property
     def dist(self):
+        """ Specified distribution of data among processes.
+
+        Returns
+        -------
+        dist : str
+            Default value 'b' : Block
+            Supported types:
+                'b' : Block
+                'u' : Undistributed
+        """
         raise NotImplementedError("Define a distribution")
 
 
     @property
     def globalshape(self):
+        """ Combined shape of distributed array.
+
+        Returns
+        -------
+        globalshape : tuple
+        """
         raise NotImplementedError("Define a globalshape implmentation")
 
 
     @property
     def globalsize(self):
+        """ Combined size of distributed array.
+
+        Returns
+        -------
+        globalsize : int
+        """
         raise NotImplementedError("Define a globalsize implmentation")
 
 
     @property
     def globalnbytes(self):
+        """ Combined number of bytes of distributed array.
+
+        Returns
+        -------
+        globalnbytes : int
+        """
         raise NotImplementedError("Define a globalnbytes implmentation")
 
 
     @property
     def globalndim(self):
+        """ Combined number of dimensions of distributed array.
+
+        Returns
+        -------
+        globalndim : int
+        """
         raise NotImplementedError("Define a globalndim implmentation")
+
+
+    @property
+    def local(self):
+        """ Base ndarray object local to each process.
+
+        Returns
+        -------
+        MPIArray.base : numpy.ndarray
+        """
+        return self.base
 
 
     #Custom reduction method implementations

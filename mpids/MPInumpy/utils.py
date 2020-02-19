@@ -26,7 +26,7 @@ def determine_local_shape_and_mapping(array_shape, dist, comm_dims, comm_coord):
     ----------
     array_shape : int, tuple of int
         Shape of data to distribute.
-    dist : str, list, tuple
+    dist : str
         Specified distribution of data among processes.
         Default value 'b' : Block
         Supported types:
@@ -107,6 +107,7 @@ def determine_global_offset(index, global_shape):
     return int(global_offset)
 
 
+#TODO: Rethink the need for dist, it's practically irrevelant here
 def determine_redistribution_counts_from_shape(current_shape, desired_shape,
                                                dist, comm=MPI.COMM_WORLD):
     """ Determine information required to redistribute distributed array.
@@ -117,8 +118,7 @@ def determine_redistribution_counts_from_shape(current_shape, desired_shape,
         Current global shape of distributed array.
     desired_shape : int, tuple of int
         Global shape array data should be mapped to.
-#TODO: Rethink the need for dist, it's practically irrevelant here
-    dist : str, list, tuple
+    dist : str
         Specified distribution of data among processes.
         Default value 'b' : Block
         Supported types:
@@ -202,7 +202,7 @@ def distribute_array(array_data, dist, comm=MPI.COMM_WORLD, root=0):
     ----------
     array_data : array_like
         Array like data to be distributed among processes.
-    dist : str, list, tuple
+    dist : str
         Specified distribution of data among processes.
         Default value 'b' : Block
         Supported types:
@@ -276,7 +276,7 @@ def distribute_shape(shape, dist, comm=MPI.COMM_WORLD, root=0):
     ----------
     array_shape : int, tuple of int
         Shape of data to distribute.
-    dist : str, list, tuple
+    dist : str
         Specified distribution of data among processes.
         Default value 'b' : Block
         Supported types:
@@ -464,7 +464,7 @@ def get_comm_dims(procs, dist):
     ----------
     procs: int
         Size/number of processes in communicator
-    dist : str, list, tuple
+    dist : str
         Specified distribution of data among processes.
         Default value 'b' : Block
         Supported types:
@@ -490,7 +490,7 @@ def global_to_local_key(global_key, globalshape, local_to_global_dict):
     global_key : int, slice, tuple
         Selection indices, i.e. keys to object access dunder methods
         __getitem__, __setitem__, ...
-    globalshape : list, tuple
+    globalshape : tuple
         Combined shape of distributed array.
     local_to_global_dict : dictionary
         Dictionary specifying global index start/end of data by axis.
@@ -636,7 +636,7 @@ def slice_local_data_and_determine_mapping(array_data, dist, comm_dims, comm_coo
     ----------
     array_data : array_like
         Array like data to be distributed among processes.
-    dist : str, list, tuple
+    dist : str
         Specified distribution of data among processes.
         Default value 'b' : Block
         Supported types:
