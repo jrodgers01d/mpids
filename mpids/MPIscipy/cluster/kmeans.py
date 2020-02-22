@@ -56,10 +56,10 @@ def kmeans(observations, k, thresh=1e-5):
     error = np.array(np.inf)
     #Buffer for cluster centers
     centroids = \
-        mpi_np.empty((k, num_features), dtype=np.float64, comm=comm, dist='u')
+        mpi_np.zeros((k, num_features), dtype=np.float64, comm=comm, dist='u')
     #Temp buffer for cluster centers
     temp_centroids = \
-        mpi_np.empty((k, num_features), dtype=np.float64, comm=comm, dist='u')
+        mpi_np.zeros((k, num_features), dtype=np.float64, comm=comm, dist='u')
     #Counts number of points belonging to cluster
     counts = np.zeros(k, dtype=np.int64)
     #One label for each observation
@@ -77,10 +77,6 @@ def kmeans(observations, k, thresh=1e-5):
         old_error = np.copy(error)
         error.fill(0)
 
-        #Reset previous counts/temp temp_centroids
-        counts.fill(0)
-        temp_centroids.fill(0)
-
         #Identify closest cluster to each point
         for i in range(local_observations):
             min_distance = np.inf
@@ -89,24 +85,29 @@ def kmeans(observations, k, thresh=1e-5):
                 if distance < min_distance:
                     labels.local[i] = j
                     min_distance = distance
+            obs_assigned_cluster = int(labels.local[i])
             #Update size and temp centroids of destination cluster
-            temp_centroids[int(labels.local[i])] += observations.local[i]
-            counts[int(labels.local[i])] += 1
+            temp_centroids[obs_assigned_cluster] += observations.local[i]
+            counts[obs_assigned_cluster] += 1
             #Update standard error
             error += min_distance
 
         comm.Allreduce(MPI.IN_PLACE, temp_centroids, op=MPI.SUM)
         comm.Allreduce(MPI.IN_PLACE, counts, op=MPI.SUM)
-        comm.Allreduce(MPI.IN_PLACE, error, op=MPI.SUM)
+        req_error = comm.Iallreduce(MPI.IN_PLACE, error, op=MPI.SUM)
 
         #Update all centroids
         for j in range(k):
             centroids[j] = \
                 temp_centroids[j] / counts[j] if counts[j] else temp_centroids[k]
 
+        req_error.Wait()
         # Continue until centroid changes reach threshold
         if np.abs(error - old_error) < thresh:
             break
+        #Reset previous counts/temp temp_centroids
+        counts.fill(0)
+        temp_centroids.fill(0)
 
     return centroids, labels[:]
 

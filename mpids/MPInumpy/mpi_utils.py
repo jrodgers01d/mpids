@@ -175,8 +175,6 @@ def all_to_all_v(array_data, send_counts, recv_counts, send_displacements=None,
         Constructed local numpy array from all process in MPI Comm.
     """
 #TODO: Think about type checking here
-    rank = comm.Get_rank()
-
     #Perform calculation on non-user provided information
     if send_displacements is None:
         send_displacements = _displacments_from_counts(send_counts)
