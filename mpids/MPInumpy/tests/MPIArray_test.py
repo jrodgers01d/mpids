@@ -17,6 +17,9 @@ class MPIArrayAbstractBaseClassTest(unittest.TestCase):
         with self.assertRaises(NotImplementedError):
             self.mpi_array.__getitem__(0)
 
+        with self.assertRaises(NotImplementedError):
+            self.mpi_array.__setitem__(0, 0)
+
 
     def test_abstract_properties_raise_not_implemented_errors(self):
         with self.assertRaises(NotImplementedError):

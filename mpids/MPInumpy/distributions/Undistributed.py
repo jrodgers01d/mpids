@@ -19,6 +19,16 @@ class Undistributed(MPIArray):
         return self.__class__(indexed_result, comm=self.comm)
 
 
+    def __setitem__(self, key, value):
+        #Check input, will throw np.ValueError if data type of passed
+        ## value can't be converted to objects type
+        np_value = np.asarray(value, dtype=self.dtype)
+        local_key = global_to_local_key(key,
+                                        self.globalshape,
+                                        self.local_to_global)
+        self.base.__setitem__(local_key, np_value)
+
+
     #Unique properties to MPIArray
     @property
     def dist(self):

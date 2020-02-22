@@ -52,15 +52,16 @@ class MPIArrayIndexingDefaultTest(unittest.TestCase):
             self.mpi_array[[0, 1]] = 4
 
         #Check that not supported is raised when trying to set value(s)
-        ## with multiple elements
-        with self.assertRaises(NotSupportedError):
-            self.mpi_array[:,0] = [0] * self.mpi_array.globalshape[0]
+        ## with multiple elements for distributed arrays
+        if not isinstance(self.mpi_array, Undistributed):
+            with self.assertRaises(NotSupportedError):
+                self.mpi_array[:,0] = [0] * self.mpi_array.globalshape[0]
 
-        with self.assertRaises(NotSupportedError):
-            self.mpi_array[:,0] = (1, 2, 3, 4, 5)
+            with self.assertRaises(NotSupportedError):
+                self.mpi_array[:,0] = (1, 2, 3, 4, 5)
 
-        with self.assertRaises(NotSupportedError):
-            self.mpi_array[0] = [2, 3]
+            with self.assertRaises(NotSupportedError):
+                self.mpi_array[0] = [2, 3]
 
 
     def test_custom_setitem_indexing_modify_first_row(self):
