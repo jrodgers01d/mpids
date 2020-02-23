@@ -129,7 +129,6 @@ class MPIArrayDefaultTest(unittest.TestCase):
         self.assertEqual(self.np_array.size, self.mpi_array.globalsize)
         self.assertEqual(self.np_array.nbytes, self.mpi_array.globalnbytes)
         self.assertEqual(self.np_array.ndim, self.mpi_array.globalndim)
-#TODO: Re-evaluate these data types
         #Unique properties data types
         if isinstance(self.mpi_array, Undistributed):
             self.assertTrue(self.mpi_array.comm_dims is None)
