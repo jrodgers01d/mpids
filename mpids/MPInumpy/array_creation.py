@@ -8,8 +8,9 @@ from mpids.MPInumpy.utils import distribute_array, distribute_shape
 __all__ = ['arange', 'array', 'empty', 'ones', 'zeros']
 
 def arange(*args, dtype=None, comm=MPI.COMM_WORLD, root=0, dist='b'):
-    """ Create an empty MPInumpyArray Object, without initializing entries,
-        on all procs in comm. See docstring for mpids.MPInumpy.MPIArray
+    """ Create an  MPIArray Object with evenly spaced values within specified
+        interval on all procs in comm.
+        See docstring for mpids.MPInumpy.MPIArray
 
     Parameters
     ----------
@@ -56,7 +57,7 @@ def arange(*args, dtype=None, comm=MPI.COMM_WORLD, root=0, dist='b'):
 
 def array(array_data, dtype=None, copy=True, order=None, subok=False, ndmin=0,
           comm=MPI.COMM_WORLD, root=0, dist='b'):
-    """ Create MPInumpyArray Object on all procs in comm.
+    """ Create MPIArray Object on all procs in comm.
         See docstring for mpids.MPInumpy.MPIArray
 
     Parameters
@@ -114,7 +115,7 @@ def array(array_data, dtype=None, copy=True, order=None, subok=False, ndmin=0,
 
 def empty(*args, dtype=np.float64, order='C',
           comm=MPI.COMM_WORLD, root=0, dist='b'):
-    """ Create an empty MPInumpyArray Object, without initializing entries,
+    """ Create an empty MPIArray Object, without initializing entries,
         on all procs in comm. See docstring for mpids.MPInumpy.MPIArray
 
     Parameters
@@ -158,7 +159,7 @@ def empty(*args, dtype=np.float64, order='C',
 
 def ones(*args, dtype=np.float64, order='C',
          comm=MPI.COMM_WORLD, root=0, dist='b'):
-    """ Create an MPInumpyArray Object with entries filled with ones
+    """ Create an MPIArray Object with entries filled with ones
         on all procs in comm. See docstring for mpids.MPInumpy.MPIArray
 
     Parameters
@@ -202,7 +203,7 @@ def ones(*args, dtype=np.float64, order='C',
 
 def zeros(*args, dtype=np.float64, order='C',
           comm=MPI.COMM_WORLD, root=0, dist='b'):
-    """ Create an MPInumpyArray Object with entries filled with zeros
+    """ Create an MPIArray Object with entries filled with zeros
         on all procs in comm. See docstring for mpids.MPInumpy.MPIArray
 
     Parameters
