@@ -9,7 +9,7 @@ if __name__ == "__main__":
     comm = MPI.COMM_WORLD
     rank = comm.Get_rank()
 
-    #Create array-like size of data, values 0-7
+    #Create array-like data with 8 elements, values 0-7
     data = list(range(8))
     #Create MPInumpy array, passing data and default communicator
     mpi_array = mpi_np.array(data, comm=comm)
