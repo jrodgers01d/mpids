@@ -127,7 +127,8 @@ class Block(MPIArray):
         local_max = np.asarray(self.base.max(**kwargs))
         global_max = self.__custom_reduction(MPI.MAX, local_max, **kwargs)
         if self.globalndim > 2 and axis is not None:
-            global_max = self.__higher_dimension_reduction_reshape(global_max, axis)
+            global_max = \
+                self.__higher_dimension_reduction_reshape(global_max, axis)
         return Undistributed(global_max, comm=self.comm)
 
 
@@ -148,7 +149,8 @@ class Block(MPIArray):
         local_min = np.asarray(self.base.min(**kwargs))
         global_min = self.__custom_reduction(MPI.MIN, local_min, **kwargs)
         if self.globalndim > 2 and axis is not None:
-            global_min = self.__higher_dimension_reduction_reshape(global_min, axis)
+            global_min = \
+                self.__higher_dimension_reduction_reshape(global_min, axis)
         return Undistributed(global_min, comm=self.comm)
 
 
@@ -182,7 +184,8 @@ class Block(MPIArray):
             global_std = np.sqrt(global_sum_square_diff * 1. / self.globalsize)
 
         if self.globalndim > 2 and axis is not None:
-            global_std = self.__higher_dimension_reduction_reshape(global_std, axis)
+            global_std = \
+                self.__higher_dimension_reduction_reshape(global_std, axis)
 
         return Undistributed(global_std, comm=self.comm)
 
@@ -193,7 +196,8 @@ class Block(MPIArray):
         local_sum = np.asarray(self.base.sum(**kwargs))
         global_sum = self.__custom_reduction(MPI.SUM, local_sum, **kwargs)
         if self.globalndim > 2 and axis is not None:
-            global_sum = self.__higher_dimension_reduction_reshape(global_sum, axis)
+            global_sum = \
+                self.__higher_dimension_reduction_reshape(global_sum, axis)
         return Undistributed(global_sum, comm=self.comm)
 
 

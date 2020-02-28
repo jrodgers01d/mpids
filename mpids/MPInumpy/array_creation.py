@@ -8,7 +8,7 @@ from mpids.MPInumpy.utils import distribute_array, distribute_shape
 __all__ = ['arange', 'array', 'empty', 'ones', 'zeros']
 
 def arange(*args, dtype=None, comm=MPI.COMM_WORLD, root=0, dist='b'):
-    """ Create an  MPIArray Object with evenly spaced values within specified
+    """ Create a MPIArray Object with evenly spaced values within specified
         interval on all procs in comm.
         See docstring for mpids.MPInumpy.MPIArray
 
