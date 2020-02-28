@@ -21,7 +21,7 @@ class MPIscipyClusterKmeansTest(unittest.TestCase):
         x0 = np.random.uniform(centers[0], centers[0] + dist, size=(50))
         x1 = np.random.uniform(centers[1], centers[1] + dist, size=(50))
 
-        return np.array(list(x0 + x1), dtype=np.float64)
+        return np.array(x0.tolist() + x1.tolist(), dtype=np.float64)
 
 
     def __create_2_feature_obs(self):
@@ -108,6 +108,9 @@ class MPIscipyClusterKmeansTest(unittest.TestCase):
         #Check returned data types
         self.assertTrue(isinstance(mpids_centriods, Undistributed))
         self.assertTrue(isinstance(mpids_labels, Undistributed))
+        #Check number of returned elements
+        self.assertTrue(mpids_centriods.globalshape[0] == self.k)
+        self.assertTrue(mpids_labels.globalshape[0] == self.obs_1_feature.shape[0])
 
 
     def test_kmeans_produces_same_results_as_scipy_kmeans2_for_2_features(self):
@@ -121,7 +124,9 @@ class MPIscipyClusterKmeansTest(unittest.TestCase):
         #Check returned data types
         self.assertTrue(isinstance(mpids_centriods, Undistributed))
         self.assertTrue(isinstance(mpids_labels, Undistributed))
-
+        #Check number of returned elements
+        self.assertTrue(mpids_centriods.globalshape[0] == self.k)
+        self.assertTrue(mpids_labels.globalshape[0] == self.obs_2_features.shape[0])
 
 
     def test_kmeans_produces_same_results_as_scipy_kmeans2_for_3_features(self):
@@ -135,6 +140,9 @@ class MPIscipyClusterKmeansTest(unittest.TestCase):
         #Check returned data types
         self.assertTrue(isinstance(mpids_centriods, Undistributed))
         self.assertTrue(isinstance(mpids_labels, Undistributed))
+        #Check number of returned elements
+        self.assertTrue(mpids_centriods.globalshape[0] == self.k)
+        self.assertTrue(mpids_labels.globalshape[0] == self.obs_3_features.shape[0])
 
 
 if __name__ == '__main__':
