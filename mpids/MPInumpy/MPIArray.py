@@ -285,22 +285,7 @@ class MPIArray(np.ndarray):
         return
 
 
-    def collect_data(self):
-        """ Collect/Reconstruct distributed array.
-
-        Parameters
-        ----------
-        None
-
-        Returns
-        -------
-        MPIArray : numpy.ndarray sub class
-            Undistributed(resconstructed) MPIArray.
-        """
-        raise NotImplementedError(
-            "Implement a method to collect distributed array")
-
-
+    #General methods
     def astype(self, dtype, order='K', casting='unsafe', subok=True, copy=True):
         """ Cast to specified data type.
         Parameters
@@ -334,6 +319,22 @@ class MPIArray(np.ndarray):
                               comm_dims=self.comm_dims,
                               comm_coord=self.comm_coord,
                               local_to_global=self.local_to_global)
+
+
+    def collect_data(self):
+        """ Collect/Reconstruct distributed array.
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        MPIArray : numpy.ndarray sub class
+            Undistributed(resconstructed) MPIArray.
+        """
+        raise NotImplementedError(
+            "Implement a method to collect distributed array")
 
 
     def reshape(self, *args):
