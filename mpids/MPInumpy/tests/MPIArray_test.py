@@ -6,7 +6,7 @@ import mpids.MPInumpy as mpi_np
 from mpids.MPInumpy.errors import ValueError, NotSupportedError
 from mpids.MPInumpy.distributions.Undistributed import Undistributed
 
-#TODO: Add tests for astype
+
 class MPIArrayAbstractBaseClassTest(unittest.TestCase):
 
     def setUp(self):
@@ -328,6 +328,54 @@ class MPIArrayDefaultTest(unittest.TestCase):
         mpi_out = np.zeros(())
         with self.assertRaises(NotSupportedError):
             self.mpi_array.sum(out=mpi_out)
+
+
+    def test_astype_method_cast_to_float32(self):
+        np_type_casted = self.np_array.astype(np.float32)
+        mpi_np_type_casted = self.mpi_array.astype(np.float32)
+
+        #Returned object is properties
+        self.assertEqual(mpi_np_type_casted.dtype, np.float32)
+        self.assertTrue(isinstance(mpi_np_type_casted, mpi_np.MPIArray))
+        self.assertTrue(mpi_np_type_casted is not self.mpi_array)
+        self.assertEqual(mpi_np_type_casted.dist, self.mpi_array.dist)
+        self.assertEqual(mpi_np_type_casted.comm, self.mpi_array.comm)
+        self.assertEqual(mpi_np_type_casted.globalshape, self.mpi_array.globalshape)
+        self.assertEqual(mpi_np_type_casted.globalsize, self.mpi_array.globalsize)
+        self.assertEqual(mpi_np_type_casted.globalnbytes, np_type_casted.nbytes)
+        self.assertEqual(mpi_np_type_casted.globalndim, self.mpi_array.globalndim)
+
+
+    def test_astype_method_cast_to_float64(self):
+        np_type_casted = self.np_array.astype(np.float64)
+        mpi_np_type_casted = self.mpi_array.astype(np.float64)
+
+        #Returned object is properties
+        self.assertEqual(mpi_np_type_casted.dtype, np.float64)
+        self.assertTrue(isinstance(mpi_np_type_casted, mpi_np.MPIArray))
+        self.assertTrue(mpi_np_type_casted is not self.mpi_array)
+        self.assertEqual(mpi_np_type_casted.dist, self.mpi_array.dist)
+        self.assertEqual(mpi_np_type_casted.comm, self.mpi_array.comm)
+        self.assertEqual(mpi_np_type_casted.globalshape, self.mpi_array.globalshape)
+        self.assertEqual(mpi_np_type_casted.globalsize, self.mpi_array.globalsize)
+        self.assertEqual(mpi_np_type_casted.globalnbytes, np_type_casted.nbytes)
+        self.assertEqual(mpi_np_type_casted.globalndim, self.mpi_array.globalndim)
+
+
+    def test_astype_method_cast_to_unsigned_int64(self):
+        np_type_casted = self.np_array.astype(np.uint64)
+        mpi_np_type_casted = self.mpi_array.astype(np.uint64)
+
+        #Returned object is properties
+        self.assertEqual(mpi_np_type_casted.dtype, np.uint64)
+        self.assertTrue(isinstance(mpi_np_type_casted, mpi_np.MPIArray))
+        self.assertTrue(mpi_np_type_casted is not self.mpi_array)
+        self.assertEqual(mpi_np_type_casted.dist, self.mpi_array.dist)
+        self.assertEqual(mpi_np_type_casted.comm, self.mpi_array.comm)
+        self.assertEqual(mpi_np_type_casted.globalshape, self.mpi_array.globalshape)
+        self.assertEqual(mpi_np_type_casted.globalsize, self.mpi_array.globalsize)
+        self.assertEqual(mpi_np_type_casted.globalnbytes, np_type_casted.nbytes)
+        self.assertEqual(mpi_np_type_casted.globalndim, self.mpi_array.globalndim)
 
 
     def test_collect_data_method(self):
