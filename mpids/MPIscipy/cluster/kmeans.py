@@ -183,15 +183,17 @@ def _process_observations(observations, comm):
         Array of centroid indexes that classify a given observation to its
         closest cluster centroid.
     """
-#TODO Type checking of input(dtype and number of dimensions)
     if not isinstance(observations, Block):
         observations = mpi_np.array(observations, comm=comm, dist='b')
 
+    if observations.globalndim > 2:
+        raise ValueError('only 1/2-Dimensional observation' +
+                         'vector/matrices supported.')
+
     num_observations = observations.globalshape[0]
-    if observations.globalndim > 1:
-        num_features = observations.globalshape[1]
-    else:
-        num_features = 1
+    num_features = \
+        observations.globalshape[1] if observations.globalndim == 2 else 1
+
 
     labels = mpi_np.zeros(num_observations,
                           dtype=np.int64,

@@ -129,6 +129,12 @@ class MPIscipyClusterKmeansTest(unittest.TestCase):
         self.assertTrue(isinstance(labels, Block))
 
 
+    def test_process_observations_providing_3D_observations_raises_ValueError(self):
+        observations = np.arange(27).reshape(3,3,3)
+        with self.assertRaises(ValueError):
+            _process_observations(observations, self.comm)
+
+
     def test_process_centroids_providing_int_1D_features(self):
         k = self.k
         num_features = 1
@@ -210,7 +216,7 @@ class MPIscipyClusterKmeansTest(unittest.TestCase):
         self.assertTrue(np.alltrue(self.seeded_centroids == centroids))
 
 
-    def test_process_centroids_providing_non_int_or_array(self):
+    def test_process_centroids_providing_non_int_or_array_raises_TypeError(self):
         k = 'A String'
         num_features = 2
         obs = self.dist_obs_2_features
@@ -218,7 +224,7 @@ class MPIscipyClusterKmeansTest(unittest.TestCase):
             _process_centroids(k, num_features, obs, self.comm)
 
 
-    def test_process_centroids_providing_seeded_centroids_with_too_few_features(self):
+    def test_process_centroids_providing_seeded_centroids_with_too_few_features_raises_ValueError(self):
         k = self.seeded_centroids
         num_features = self.seeded_num_features - 1
         obs = self.dist_obs_2_features
@@ -226,7 +232,7 @@ class MPIscipyClusterKmeansTest(unittest.TestCase):
             _process_centroids(k, num_features, obs, self.comm)
 
 
-    def test_process_centroids_providing_seeded_centroids_with_too_many_features(self):
+    def test_process_centroids_providing_seeded_centroids_with_too_many_features_raises_ValueError(self):
         k = self.seeded_centroids
         num_features = self.seeded_num_features + 1
         obs = self.dist_obs_2_features
