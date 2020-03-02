@@ -6,7 +6,7 @@ import mpids.MPInumpy as mpi_np
 from mpids.MPInumpy.errors import ValueError, NotSupportedError
 from mpids.MPInumpy.distributions.Undistributed import Undistributed
 
-
+#TODO: Add tests for astype
 class MPIArrayAbstractBaseClassTest(unittest.TestCase):
 
     def setUp(self):

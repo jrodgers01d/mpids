@@ -301,6 +301,41 @@ class MPIArray(np.ndarray):
             "Implement a method to collect distributed array")
 
 
+    def astype(self, dtype, order='K', casting='unsafe', subok=True, copy=True):
+        """ Cast to specified data type.
+        Parameters
+        ----------
+        dtype : data-type
+            Desired casted array data-type.
+        order: {'K','A','C','F'}, optional
+            Specified memory layout of the array.
+        casting : {‘no’, ‘equiv’, ‘safe’, ‘same_kind’, ‘unsafe’}, optional
+            Controls what kind of data casting may occur.
+            See docstring for np.ndarray.astype
+        subok : bool, optional
+            Default 'True' returned array will be forced to be
+            base-class array, if 'True' then sub-classes will be
+            passed-through.
+        copy : bool, optional
+            Default 'True' results in copied object, if 'False' copy
+            only made when base class '__array__' returns a copy.
+        Returns
+        -------
+        MPIArray : numpy.ndarray sub class
+            Distributed among processes.
+        """
+        local_casted_result = self.base.astype(dtype,
+                                               order=order,
+                                               casting=casting,
+                                               subok=subok,
+                                               copy=copy)
+        return self.__class__(local_casted_result,
+                              comm=self.comm,
+                              comm_dims=self.comm_dims,
+                              comm_coord=self.comm_coord,
+                              local_to_global=self.local_to_global)
+
+
     def reshape(self, *args):
         """ Reshape distributed array.
 
