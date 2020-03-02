@@ -128,8 +128,9 @@ def _process_centroids(k, num_features, observations, comm):
                                                                 num_features,
                                                                 observations,
                                                                 comm)
+
     num_centroids = centroids.shape[0]
-    if num_features != centroids.shape[-1]:
+    if num_features != centroids.shape[-1] and centroids.ndim != 1:
         raise ValueError('expected {} '.format(num_features) + \
                          'number of features in seeded cluster centroids.')
     temp_centroids = mpi_np.zeros((num_centroids, num_features),
@@ -142,7 +143,7 @@ def _process_centroids(k, num_features, observations, comm):
 
 def __centroids_from_int(k, num_features, observations, comm):
     centroids = mpi_np.zeros((k, num_features),
-                             dtype=np.float64,
+                             dtype=observations.dtype,
                              comm=comm,
                              dist='u')
     #Pick initial centroids
@@ -156,17 +157,18 @@ def __centroids_from_int(k, num_features, observations, comm):
 
 def __centroids_from_ndarray(k, num_features, observations, comm):
     #Duplicate ndarray on all processes
-    return mpi_np.array(k, comm=comm, dist='u')
+    return mpi_np.array(k, dtype=observations.dtype, comm=comm, dist='u')
 
 
 def __centroids_from_mpinp_block(k, num_features, observations, comm):
     #Collect undistributed copy of data
-    return k.collect_data()
+    undistributed_k = k.collect_data()
+    return undistributed_k.astype(observations.dtype)
 
 
 def __centroids_from_mpinp_undist(k, num_features, observations, comm):
     #Already in correct format
-    return k
+    return k.astype(observations.dtype)
 
 
 def _process_observations(observations, comm):
