@@ -51,10 +51,10 @@ def kmeans(observations, k, thresh=1e-5, comm=MPI.COMM_WORLD):
             labels[i] = index 'k' of closest centroid for obseverations[i]
     """
     #Ensure observations are distributed and generate labels
-    observations, num_features, labels  = process_observations(observations,
+    observations, num_features, labels  = _process_observations(observations,
                                                                 comm)
     #Buffers for cluster centers
-    centroids, num_centroids, temp_centroids = process_centroids(k,
+    centroids, num_centroids, temp_centroids = _process_centroids(k,
                                                                   num_features,
                                                                   observations,
                                                                   comm)
@@ -102,7 +102,7 @@ def kmeans(observations, k, thresh=1e-5, comm=MPI.COMM_WORLD):
     return centroids, labels.collect_data()
 
 
-def process_centroids(k, num_features, observations, comm):
+def _process_centroids(k, num_features, observations, comm):
     """ Helper method to distribute provided k if necessary and resolve whether
         or not the input is seeded.
 
@@ -171,7 +171,7 @@ def __centroids_from_mpinp_undist(k, num_features, observations, comm):
     return k.astype(observations.dtype)
 
 
-def process_observations(observations, comm):
+def _process_observations(observations, comm):
     """ Helper method to distribute provided observations if necessary.
 
     Returns
