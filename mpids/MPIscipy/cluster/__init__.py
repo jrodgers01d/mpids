@@ -1,3 +1,3 @@
-from .mpi_kmeans import kmeans
+from ._kmeans import kmeans
 
 __all__ = ['kmeans']

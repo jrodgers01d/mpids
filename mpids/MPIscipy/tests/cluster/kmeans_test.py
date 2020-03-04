@@ -5,7 +5,7 @@ from mpi4py import MPI
 import scipy.cluster.vq as scipy_cluster
 import mpids.MPInumpy as mpi_np
 import mpids.MPIscipy.cluster as mpi_scipy_cluster
-from mpids.MPIscipy.cluster.mpi_kmeans import _process_centroids, _process_observations
+from mpids.MPIscipy.cluster._kmeans import _process_centroids, _process_observations
 from mpids.MPInumpy.distributions.Undistributed import Undistributed
 from mpids.MPInumpy.distributions.Block import Block
 from mpids.MPIscipy.errors import TypeError, ValueError
@@ -155,14 +155,14 @@ class MPIscipyClusterKmeansTest(unittest.TestCase):
         k = self.k
         processed_obs, num_features, labels = \
             _process_observations(obs, self.comm)
-        with mock.patch('mpids.MPIscipy.cluster.mpi_kmeans._process_observations',
+        with mock.patch('mpids.MPIscipy.cluster._kmeans._process_observations',
             return_value = (processed_obs, num_features, labels)) as mock_proc_obs:
             mpi_scipy_cluster.kmeans(obs, k)
         mock_proc_obs.assert_called_with(obs, self.comm)
 
 
     def test_process_observations_errors_propegated(self):
-        with mock.patch('mpids.MPIscipy.cluster.mpi_kmeans._process_observations',
+        with mock.patch('mpids.MPIscipy.cluster._kmeans._process_observations',
             side_effect = Exception('Mock Execption')) as mock_proc_obs:
             with self.assertRaises(Exception):
                 mpi_scipy_cluster.kmeans(None, None)
@@ -266,7 +266,7 @@ class MPIscipyClusterKmeansTest(unittest.TestCase):
             _process_observations(obs, self.comm)
         centroids, num_centroids, temp_centroids = \
             _process_centroids(k, num_features, obs, self.comm)
-        with mock.patch('mpids.MPIscipy.cluster.mpi_kmeans._process_centroids',
+        with mock.patch('mpids.MPIscipy.cluster._kmeans._process_centroids',
             return_value = (centroids, num_centroids, temp_centroids)) as mock_proc_cents:
             mpi_scipy_cluster.kmeans(obs, k)
         mock_proc_cents.assert_called_with(k, num_features, processed_obs, self.comm)
@@ -275,7 +275,7 @@ class MPIscipyClusterKmeansTest(unittest.TestCase):
     def test_process_centroids_errors_propegated(self):
         obs = self.dist_obs_1_feature
         k = self.k
-        with mock.patch('mpids.MPIscipy.cluster.mpi_kmeans._process_centroids',
+        with mock.patch('mpids.MPIscipy.cluster._kmeans._process_centroids',
             side_effect = Exception('Mock Execption')) as mock_proc_cents:
             with self.assertRaises(Exception):
                 mpi_scipy_cluster.kmeans(obs, k)
