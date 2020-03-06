@@ -14,7 +14,7 @@ __all__ = ['determine_local_shape_and_mapping',
            'determine_global_offset', 'distribute_array', 'distribute_range',
            'distribute_shape', 'get_block_index', 'get_cart_coords',
            'get_comm_dims', 'global_to_local_key', 'distribution_to_dimensions',
-           'is_undistributed', 'is_block_distributed',
+           'is_Replicated', 'is_block_distributed',
            'slice_local_data_and_determine_mapping']
 
 
@@ -31,7 +31,7 @@ def determine_local_shape_and_mapping(array_shape, dist, comm_dims, comm_coord):
         Default value 'b' : Block
         Supported types:
             'b' : Block
-            'u' : Undistributed
+            'r' : Replicated
     comm_dims : list, None
         Dimensions of cartesian grid
     coordinates : list, None
@@ -49,7 +49,7 @@ def determine_local_shape_and_mapping(array_shape, dist, comm_dims, comm_coord):
              1: (start_index, end_index),
              ...}
     """
-    if is_undistributed(dist):
+    if is_Replicated(dist):
         local_to_global = None
         return array_shape, local_to_global
 
@@ -123,7 +123,7 @@ def determine_redistribution_counts_from_shape(current_shape, desired_shape,
         Default value 'b' : Block
         Supported types:
             'b' : Block
-            'u' : Undistributed
+            'r' : Replicated
     comm : MPI Communicator, optional
         MPI process communication object.  If none specified
         defaults to MPI.COMM_WORLD
@@ -207,7 +207,7 @@ def distribute_array(array_data, dist, comm=MPI.COMM_WORLD, root=0):
         Default value 'b' : Block
         Supported types:
             'b' : Block
-            'u' : Undistributed
+            'r' : Replicated
     comm : MPI Communicator, optional
         MPI process communication object.  If none specified
         defaults to MPI.COMM_WORLD
@@ -231,7 +231,7 @@ def distribute_array(array_data, dist, comm=MPI.COMM_WORLD, root=0):
              1: (start_index, end_index),
              ...}
     """
-    if is_undistributed(dist):
+    if is_Replicated(dist):
         local_data = broadcast_array(np.asarray(array_data),
                                      comm=comm,
                                      root=root)
@@ -285,7 +285,7 @@ def distribute_range(start, stop, step, dist, comm=MPI.COMM_WORLD, root=0):
         Default value 'b' : Block
         Supported types:
             'b' : Block
-            'u' : Undistributed
+            'r' : Replicated
     comm : MPI Communicator, optional
         MPI process communication object.  If none specified
         defaults to MPI.COMM_WORLD
@@ -350,7 +350,7 @@ def distribute_shape(shape, dist, comm=MPI.COMM_WORLD, root=0):
         Default value 'b' : Block
         Supported types:
             'b' : Block
-            'u' : Undistributed
+            'r' : Replicated
     comm : MPI Communicator, optional
         MPI process communication object.  If none specified
         defaults to MPI.COMM_WORLD
@@ -402,7 +402,7 @@ def distribution_to_dimensions(distribution, procs):
         Default value 'b' : Block
         Supported types:
             'b' : Block
-            'u' : Undistributed
+            'r' : Replicated
     procs: int
         Size/number of processes in communicator
 
@@ -538,14 +538,14 @@ def get_comm_dims(procs, dist):
         Default value 'b' : Block
         Supported types:
             'b' : Block
-            'u' : Undistributed
+            'r' : Replicated
 
     Returns
     -------
     comm_dims : list, None
         Dimensions of cartesian grid
     """
-    if is_undistributed(dist):
+    if is_Replicated(dist):
         return None
     return MPI.Compute_dims(procs, distribution_to_dimensions(dist, procs))
 
@@ -659,8 +659,8 @@ def _global_to_local_key_tuple(global_key, globalshape, local_to_global_dict):
     return tuple(local_key)
 
 
-def is_undistributed(distribution):
-    """ Check if distribution is of type undistributed
+def is_Replicated(distribution):
+    """ Check if distribution is of type Replicated
 
     Parameters
     ----------
@@ -669,13 +669,13 @@ def is_undistributed(distribution):
         Default value 'b' : Block
         Supported types:
             'b' : Block
-            'u' : Undistributed
+            'r' : Replicated
 
     Returns
     -------
     result : boolean
     """
-    return distribution == 'u'
+    return distribution == 'r'
 
 
 def is_block_distributed(distribution):
@@ -688,7 +688,7 @@ def is_block_distributed(distribution):
         Default value 'b' : Block
         Supported types:
             'b' : Block
-            'u' : Undistributed
+            'r' : Replicated
 
     Returns
     -------
@@ -710,7 +710,7 @@ def slice_local_data_and_determine_mapping(array_data, dist, comm_dims, comm_coo
         Default value 'b' : Block
         Supported types:
             'b' : Block
-            'u' : Undistributed
+            'r' : Replicated
     comm_dims : list
         Division of processes in cartesian grid
     comm_coord : list
@@ -728,7 +728,7 @@ def slice_local_data_and_determine_mapping(array_data, dist, comm_dims, comm_coo
              1: (start_index, end_index),
              ...}
     """
-    if is_undistributed(dist):
+    if is_Replicated(dist):
         local_to_global = None
         return array_data, local_to_global
 

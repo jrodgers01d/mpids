@@ -29,16 +29,16 @@ if __name__ == "__main__":
     comm.Barrier()
     print('3D Blocked Data Rank {}:\n{}'.format(rank, block_mpi_array_3D.local))
 
-    #Undistributed data distribution
-    undistributed_mpi_array_1D = mpi_np.array(data_1D, comm=comm, dist='u')
-    undistributed_mpi_array_2D = mpi_np.array(data_2D, comm=comm, dist='u')
-    undistributed_mpi_array_3D = mpi_np.array(data_3D, comm=comm, dist='u')
+    #Replicated data distribution
+    replicated_mpi_array_1D = mpi_np.array(data_1D, comm=comm, dist='r')
+    replicated_mpi_array_2D = mpi_np.array(data_2D, comm=comm, dist='r')
+    replicated_mpi_array_3D = mpi_np.array(data_3D, comm=comm, dist='r')
 
-    print('1D Undistributed Data Rank {}:\n{}'\
-        .format(rank, undistributed_mpi_array_1D.local))
+    print('1D Replicated Data Rank {}:\n{}'\
+        .format(rank, replicated_mpi_array_1D.local))
     comm.Barrier()
-    print('2D Undistributed Data Rank {}:\n{}'\
-        .format(rank, undistributed_mpi_array_2D.local))
+    print('2D Replicated Data Rank {}:\n{}'\
+        .format(rank, replicated_mpi_array_2D.local))
     comm.Barrier()
-    print('3D Undistributed Data Rank {}:\n{}'\
-        .format(rank, undistributed_mpi_array_3D.local))
+    print('3D Replicated Data Rank {}:\n{}'\
+        .format(rank, replicated_mpi_array_3D.local))

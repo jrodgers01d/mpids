@@ -6,16 +6,16 @@ from mpids.MPInumpy.errors import ValueError
 from mpids.MPInumpy.utils import global_to_local_key
 
 """
-    Undistributed implementation of MPIArray abstract base class.
+    Replicated implementation of MPIArray abstract base class.
 """
-class Undistributed(MPIArray):
+class Replicated(MPIArray):
 
     def __getitem__(self, key):
         local_key = global_to_local_key(key,
                                         self.globalshape,
                                         self.local_to_global)
         indexed_result = self.base.__getitem__(key)
-        #Return undistributed copy of data
+        #Return replicated copy of data
         return self.__class__(indexed_result, comm=self.comm)
 
 
@@ -32,7 +32,7 @@ class Undistributed(MPIArray):
     #Unique properties to MPIArray
     @property
     def dist(self):
-        return 'u'
+        return 'r'
 
 
     @property
@@ -66,31 +66,31 @@ class Undistributed(MPIArray):
     #Custom reduction method implementations
     def max(self, **kwargs):
         self.check_reduction_parms(**kwargs)
-        return Undistributed(np.asarray(self.base.max(**kwargs)),
+        return Replicated(np.asarray(self.base.max(**kwargs)),
                              comm=self.comm)
 
 
     def mean(self, **kwargs):
         self.check_reduction_parms(**kwargs)
-        return Undistributed(np.asarray(self.base.mean(**kwargs)),
+        return Replicated(np.asarray(self.base.mean(**kwargs)),
                              comm=self.comm)
 
 
     def min(self, **kwargs):
         self.check_reduction_parms(**kwargs)
-        return Undistributed(np.asarray(self.base.min(**kwargs)),
+        return Replicated(np.asarray(self.base.min(**kwargs)),
                              comm=self.comm)
 
 
     def std(self, **kwargs):
         self.check_reduction_parms(**kwargs)
-        return Undistributed(np.asarray(self.base.std(**kwargs)),
+        return Replicated(np.asarray(self.base.std(**kwargs)),
                              comm=self.comm)
 
 
     def sum(self, **kwargs):
         self.check_reduction_parms(**kwargs)
-        return Undistributed(np.asarray(self.base.sum(**kwargs)),
+        return Replicated(np.asarray(self.base.sum(**kwargs)),
                              comm=self.comm)
 
 

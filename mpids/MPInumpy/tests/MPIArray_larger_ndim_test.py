@@ -1,7 +1,7 @@
 import numpy as np
 from mpi4py import MPI
 from mpids.MPInumpy.errors import NotSupportedError
-from mpids.MPInumpy.distributions.Undistributed import Undistributed
+from mpids.MPInumpy.distributions.Replicated import Replicated
 from mpids.MPInumpy.tests.MPIArray_test import MPIArrayDefaultTest
 
 
@@ -57,15 +57,15 @@ class MPIArray3DDefaultTest(MPIArrayDefaultTest):
         self.assertTrue(np.alltrue(self.np_array.sum(axis=2) == self.mpi_array.sum(axis=2)))
 
 
-class MPIArray3DUndistributedTest(MPIArray3DDefaultTest):
+class MPIArray3DReplicatedTest(MPIArray3DDefaultTest):
 
     def create_setUp_parms(self):
         parms = {}
         parms['comm'] = MPI.COMM_WORLD
         parms['rank'] = MPI.COMM_WORLD.Get_rank()
         parms['comm_size'] = MPI.COMM_WORLD.Get_size()
-        # Undistributed distribution
-        parms['dist'] = 'u'
+        # Replicated distribution
+        parms['dist'] = 'r'
         #Add 1 to avoid divide by zero errors/warnings
         parms['data'] = np.arange(16).reshape(4,2,2) + 1
         parms['local_data'] = parms['data']
@@ -121,7 +121,7 @@ class MPIArray4DDefaultTest(MPIArrayDefaultTest):
 
 
     def test_custom_std_higher_dim_method(self):
-        if isinstance(self.mpi_array, Undistributed):
+        if isinstance(self.mpi_array, Replicated):
             #Std along specified axies
             self.assertTrue(np.alltrue(self.np_array.std(axis=2) == self.mpi_array.std(axis=2)))
             self.assertTrue(np.alltrue(self.np_array.std(axis=3) == self.mpi_array.std(axis=3)))
@@ -139,15 +139,15 @@ class MPIArray4DDefaultTest(MPIArrayDefaultTest):
         self.assertTrue(np.alltrue(self.np_array.sum(axis=3) == self.mpi_array.sum(axis=3)))
 
 
-class MPIArray4DUndistributedTest(MPIArray4DDefaultTest):
+class MPIArray4DReplicatedTest(MPIArray4DDefaultTest):
 
     def create_setUp_parms(self):
         parms = {}
         parms['comm'] = MPI.COMM_WORLD
         parms['rank'] = MPI.COMM_WORLD.Get_rank()
         parms['comm_size'] = MPI.COMM_WORLD.Get_size()
-        # Undistributed distribution
-        parms['dist'] = 'u'
+        # Replicated distribution
+        parms['dist'] = 'r'
         #Add 1 to avoid divide by zero errors/warnings
         parms['data'] = np.arange(32).reshape(4,2,2,2) + 1
         parms['local_data'] = parms['data']
@@ -206,7 +206,7 @@ class MPIArray5DDefaultTest(MPIArrayDefaultTest):
 
 
     def test_custom_std_higher_dim_method(self):
-        if isinstance(self.mpi_array, Undistributed):
+        if isinstance(self.mpi_array, Replicated):
             #Std along specified axies
             self.assertTrue(np.alltrue(self.np_array.std(axis=2) == self.mpi_array.std(axis=2)))
             self.assertTrue(np.alltrue(self.np_array.std(axis=3) == self.mpi_array.std(axis=3)))
@@ -228,15 +228,15 @@ class MPIArray5DDefaultTest(MPIArrayDefaultTest):
         self.assertTrue(np.alltrue(self.np_array.sum(axis=4) == self.mpi_array.sum(axis=4)))
 
 
-class MPIArray5DUndistributedTest(MPIArray5DDefaultTest):
+class MPIArray5DReplicatedTest(MPIArray5DDefaultTest):
 
     def create_setUp_parms(self):
         parms = {}
         parms['comm'] = MPI.COMM_WORLD
         parms['rank'] = MPI.COMM_WORLD.Get_rank()
         parms['comm_size'] = MPI.COMM_WORLD.Get_size()
-        # Undistributed distribution
-        parms['dist'] = 'u'
+        # Replicated distribution
+        parms['dist'] = 'r'
         #Add 1 to avoid divide by zero errors/warnings
         parms['data'] = np.arange(64).reshape(4,2,2,2,2) + 1
         parms['local_data'] = parms['data']

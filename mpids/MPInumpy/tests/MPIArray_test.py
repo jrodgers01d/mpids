@@ -4,7 +4,7 @@ import numpy as np
 from mpi4py import MPI
 import mpids.MPInumpy as mpi_np
 from mpids.MPInumpy.errors import ValueError, NotSupportedError
-from mpids.MPInumpy.distributions.Undistributed import Undistributed
+from mpids.MPInumpy.distributions.Replicated import Replicated
 
 
 class MPIArrayAbstractBaseClassTest(unittest.TestCase):
@@ -130,7 +130,7 @@ class MPIArrayDefaultTest(unittest.TestCase):
         self.assertEqual(self.np_array.nbytes, self.mpi_array.globalnbytes)
         self.assertEqual(self.np_array.ndim, self.mpi_array.globalndim)
         #Unique properties data types
-        if isinstance(self.mpi_array, Undistributed):
+        if isinstance(self.mpi_array, Replicated):
             self.assertTrue(self.mpi_array.comm_dims is None)
             self.assertTrue(self.mpi_array.comm_coord is None)
             self.assertTrue(self.mpi_array.local_to_global is None)
@@ -229,8 +229,8 @@ class MPIArrayDefaultTest(unittest.TestCase):
 
 
     def test_custom_max_method(self):
-        #Returned object is undistributed
-        self.assertTrue(isinstance(self.mpi_array.max(), Undistributed))
+        #Returned object is Replicated
+        self.assertTrue(isinstance(self.mpi_array.max(), Replicated))
 
         #Default max of entire array contents
         self.assertEqual(self.np_array.max(), self.mpi_array.max())
@@ -248,8 +248,8 @@ class MPIArrayDefaultTest(unittest.TestCase):
 
 
     def test_custom_mean_method(self):
-        #Returned object is undistributed
-        self.assertTrue(isinstance(self.mpi_array.mean(), Undistributed))
+        #Returned object is Replicated
+        self.assertTrue(isinstance(self.mpi_array.mean(), Replicated))
 
         #Default mean of entire array contents
         self.assertEqual(self.np_array.mean(), self.mpi_array.mean())
@@ -267,8 +267,8 @@ class MPIArrayDefaultTest(unittest.TestCase):
 
 
     def test_custom_min_method(self):
-        #Returned object is undistributed
-        self.assertTrue(isinstance(self.mpi_array.min(), Undistributed))
+        #Returned object is Replicated
+        self.assertTrue(isinstance(self.mpi_array.min(), Replicated))
 
         #Default min of entire array contents
         self.assertEqual(self.np_array.min(), self.mpi_array.min())
@@ -286,8 +286,8 @@ class MPIArrayDefaultTest(unittest.TestCase):
 
 
     def test_custom_std_method(self):
-        #Returned object is undistributed
-        self.assertTrue(isinstance(self.mpi_array.std(), Undistributed))
+        #Returned object is Replicated
+        self.assertTrue(isinstance(self.mpi_array.std(), Replicated))
 
         #Default std of entire array contents
         self.assertEqual(self.np_array.std(), self.mpi_array.std())
@@ -305,8 +305,8 @@ class MPIArrayDefaultTest(unittest.TestCase):
 
 
     def test_custom_sum_method(self):
-        #Returned object is undistributed
-        self.assertTrue(isinstance(self.mpi_array.sum(), Undistributed))
+        #Returned object is Replicated
+        self.assertTrue(isinstance(self.mpi_array.sum(), Replicated))
 
         #Default sum of entire array contents
         self.assertEqual(self.np_array.sum(), self.mpi_array.sum())
@@ -383,7 +383,7 @@ class MPIArrayDefaultTest(unittest.TestCase):
 
         #Returned object is properties
         self.assertTrue(isinstance(collected_array, mpi_np.MPIArray))
-        self.assertTrue(isinstance(collected_array, Undistributed))
+        self.assertTrue(isinstance(collected_array, Replicated))
         self.assertTrue(collected_array is not self.mpi_array)
         self.assertEqual(collected_array.comm, self.mpi_array.comm)
         self.assertEqual(collected_array.globalshape, self.mpi_array.globalshape)
@@ -395,15 +395,15 @@ class MPIArrayDefaultTest(unittest.TestCase):
         self.assertTrue(np.alltrue((collected_array) == (self.np_array)))
 
 
-class MPIArrayUndistributedTest(MPIArrayDefaultTest):
+class MPIArrayReplicatedTest(MPIArrayDefaultTest):
 
     def create_setUp_parms(self):
         parms = {}
         parms['comm'] = MPI.COMM_WORLD
         parms['rank'] = MPI.COMM_WORLD.Get_rank()
         parms['comm_size'] = MPI.COMM_WORLD.Get_size()
-        # Undistributed distribution
-        parms['dist'] = 'u'
+        # Replicated distribution
+        parms['dist'] = 'r'
         #Add 1 to avoid divide by zero errors/warnings
         parms['data'] = np.arange(25).reshape(5,5) + 1
         parms['local_data'] = parms['data']
@@ -414,11 +414,11 @@ class MPIArrayUndistributedTest(MPIArrayDefaultTest):
 
 
     def test_scalar_dunder_unary_operations(self):
-        from mpids.MPInumpy.distributions.Undistributed import Undistributed
+        from mpids.MPInumpy.distributions.Replicated import Replicated
 
         scalar_data = 1
         np_scalar = np.array(scalar_data)
-        mpi_scalar = Undistributed(scalar_data, comm=self.comm)
+        mpi_scalar = Replicated(scalar_data, comm=self.comm)
 
         self.assertEqual(complex(np_scalar), complex(mpi_scalar))
         self.assertEqual(int(np_scalar), int(mpi_scalar))

@@ -111,7 +111,7 @@ class MPIArray(np.ndarray):
             Default value 'b' : Block
             Supported types:
                 'b' : Block
-                'u' : Undistributed
+                'r' : Replicated
         """
         raise NotImplementedError("Define a distribution")
 
@@ -188,7 +188,7 @@ class MPIArray(np.ndarray):
         -------
         MPIArray : numpy.ndarray sub class
             MPIArray with max values along specified axis with
-            undistributed(copies on all procs) distribution.
+            replicated(copies on all procs) distribution.
         """
         raise NotImplementedError("Implement a custom max method")
 
@@ -209,7 +209,7 @@ class MPIArray(np.ndarray):
         -------
         MPIArray : numpy.ndarray sub class
             MPIArray with mean values along specified axis with
-            undistributed(copies on all procs) distribution.
+            replicated(copies on all procs) distribution.
         """
         raise NotImplementedError("Implement a custom mean method")
 
@@ -230,7 +230,7 @@ class MPIArray(np.ndarray):
         -------
         MPIArray : numpy.ndarray sub class
             MPIArray with min values along specified axis with
-            undistributed(copies on all procs) distribution.
+            replicated(copies on all procs) distribution.
         """
         raise NotImplementedError("Implement a custom min method")
 
@@ -251,7 +251,7 @@ class MPIArray(np.ndarray):
         -------
         MPIArray : numpy.ndarray sub class
             MPIArray with std values along specified axis with
-            undistributed(copies on all procs) distribution.
+            replicated(copies on all procs) distribution.
         """
         raise NotImplementedError("Implement a custom std method")
 
@@ -272,7 +272,7 @@ class MPIArray(np.ndarray):
         -------
         MPIArray : numpy.ndarray sub class
             MPIArray with sum values along specified axis with
-            undistributed(copies on all procs) distribution.
+            replicated(copies on all procs) distribution.
         """
         raise NotImplementedError("Implement a custom sum method")
 
@@ -331,7 +331,7 @@ class MPIArray(np.ndarray):
         Returns
         -------
         MPIArray : numpy.ndarray sub class
-            Undistributed(resconstructed) MPIArray.
+            Replicated(resconstructed) MPIArray.
         """
         raise NotImplementedError(
             "Implement a method to collect distributed array")

@@ -6,7 +6,7 @@ import scipy.cluster.vq as scipy_cluster
 import mpids.MPInumpy as mpi_np
 import mpids.MPIscipy.cluster as mpi_scipy_cluster
 from mpids.MPIscipy.cluster._kmeans import _process_centroids, _process_observations
-from mpids.MPInumpy.distributions.Undistributed import Undistributed
+from mpids.MPInumpy.distributions.Replicated import Replicated
 from mpids.MPInumpy.distributions.Block import Block
 from mpids.MPIscipy.errors import TypeError, ValueError
 
@@ -121,8 +121,8 @@ class MPIscipyClusterKmeansTest(unittest.TestCase):
         self.assertEqual(num_features, 1)
         self.assertTrue(isinstance(labels, Block))
 
-        #Undistributed distribution
-        mpi_np_observations = mpi_np.arange(8, dist='u')
+        #Replicated distribution
+        mpi_np_observations = mpi_np.arange(8, dist='r')
         processed_obs, num_features, labels  = \
             _process_observations(mpi_np_observations, self.comm)
         self.assertTrue(isinstance(processed_obs, Block))
@@ -142,8 +142,8 @@ class MPIscipyClusterKmeansTest(unittest.TestCase):
         obs = self.dist_obs_1_feature
         centroids, num_centroids, temp_centroids = \
             _process_centroids(k, num_features, obs, self.comm)
-        self.assertTrue(isinstance(centroids, Undistributed))
-        self.assertTrue(isinstance(temp_centroids, Undistributed))
+        self.assertTrue(isinstance(centroids, Replicated))
+        self.assertTrue(isinstance(temp_centroids, Replicated))
         self.assertEqual(num_centroids, k)
         #Check centroid chosen from observations
         for centroid in centroids:
@@ -174,8 +174,8 @@ class MPIscipyClusterKmeansTest(unittest.TestCase):
         obs = self.dist_obs_2_features
         centroids, num_centroids, temp_centroids = \
             _process_centroids(k, num_features, obs, self.comm)
-        self.assertTrue(isinstance(centroids, Undistributed))
-        self.assertTrue(isinstance(temp_centroids, Undistributed))
+        self.assertTrue(isinstance(centroids, Replicated))
+        self.assertTrue(isinstance(temp_centroids, Replicated))
         self.assertEqual(num_centroids, k)
         #Check centroid chosen from observations
         for centroid in centroids:
@@ -188,8 +188,8 @@ class MPIscipyClusterKmeansTest(unittest.TestCase):
         obs = self.dist_obs_3_features
         centroids, num_centroids, temp_centroids = \
             _process_centroids(k, num_features, obs, self.comm)
-        self.assertTrue(isinstance(centroids, Undistributed))
-        self.assertTrue(isinstance(temp_centroids, Undistributed))
+        self.assertTrue(isinstance(centroids, Replicated))
+        self.assertTrue(isinstance(temp_centroids, Replicated))
         self.assertEqual(num_centroids, k)
         #Check centroid chosen from observations
         for centroid in centroids:
@@ -202,21 +202,21 @@ class MPIscipyClusterKmeansTest(unittest.TestCase):
         obs = self.dist_obs_2_features
         centroids, num_centroids, temp_centroids = \
             _process_centroids(k, num_features, obs, self.comm)
-        self.assertTrue(isinstance(centroids, Undistributed))
-        self.assertTrue(isinstance(temp_centroids, Undistributed))
+        self.assertTrue(isinstance(centroids, Replicated))
+        self.assertTrue(isinstance(temp_centroids, Replicated))
         self.assertEqual(num_centroids, k.shape[0])
         #Check seeded centroids returned
         self.assertTrue(np.alltrue(k == centroids))
 
 
-    def test_process_centroids_providing_Undistributed_MPIArray(self):
-        k = mpi_np.array(self.seeded_centroids, dist='u')
+    def test_process_centroids_providing_Replicated_MPIArray(self):
+        k = mpi_np.array(self.seeded_centroids, dist='r')
         num_features = self.seeded_num_features
         obs = self.dist_obs_2_features
         centroids, num_centroids, temp_centroids = \
             _process_centroids(k, num_features, obs, self.comm)
-        self.assertTrue(isinstance(centroids, Undistributed))
-        self.assertTrue(isinstance(temp_centroids, Undistributed))
+        self.assertTrue(isinstance(centroids, Replicated))
+        self.assertTrue(isinstance(temp_centroids, Replicated))
         self.assertEqual(num_centroids, self.seeded_num_centroids)
         #Check seeded centroids returned
         self.assertTrue(np.alltrue(self.seeded_centroids == centroids))
@@ -228,8 +228,8 @@ class MPIscipyClusterKmeansTest(unittest.TestCase):
         obs = self.dist_obs_2_features
         centroids, num_centroids, temp_centroids = \
             _process_centroids(k, num_features, obs, self.comm)
-        self.assertTrue(isinstance(centroids, Undistributed))
-        self.assertTrue(isinstance(temp_centroids, Undistributed))
+        self.assertTrue(isinstance(centroids, Replicated))
+        self.assertTrue(isinstance(temp_centroids, Replicated))
         self.assertEqual(num_centroids, self.seeded_num_centroids)
         #Check seeded centroids returned
         self.assertTrue(np.alltrue(self.seeded_centroids == centroids))
@@ -291,8 +291,8 @@ class MPIscipyClusterKmeansTest(unittest.TestCase):
         self.assertTrue(self.__compare_labels(scipy_labels, mpids_labels))
         self.assertTrue(self.__compare_centroids(scipy_centriods, mpids_centriods))
         #Check returned data types
-        self.assertTrue(isinstance(mpids_centriods, Undistributed))
-        self.assertTrue(isinstance(mpids_labels, Undistributed))
+        self.assertTrue(isinstance(mpids_centriods, Replicated))
+        self.assertTrue(isinstance(mpids_labels, Replicated))
         #Check number of returned elements
         self.assertTrue(mpids_centriods.globalshape[0] == self.k)
         self.assertTrue(mpids_labels.globalshape[0] == self.obs_1_feature.shape[0])
@@ -308,8 +308,8 @@ class MPIscipyClusterKmeansTest(unittest.TestCase):
         self.assertTrue(self.__compare_labels(scipy_labels, mpids_labels))
         self.assertTrue(self.__compare_centroids(scipy_centriods, mpids_centriods))
         #Check returned data types
-        self.assertTrue(isinstance(mpids_centriods, Undistributed))
-        self.assertTrue(isinstance(mpids_labels, Undistributed))
+        self.assertTrue(isinstance(mpids_centriods, Replicated))
+        self.assertTrue(isinstance(mpids_labels, Replicated))
         #Check number of returned elements
         self.assertTrue(mpids_centriods.globalshape[0] == self.k)
         self.assertTrue(mpids_labels.globalshape[0] == self.obs_2_features.shape[0])
@@ -325,8 +325,8 @@ class MPIscipyClusterKmeansTest(unittest.TestCase):
         self.assertTrue(self.__compare_labels(scipy_labels, mpids_labels))
         self.assertTrue(self.__compare_centroids(scipy_centriods, mpids_centriods))
         #Check returned data types
-        self.assertTrue(isinstance(mpids_centriods, Undistributed))
-        self.assertTrue(isinstance(mpids_labels, Undistributed))
+        self.assertTrue(isinstance(mpids_centriods, Replicated))
+        self.assertTrue(isinstance(mpids_labels, Replicated))
         #Check number of returned elements
         self.assertTrue(mpids_centriods.globalshape[0] == self.k)
         self.assertTrue(mpids_labels.globalshape[0] == self.obs_3_features.shape[0])
@@ -343,8 +343,8 @@ class MPIscipyClusterKmeansTest(unittest.TestCase):
         self.assertTrue(self.__compare_labels(scipy_labels, mpids_labels))
         self.assertTrue(self.__compare_centroids(scipy_centriods, mpids_centriods))
         #Check returned data types
-        self.assertTrue(isinstance(mpids_centriods, Undistributed))
-        self.assertTrue(isinstance(mpids_labels, Undistributed))
+        self.assertTrue(isinstance(mpids_centriods, Replicated))
+        self.assertTrue(isinstance(mpids_labels, Replicated))
         #Check number of returned elements
         self.assertTrue(mpids_centriods.globalshape[0] == len(k))
         self.assertTrue(mpids_labels.globalshape[0] == self.obs_1_feature.shape[0])
@@ -362,8 +362,8 @@ class MPIscipyClusterKmeansTest(unittest.TestCase):
         self.assertTrue(self.__compare_labels(scipy_labels, mpids_labels))
         self.assertTrue(self.__compare_centroids(scipy_centriods, mpids_centriods))
         #Check returned data types
-        self.assertTrue(isinstance(mpids_centriods, Undistributed))
-        self.assertTrue(isinstance(mpids_labels, Undistributed))
+        self.assertTrue(isinstance(mpids_centriods, Replicated))
+        self.assertTrue(isinstance(mpids_labels, Replicated))
         #Check number of returned elements
         self.assertTrue(mpids_centriods.globalshape[0] == len(k))
         self.assertTrue(mpids_labels.globalshape[0] == self.obs_2_features.shape[0])
@@ -381,16 +381,16 @@ class MPIscipyClusterKmeansTest(unittest.TestCase):
         self.assertTrue(self.__compare_labels(scipy_labels, mpids_labels))
         self.assertTrue(self.__compare_centroids(scipy_centriods, mpids_centriods))
         #Check returned data types
-        self.assertTrue(isinstance(mpids_centriods, Undistributed))
-        self.assertTrue(isinstance(mpids_labels, Undistributed))
+        self.assertTrue(isinstance(mpids_centriods, Replicated))
+        self.assertTrue(isinstance(mpids_labels, Replicated))
         #Check number of returned elements
         self.assertTrue(mpids_centriods.globalshape[0] ==  len(k))
         self.assertTrue(mpids_labels.globalshape[0] == self.obs_3_features.shape[0])
 
 
-    def test_kmeans_produces_same_results_as_scipy_kmeans2_for_1_feature_with_Undistributed_seed(self):
+    def test_kmeans_produces_same_results_as_scipy_kmeans2_for_1_feature_with_Replicated_seed(self):
         k = np.array([-1, 1])
-        k_mpi_np = mpi_np.array(k, dist='u')
+        k_mpi_np = mpi_np.array(k, dist='r')
         scipy_centriods, scipy_labels = \
             scipy_cluster.kmeans2(self.obs_1_feature, k, iter=1000)
         mpids_centriods, mpids_labels = \
@@ -400,17 +400,17 @@ class MPIscipyClusterKmeansTest(unittest.TestCase):
         self.assertTrue(self.__compare_labels(scipy_labels, mpids_labels))
         self.assertTrue(self.__compare_centroids(scipy_centriods, mpids_centriods))
         #Check returned data types
-        self.assertTrue(isinstance(mpids_centriods, Undistributed))
-        self.assertTrue(isinstance(mpids_labels, Undistributed))
+        self.assertTrue(isinstance(mpids_centriods, Replicated))
+        self.assertTrue(isinstance(mpids_labels, Replicated))
         #Check number of returned elements
         self.assertTrue(mpids_centriods.globalshape[0] == len(k))
         self.assertTrue(mpids_labels.globalshape[0] == self.obs_1_feature.shape[0])
 
 
-    def test_kmeans_produces_same_results_as_scipy_kmeans2_for_2_features_with_Undistributed_seed(self):
+    def test_kmeans_produces_same_results_as_scipy_kmeans2_for_2_features_with_Replicated_seed(self):
         k = np.array([[-1, -1],
                       [1, 1]])
-        k_mpi_np = mpi_np.array(k, dist='u')
+        k_mpi_np = mpi_np.array(k, dist='r')
         scipy_centriods, scipy_labels = \
             scipy_cluster.kmeans2(self.obs_2_features, k, iter=1000)
         mpids_centriods, mpids_labels = \
@@ -420,17 +420,17 @@ class MPIscipyClusterKmeansTest(unittest.TestCase):
         self.assertTrue(self.__compare_labels(scipy_labels, mpids_labels))
         self.assertTrue(self.__compare_centroids(scipy_centriods, mpids_centriods))
         #Check returned data types
-        self.assertTrue(isinstance(mpids_centriods, Undistributed))
-        self.assertTrue(isinstance(mpids_labels, Undistributed))
+        self.assertTrue(isinstance(mpids_centriods, Replicated))
+        self.assertTrue(isinstance(mpids_labels, Replicated))
         #Check number of returned elements
         self.assertTrue(mpids_centriods.globalshape[0] == len(k))
         self.assertTrue(mpids_labels.globalshape[0] == self.obs_2_features.shape[0])
 
 
-    def test_kmeans_produces_same_results_as_scipy_kmeans2_for_3_features_with_Undistributed_seed(self):
+    def test_kmeans_produces_same_results_as_scipy_kmeans2_for_3_features_with_Replicated_seed(self):
         k = np.array([[-1, -1, -1],
                       [1, 1, 1]])
-        k_mpi_np = mpi_np.array(k, dist='u')
+        k_mpi_np = mpi_np.array(k, dist='r')
         scipy_centriods, scipy_labels = \
             scipy_cluster.kmeans2(self.obs_3_features, k, iter=1000)
         mpids_centriods, mpids_labels = \
@@ -440,8 +440,8 @@ class MPIscipyClusterKmeansTest(unittest.TestCase):
         self.assertTrue(self.__compare_labels(scipy_labels, mpids_labels))
         self.assertTrue(self.__compare_centroids(scipy_centriods, mpids_centriods))
         #Check returned data types
-        self.assertTrue(isinstance(mpids_centriods, Undistributed))
-        self.assertTrue(isinstance(mpids_labels, Undistributed))
+        self.assertTrue(isinstance(mpids_centriods, Replicated))
+        self.assertTrue(isinstance(mpids_labels, Replicated))
         #Check number of returned elements
         self.assertTrue(mpids_centriods.globalshape[0] ==  len(k))
         self.assertTrue(mpids_labels.globalshape[0] == self.obs_3_features.shape[0])
@@ -459,8 +459,8 @@ class MPIscipyClusterKmeansTest(unittest.TestCase):
         self.assertTrue(self.__compare_labels(scipy_labels, mpids_labels))
         self.assertTrue(self.__compare_centroids(scipy_centriods, mpids_centriods))
         #Check returned data types
-        self.assertTrue(isinstance(mpids_centriods, Undistributed))
-        self.assertTrue(isinstance(mpids_labels, Undistributed))
+        self.assertTrue(isinstance(mpids_centriods, Replicated))
+        self.assertTrue(isinstance(mpids_labels, Replicated))
         #Check number of returned elements
         self.assertTrue(mpids_centriods.globalshape[0] == len(k))
         self.assertTrue(mpids_labels.globalshape[0] == self.obs_1_feature.shape[0])
@@ -479,8 +479,8 @@ class MPIscipyClusterKmeansTest(unittest.TestCase):
         self.assertTrue(self.__compare_labels(scipy_labels, mpids_labels))
         self.assertTrue(self.__compare_centroids(scipy_centriods, mpids_centriods))
         #Check returned data types
-        self.assertTrue(isinstance(mpids_centriods, Undistributed))
-        self.assertTrue(isinstance(mpids_labels, Undistributed))
+        self.assertTrue(isinstance(mpids_centriods, Replicated))
+        self.assertTrue(isinstance(mpids_labels, Replicated))
         #Check number of returned elements
         self.assertTrue(mpids_centriods.globalshape[0] == len(k))
         self.assertTrue(mpids_labels.globalshape[0] == self.obs_2_features.shape[0])
@@ -499,8 +499,8 @@ class MPIscipyClusterKmeansTest(unittest.TestCase):
         self.assertTrue(self.__compare_labels(scipy_labels, mpids_labels))
         self.assertTrue(self.__compare_centroids(scipy_centriods, mpids_centriods))
         #Check returned data types
-        self.assertTrue(isinstance(mpids_centriods, Undistributed))
-        self.assertTrue(isinstance(mpids_labels, Undistributed))
+        self.assertTrue(isinstance(mpids_centriods, Replicated))
+        self.assertTrue(isinstance(mpids_labels, Replicated))
         #Check number of returned elements
         self.assertTrue(mpids_centriods.globalshape[0] ==  len(k))
         self.assertTrue(mpids_labels.globalshape[0] == self.obs_3_features.shape[0])

@@ -4,7 +4,7 @@ from mpi4py import MPI
 import mpids.MPInumpy as mpi_np
 
 from mpids.MPInumpy.errors import NotSupportedError
-from mpids.MPInumpy.distributions.Undistributed import Undistributed
+from mpids.MPInumpy.distributions.Replicated import Replicated
 
 class MPIArrayIndexingDefaultTest(unittest.TestCase):
 
@@ -53,7 +53,7 @@ class MPIArrayIndexingDefaultTest(unittest.TestCase):
 
         #Check that not supported is raised when trying to set value(s)
         ## with multiple elements for distributed arrays
-        if not isinstance(self.mpi_array, Undistributed):
+        if not isinstance(self.mpi_array, Replicated):
             with self.assertRaises(NotSupportedError):
                 self.mpi_array[:,0] = [0] * self.mpi_array.globalshape[0]
 
@@ -212,9 +212,9 @@ class MPIArrayIndexingDefaultTest(unittest.TestCase):
         returned_array = self.mpi_array[:]
 
         self.assertTrue(isinstance(returned_array, mpi_np.MPIArray))
-        self.assertTrue(isinstance(returned_array, Undistributed))
+        self.assertTrue(isinstance(returned_array, Replicated))
         self.assertEqual(returned_array.comm, self.mpi_array.comm)
-        self.assertEqual(returned_array.dist, 'u')
+        self.assertEqual(returned_array.dist, 'r')
         self.assertTrue(returned_array.comm_dims is None)
         self.assertTrue(returned_array.comm_coord is None)
         self.assertTrue(returned_array.local_to_global is None)
@@ -235,9 +235,9 @@ class MPIArrayIndexingDefaultTest(unittest.TestCase):
         returned_array = self.mpi_array[first_row]
 
         self.assertTrue(isinstance(returned_array, mpi_np.MPIArray))
-        self.assertTrue(isinstance(returned_array, Undistributed))
+        self.assertTrue(isinstance(returned_array, Replicated))
         self.assertEqual(returned_array.comm, self.mpi_array.comm)
-        self.assertEqual(returned_array.dist, 'u')
+        self.assertEqual(returned_array.dist, 'r')
         self.assertTrue(returned_array.comm_dims is None)
         self.assertTrue(returned_array.comm_coord is None)
         self.assertTrue(returned_array.local_to_global is None)
@@ -257,9 +257,9 @@ class MPIArrayIndexingDefaultTest(unittest.TestCase):
         returned_array = self.mpi_array[2:3]
 
         self.assertTrue(isinstance(returned_array, mpi_np.MPIArray))
-        self.assertTrue(isinstance(returned_array, Undistributed))
+        self.assertTrue(isinstance(returned_array, Replicated))
         self.assertEqual(returned_array.comm, self.mpi_array.comm)
-        self.assertEqual(returned_array.dist, 'u')
+        self.assertEqual(returned_array.dist, 'r')
         self.assertTrue(returned_array.comm_dims is None)
         self.assertTrue(returned_array.comm_coord is None)
         self.assertTrue(returned_array.local_to_global is None)
@@ -279,9 +279,9 @@ class MPIArrayIndexingDefaultTest(unittest.TestCase):
         returned_array = self.mpi_array[last_row]
 
         self.assertTrue(isinstance(returned_array, mpi_np.MPIArray))
-        self.assertTrue(isinstance(returned_array, Undistributed))
+        self.assertTrue(isinstance(returned_array, Replicated))
         self.assertEqual(returned_array.comm, self.mpi_array.comm)
-        self.assertEqual(returned_array.dist, 'u')
+        self.assertEqual(returned_array.dist, 'r')
         self.assertTrue(returned_array.comm_dims is None)
         self.assertTrue(returned_array.comm_coord is None)
         self.assertTrue(returned_array.local_to_global is None)
@@ -303,9 +303,9 @@ class MPIArrayIndexingDefaultTest(unittest.TestCase):
         returned_array = self.mpi_array[first_row:middle_row]
 
         self.assertTrue(isinstance(returned_array, mpi_np.MPIArray))
-        self.assertTrue(isinstance(returned_array, Undistributed))
+        self.assertTrue(isinstance(returned_array, Replicated))
         self.assertEqual(returned_array.comm, self.mpi_array.comm)
-        self.assertEqual(returned_array.dist, 'u')
+        self.assertEqual(returned_array.dist, 'r')
         self.assertTrue(returned_array.comm_dims is None)
         self.assertTrue(returned_array.comm_coord is None)
         self.assertTrue(returned_array.local_to_global is None)
@@ -327,9 +327,9 @@ class MPIArrayIndexingDefaultTest(unittest.TestCase):
         returned_array = self.mpi_array[middle_row:last_row]
 
         self.assertTrue(isinstance(returned_array, mpi_np.MPIArray))
-        self.assertTrue(isinstance(returned_array, Undistributed))
+        self.assertTrue(isinstance(returned_array, Replicated))
         self.assertEqual(returned_array.comm, self.mpi_array.comm)
-        self.assertEqual(returned_array.dist, 'u')
+        self.assertEqual(returned_array.dist, 'r')
         self.assertTrue(returned_array.comm_dims is None)
         self.assertTrue(returned_array.comm_coord is None)
         self.assertTrue(returned_array.local_to_global is None)
@@ -350,9 +350,9 @@ class MPIArrayIndexingDefaultTest(unittest.TestCase):
         returned_array = self.mpi_array[:, first_col]
 
         self.assertTrue(isinstance(returned_array, mpi_np.MPIArray))
-        self.assertTrue(isinstance(returned_array, Undistributed))
+        self.assertTrue(isinstance(returned_array, Replicated))
         self.assertEqual(returned_array.comm, self.mpi_array.comm)
-        self.assertEqual(returned_array.dist, 'u')
+        self.assertEqual(returned_array.dist, 'r')
         self.assertTrue(returned_array.comm_dims is None)
         self.assertTrue(returned_array.comm_coord is None)
         self.assertTrue(returned_array.local_to_global is None)
@@ -372,9 +372,9 @@ class MPIArrayIndexingDefaultTest(unittest.TestCase):
         returned_array = self.mpi_array[:, 2:3]
 
         self.assertTrue(isinstance(returned_array, mpi_np.MPIArray))
-        self.assertTrue(isinstance(returned_array, Undistributed))
+        self.assertTrue(isinstance(returned_array, Replicated))
         self.assertEqual(returned_array.comm, self.mpi_array.comm)
-        self.assertEqual(returned_array.dist, 'u')
+        self.assertEqual(returned_array.dist, 'r')
         self.assertTrue(returned_array.comm_dims is None)
         self.assertTrue(returned_array.comm_coord is None)
         self.assertTrue(returned_array.local_to_global is None)
@@ -394,9 +394,9 @@ class MPIArrayIndexingDefaultTest(unittest.TestCase):
         returned_array = self.mpi_array[:, last_col]
 
         self.assertTrue(isinstance(returned_array, mpi_np.MPIArray))
-        self.assertTrue(isinstance(returned_array, Undistributed))
+        self.assertTrue(isinstance(returned_array, Replicated))
         self.assertEqual(returned_array.comm, self.mpi_array.comm)
-        self.assertEqual(returned_array.dist, 'u')
+        self.assertEqual(returned_array.dist, 'r')
         self.assertTrue(returned_array.comm_dims is None)
         self.assertTrue(returned_array.comm_coord is None)
         self.assertTrue(returned_array.local_to_global is None)
@@ -417,9 +417,9 @@ class MPIArrayIndexingDefaultTest(unittest.TestCase):
         returned_array = self.mpi_array[:, first_col:middle_col]
 
         self.assertTrue(isinstance(returned_array, mpi_np.MPIArray))
-        self.assertTrue(isinstance(returned_array, Undistributed))
+        self.assertTrue(isinstance(returned_array, Replicated))
         self.assertEqual(returned_array.comm, self.mpi_array.comm)
-        self.assertEqual(returned_array.dist, 'u')
+        self.assertEqual(returned_array.dist, 'r')
         self.assertTrue(returned_array.comm_dims is None)
         self.assertTrue(returned_array.comm_coord is None)
         self.assertTrue(returned_array.local_to_global is None)
@@ -440,9 +440,9 @@ class MPIArrayIndexingDefaultTest(unittest.TestCase):
         returned_array = self.mpi_array[:, middle_col:last_col]
 
         self.assertTrue(isinstance(returned_array, mpi_np.MPIArray))
-        self.assertTrue(isinstance(returned_array, Undistributed))
+        self.assertTrue(isinstance(returned_array, Replicated))
         self.assertEqual(returned_array.comm, self.mpi_array.comm)
-        self.assertEqual(returned_array.dist, 'u')
+        self.assertEqual(returned_array.dist, 'r')
         self.assertTrue(returned_array.comm_dims is None)
         self.assertTrue(returned_array.comm_coord is None)
         self.assertTrue(returned_array.local_to_global is None)
@@ -457,13 +457,13 @@ class MPIArrayIndexingDefaultTest(unittest.TestCase):
         self.assertTrue(np.alltrue(returned_array == self.data[:, middle_col:last_col]))
 
 
-class MPIArrayIndexingUndistributedTest(MPIArrayIndexingDefaultTest):
+class MPIArrayIndexingReplicatedTest(MPIArrayIndexingDefaultTest):
 
     def create_setUp_parms(self):
         parms = {}
         parms['comm'] = MPI.COMM_WORLD
-        # Undistributed distribution
-        parms['dist'] = 'u'
+        # Replicated distribution
+        parms['dist'] = 'r'
         parms['data'] = np.arange(25).reshape(5,5)
         return parms
 

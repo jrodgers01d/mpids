@@ -3,7 +3,7 @@ import numpy as np
 from mpi4py import MPI
 import mpids.MPInumpy as mpi_np
 from mpids.MPInumpy.errors import ValueError
-from mpids.MPInumpy.distributions.Undistributed import Undistributed
+from mpids.MPInumpy.distributions.Replicated import Replicated
 
 class MPIArrayReshapeDefaultTest(unittest.TestCase):
 
@@ -61,7 +61,7 @@ class MPIArrayReshapeDefaultTest(unittest.TestCase):
         self.assertEqual(flatten_along_axis_0.globalndim, self.mpi_array.globalndim)
         self.assertEqual(flatten_along_axis_0.comm_dims, self.mpi_array.comm_dims)
         self.assertEqual(flatten_along_axis_0.comm_coord, self.mpi_array.comm_coord)
-        if isinstance(flatten_along_axis_0, Undistributed):
+        if isinstance(flatten_along_axis_0, Replicated):
             self.assertEqual(flatten_along_axis_0.local_to_global, self.mpi_array.local_to_global)
         else:
             #Test developed with Row Block as only existing distribution
@@ -73,7 +73,7 @@ class MPIArrayReshapeDefaultTest(unittest.TestCase):
                                 {0: (1, 1), 1: (0, 16)})
 
         #Check contents
-        if isinstance(flatten_along_axis_0, Undistributed):
+        if isinstance(flatten_along_axis_0, Replicated):
             self.assertTrue(np.alltrue(np_flatten_along_axis_0 == flatten_along_axis_0))
         else:
             #Test developed with Row Block as only existing distribution
@@ -95,7 +95,7 @@ class MPIArrayReshapeDefaultTest(unittest.TestCase):
         self.assertEqual(flatten_along_axis_1.globalndim, self.mpi_array.globalndim)
         self.assertEqual(flatten_along_axis_1.comm_dims, self.mpi_array.comm_dims)
         self.assertEqual(flatten_along_axis_1.comm_coord, self.mpi_array.comm_coord)
-        if isinstance(flatten_along_axis_1, Undistributed):
+        if isinstance(flatten_along_axis_1, Replicated):
             self.assertEqual(flatten_along_axis_1.local_to_global, self.mpi_array.local_to_global)
         else:
             axis0_start = self.rank * 4
@@ -107,7 +107,7 @@ class MPIArrayReshapeDefaultTest(unittest.TestCase):
                              1: (0, 1)})
 
         #Check contents
-        if isinstance(flatten_along_axis_1, Undistributed):
+        if isinstance(flatten_along_axis_1, Replicated):
             self.assertTrue(np.alltrue(np_flatten_along_axis_1 == flatten_along_axis_1))
         else:
             #Test developed with Row Block as only existing distribution
@@ -131,7 +131,7 @@ class MPIArrayReshapeDefaultTest(unittest.TestCase):
         self.assertEqual(mpi_array_2x8.globalndim, self.mpi_array.globalndim)
         self.assertEqual(mpi_array_2x8.comm_dims, self.mpi_array.comm_dims)
         self.assertEqual(mpi_array_2x8.comm_coord, self.mpi_array.comm_coord)
-        if isinstance(mpi_array_2x8, Undistributed):
+        if isinstance(mpi_array_2x8, Replicated):
             self.assertEqual(mpi_array_2x8.local_to_global, self.mpi_array.local_to_global)
         else:
             #Test developed with Row Block as only existing distribution
@@ -147,7 +147,7 @@ class MPIArrayReshapeDefaultTest(unittest.TestCase):
                                 {0: (2, 2), 1: (0, 8)})
 
         #Check contents
-        if isinstance(mpi_array_2x8, Undistributed):
+        if isinstance(mpi_array_2x8, Replicated):
             self.assertTrue(np.alltrue(np_2x8 == mpi_array_2x8))
         else:
             #Test developed with Row Block as only existing distribution
@@ -169,7 +169,7 @@ class MPIArrayReshapeDefaultTest(unittest.TestCase):
         self.assertEqual(mpi_array_8x2.globalndim, self.mpi_array.globalndim)
         self.assertEqual(mpi_array_8x2.comm_dims, self.mpi_array.comm_dims)
         self.assertEqual(mpi_array_8x2.comm_coord, self.mpi_array.comm_coord)
-        if isinstance(mpi_array_8x2, Undistributed):
+        if isinstance(mpi_array_8x2, Replicated):
             self.assertEqual(mpi_array_8x2.local_to_global, self.mpi_array.local_to_global)
         else:
             #Test developed with Row Block as only existing distribution
@@ -180,7 +180,7 @@ class MPIArrayReshapeDefaultTest(unittest.TestCase):
                             {0: (axis0_start, axis0_stop ),
                              1: (0, 2)})
         #Check contents
-        if isinstance(mpi_array_8x2, Undistributed):
+        if isinstance(mpi_array_8x2, Replicated):
             self.assertTrue(np.alltrue(np_8x2 == mpi_array_8x2))
         else:
             axis0_start = self.rank * 2
@@ -201,7 +201,7 @@ class MPIArrayReshapeDefaultTest(unittest.TestCase):
         self.assertEqual(mpi_array_4x2x2.globalndim, 3)
         self.assertEqual(mpi_array_4x2x2.comm_dims, self.mpi_array.comm_dims)
         self.assertEqual(mpi_array_4x2x2.comm_coord, self.mpi_array.comm_coord)
-        if isinstance(mpi_array_4x2x2, Undistributed):
+        if isinstance(mpi_array_4x2x2, Replicated):
             self.assertEqual(mpi_array_4x2x2.local_to_global, self.mpi_array.local_to_global)
         else:
             #Test developed with Row Block as only existing distribution
@@ -213,7 +213,7 @@ class MPIArrayReshapeDefaultTest(unittest.TestCase):
                              1: (0, 2),
                              2: (0, 2)})
         #Check contents
-        if isinstance(mpi_array_4x2x2, Undistributed):
+        if isinstance(mpi_array_4x2x2, Replicated):
             self.assertTrue(np.alltrue(np_4x2x2 == mpi_array_4x2x2))
         else:
             axis0_start = self.rank
@@ -234,7 +234,7 @@ class MPIArrayReshapeDefaultTest(unittest.TestCase):
         self.assertEqual(mpi_array_2x2x2x2.globalndim, 4)
         self.assertEqual(mpi_array_2x2x2x2.comm_dims, self.mpi_array.comm_dims)
         self.assertEqual(mpi_array_2x2x2x2.comm_coord, self.mpi_array.comm_coord)
-        if isinstance(mpi_array_2x2x2x2, Undistributed):
+        if isinstance(mpi_array_2x2x2x2, Replicated):
             self.assertEqual(mpi_array_2x2x2x2.local_to_global, self.mpi_array.local_to_global)
         else:
             #Test developed with Row Block as only existing distribution
@@ -252,7 +252,7 @@ class MPIArrayReshapeDefaultTest(unittest.TestCase):
                                 {0: (2, 2), 1: (0, 2), 2: (0, 2), 3: (0, 2)})
 
         #Check contents
-        if isinstance(mpi_array_2x2x2x2, Undistributed):
+        if isinstance(mpi_array_2x2x2x2, Replicated):
             self.assertTrue(np.alltrue(np_2x2x2x2 == mpi_array_2x2x2x2))
         else:
             #Test developed with Row Block as only existing distribution
@@ -262,14 +262,14 @@ class MPIArrayReshapeDefaultTest(unittest.TestCase):
                 self.assertEqual(0, mpi_array_2x2x2x2.size)
 
 
-class MPIArrayReshapeUndistributedTest(MPIArrayReshapeDefaultTest):
+class MPIArrayReshapeReplicatedTest(MPIArrayReshapeDefaultTest):
 
     def create_setUp_parms(self):
         parms = {}
         parms['comm'] = MPI.COMM_WORLD
         parms['rank'] = MPI.COMM_WORLD.Get_rank()
-        # Undistributed distribution
-        parms['dist'] = 'u'
+        # Replicated distribution
+        parms['dist'] = 'r'
         parms['data'] = np.arange(16).reshape(4,4)
         return parms
 

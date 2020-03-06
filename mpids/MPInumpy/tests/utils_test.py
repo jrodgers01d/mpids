@@ -19,11 +19,11 @@ class UtilsDistributionIndependentTest(unittest.TestCase):
 
 
     def test_distribution_checks(self):
-        undist = 'u'
+        undist = 'r'
         block = 'b'
 
-        self.assertTrue(is_undistributed(undist))
-        self.assertFalse(is_undistributed(block))
+        self.assertTrue(is_Replicated(undist))
+        self.assertFalse(is_Replicated(block))
 
         self.assertTrue(is_block_distributed(block))
         self.assertFalse(is_block_distributed(undist))
@@ -51,7 +51,7 @@ class UtilsDistributionIndependentTest(unittest.TestCase):
         with self.assertRaises(InvalidDistributionError):
             distribution_to_dimensions(('','b'), procs)
         with self.assertRaises(InvalidDistributionError):
-            distribution_to_dimensions(('u','u'), procs)
+            distribution_to_dimensions(('r','r'), procs)
 
 
     def test_global_to_local_key_int(self):
@@ -516,6 +516,11 @@ class UtilsDefaultTest(unittest.TestCase):
                                1 : {0 : (3, 6)},
                                2 : {0 : (6, 8)},
                                3 : {0 : (8, 10)}}
+        local_range_map = {0 : (0, 3, 1),
+                           1 : (3, 6, 1),
+                           2 : (6, 8, 1),
+                           3 : (8, 10, 1)}
+        parms['local_range'] = local_range_map[parms['rank']]
         parms['local_data_shape'] = np.shape(parms['local_data'])
         parms['local_data_2d_shape'] = parms['local_data_2d'].shape
         parms['local_to_global'] = local_to_global_map[parms['rank']]
@@ -541,6 +546,7 @@ class UtilsDefaultTest(unittest.TestCase):
         self.dist_to_dims = parms.get('dist_to_dims')
         self.local_data = parms.get('local_data')
         self.local_data_2d = parms.get('local_data_2d')
+        self.local_range = parms.get('local_range')
         self.local_data_shape = parms.get('local_data_shape')
         self.local_data_2d_shape = parms.get('local_data_2d_shape')
         self.local_to_global = parms.get('local_to_global')
@@ -557,8 +563,8 @@ class UtilsDefaultTest(unittest.TestCase):
 
 
     def test_distribution_to_dimensions(self):
-        #Does not apply to undistributed
-        if is_undistributed(self.dist):
+        #Does not apply to Replicated
+        if is_Replicated(self.dist):
             return
         self.assertEqual(self.dist_to_dims,
                  distribution_to_dimensions(self.dist, self.procs))
@@ -578,6 +584,35 @@ class UtilsDefaultTest(unittest.TestCase):
         self.assertEqual((self.comm_dims, self.comm_coord, self.local_to_global_2d),
                          (comm_dims, comm_coord, local_to_global_2d))
         self.assertTrue(np.alltrue(self.local_data_2d == local_data_2d))
+
+
+    def test_distribute_range(self):
+        #providing only stop
+        stop = len(self.data)
+        local_range, comm_dims, comm_coord, local_to_global = \
+            distribute_range(stop, None, None, self.dist)
+        self.assertEqual((self.comm_dims, self.comm_coord, self.local_to_global),
+                         (comm_dims, comm_coord, local_to_global))
+        self.assertEqual(self.local_range, local_range)
+
+        #providing only start, stop
+        start = min(self.data)
+        stop = len(self.data)
+        local_range, comm_dims, comm_coord, local_to_global = \
+            distribute_range(start, stop, None, self.dist)
+        self.assertEqual((self.comm_dims, self.comm_coord, self.local_to_global),
+                         (comm_dims, comm_coord, local_to_global))
+        self.assertEqual(self.local_range, local_range)
+
+        #providing start, stop, step
+        start = min(self.data)
+        stop = len(self.data)
+        step = 1
+        local_range, comm_dims, comm_coord, local_to_global = \
+            distribute_range(start, stop, step, self.dist)
+        self.assertEqual((self.comm_dims, self.comm_coord, self.local_to_global),
+                         (comm_dims, comm_coord, local_to_global))
+        self.assertEqual(self.local_range, local_range)
 
 
     def test_distribute_shape(self):
@@ -632,7 +667,7 @@ class UtilsDefaultTest(unittest.TestCase):
         self.assertEqual(self.local_to_global_2d, local_to_global)
 
 
-class UtilsUndistributedTest(UtilsDefaultTest):
+class UtilsReplicatedTest(UtilsDefaultTest):
 
     def create_setUp_parms(self):
         parms = {}
@@ -642,12 +677,13 @@ class UtilsUndistributedTest(UtilsDefaultTest):
         parms['data_shape'] = np.shape(parms['data'])
         parms['data_2d'] = np.arange(20).reshape(5,4)
         parms['data_2d_shape'] = parms['data_2d'].shape
-        # Undistributed distribution
-        parms['dist'] = 'u'
+        # Replicated distribution
+        parms['dist'] = 'r'
         parms['comm_dims'] = None
         parms['comm_coord'] = None
         parms['local_data'] = parms['data']
         parms['local_data_2d'] = parms['data_2d']
+        parms['local_range'] = (0, len(parms['data']), 1)
         parms['local_data_shape'] = parms['data_shape']
         parms['local_data_2d_shape'] = parms['data_2d_shape']
         parms['local_to_global'] = None

@@ -40,14 +40,14 @@ class MPIArrayIteratorDefaultTest(unittest.TestCase):
         self.assertEqual(val, [self.rank])
 
 
-class MPIArrayIteratorUndistributedTest(MPIArrayIteratorDefaultTest):
+class MPIArrayIteratorReplicatedTest(MPIArrayIteratorDefaultTest):
 
     def create_setUp_parms(self):
         parms = {}
-        #Being sneaky here, as a undistributed array will have the same value
+        #Being sneaky here, as a Replicated array will have the same value
         ##on all ranks
         parms['rank'] = MPI.COMM_WORLD.size
-        # Undistributed distribution
-        parms['dist'] = 'u'
+        # Replicated distribution
+        parms['dist'] = 'r'
         parms['data'] = np.array([parms['rank']])
         return parms

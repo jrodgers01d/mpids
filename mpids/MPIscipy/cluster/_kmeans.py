@@ -2,7 +2,7 @@ from mpi4py import MPI
 import numpy as np
 import mpids.MPInumpy as mpi_np
 from mpids.MPInumpy.distributions.Block import Block
-from mpids.MPInumpy.distributions.Undistributed import Undistributed
+from mpids.MPInumpy.distributions.Replicated import Replicated
 from mpids.MPInumpy.MPIArray import MPIArray
 from mpids.MPIscipy.errors import TypeError, ValueError
 
@@ -40,11 +40,11 @@ def kmeans(observations, k, thresh=1e-5, comm=MPI.COMM_WORLD):
 
     Returns
     -------
-    centroids : Undistributed MPIArray
+    centroids : Replicated MPIArray
         Array of cluster centroids generated from provided set of observations.
         Format:
             centroids[k] = [feature_0, feature_1, ..., feature_N]
-    labels : Undistributed MPIArray
+    labels : Replicated MPIArray
         Array of centroid indexes that classify a given observation to its
         closest cluster centroid.
         Format:
@@ -108,11 +108,11 @@ def _process_centroids(k, num_features, observations, comm):
 
     Returns
     -------
-    centroids : Undistributed MPIArray
+    centroids : Replicated MPIArray
         Array of cluster centroids generated from provided set of observations.
     num_centroids : int
         Number of centroids.
-    temp_centroids : Undistributed MPIArray
+    temp_centroids : Replicated MPIArray
         Intermediate centroid locations prior to computing distributed result.
     """
     def __unsupported_type(*args):
@@ -122,7 +122,7 @@ def _process_centroids(k, num_features, observations, comm):
     __process_centroid_map = {int           : __centroids_from_int,
                               np.ndarray    : __centroids_from_ndarray,
                               Block         : __centroids_from_mpinp_block,
-                              Undistributed : __centroids_from_mpinp_undist}
+                              Replicated : __centroids_from_mpinp_undist}
     centroids = \
         __process_centroid_map.get(type(k), __unsupported_type)(k,
                                                                 num_features,
@@ -136,7 +136,7 @@ def _process_centroids(k, num_features, observations, comm):
     temp_centroids = mpi_np.zeros((num_centroids, num_features),
                                   dtype=observations.dtype,
                                   comm=comm,
-                                  dist='u')
+                                  dist='r')
 
     return centroids, num_centroids, temp_centroids
 
@@ -145,7 +145,7 @@ def __centroids_from_int(k, num_features, observations, comm):
     centroids = mpi_np.zeros((k, num_features),
                              dtype=observations.dtype,
                              comm=comm,
-                             dist='u')
+                             dist='r')
     #Pick initial centroids
     num_observations = observations.globalshape[0]
     for j in range(k):
@@ -157,13 +157,13 @@ def __centroids_from_int(k, num_features, observations, comm):
 
 def __centroids_from_ndarray(k, num_features, observations, comm):
     #Duplicate ndarray on all processes
-    return mpi_np.array(k, dtype=observations.dtype, comm=comm, dist='u')
+    return mpi_np.array(k, dtype=observations.dtype, comm=comm, dist='r')
 
 
 def __centroids_from_mpinp_block(k, num_features, observations, comm):
-    #Collect undistributed copy of data
-    undistributed_k = k.collect_data()
-    return undistributed_k.astype(observations.dtype)
+    #Collect replicated copy of data
+    replicated_k = k.collect_data()
+    return replicated_k.astype(observations.dtype)
 
 
 def __centroids_from_mpinp_undist(k, num_features, observations, comm):

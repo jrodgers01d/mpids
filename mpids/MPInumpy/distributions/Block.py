@@ -9,7 +9,7 @@ from mpids.MPInumpy.utils import determine_redistribution_counts_from_shape, \
                                  global_to_local_key
 
 from mpids.MPInumpy.mpi_utils import all_gather_v, all_to_all_v
-from mpids.MPInumpy.distributions.Undistributed import Undistributed
+from mpids.MPInumpy.distributions.Replicated import Replicated
 
 
 """
@@ -28,7 +28,7 @@ class Block(MPIArray):
                                              comm=self.comm,
                                              comm_dims=self.comm_dims,
                                              comm_coord=self.comm_coord)
-        #Return undistributed copy of data
+        #Return replicated copy of data
         return distributed_result.collect_data()
 
 
@@ -129,7 +129,7 @@ class Block(MPIArray):
         if self.globalndim > 2 and axis is not None:
             global_max = \
                 self.__higher_dimension_reduction_reshape(global_max, axis)
-        return Undistributed(global_max, comm=self.comm)
+        return Replicated(global_max, comm=self.comm)
 
 
     def mean(self, **kwargs):
@@ -140,7 +140,7 @@ class Block(MPIArray):
         else:
             global_mean = global_sum * 1. / self.globalsize
 
-        return Undistributed(global_mean, comm=self.comm)
+        return Replicated(global_mean, comm=self.comm)
 
 
     def min(self, **kwargs):
@@ -151,7 +151,7 @@ class Block(MPIArray):
         if self.globalndim > 2 and axis is not None:
             global_min = \
                 self.__higher_dimension_reduction_reshape(global_min, axis)
-        return Undistributed(global_min, comm=self.comm)
+        return Replicated(global_min, comm=self.comm)
 
 
     def std(self, **kwargs):
@@ -187,7 +187,7 @@ class Block(MPIArray):
             global_std = \
                 self.__higher_dimension_reduction_reshape(global_std, axis)
 
-        return Undistributed(global_std, comm=self.comm)
+        return Replicated(global_std, comm=self.comm)
 
 
     def sum(self, **kwargs):
@@ -198,7 +198,7 @@ class Block(MPIArray):
         if self.globalndim > 2 and axis is not None:
             global_sum = \
                 self.__higher_dimension_reduction_reshape(global_sum, axis)
-        return Undistributed(global_sum, comm=self.comm)
+        return Replicated(global_sum, comm=self.comm)
 
 
     def __custom_reduction(self, operation, local_red, axis=None, dtype=None,
@@ -221,7 +221,7 @@ class Block(MPIArray):
 
     def collect_data(self):
         global_data = all_gather_v(self, shape=self.globalshape, comm=self.comm)
-        return Undistributed(global_data, comm=self.comm)
+        return Replicated(global_data, comm=self.comm)
 
 
     def reshape(self, *args):

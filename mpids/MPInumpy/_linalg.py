@@ -19,8 +19,8 @@ def matmul(a, b, out=None, comm=MPI.COMM_WORLD, dist='b'):
     #Numpy and MPIArray
     if not isinstance(a, MPIArray) or not isinstance(b, MPIArray):
         return Distribution_Dict[dist](np_matmul(a, b), comm=comm)
-    #Undistributed MPIArrays
-    if a.dist == b.dist == 'u':
+    #Replicated MPIArrays
+    if a.dist == b.dist == 'r':
         return Distribution_Dict[dist](np_matmul(a, b), comm=comm)
 
     return _block_mat_mult(a, b, comm=comm)

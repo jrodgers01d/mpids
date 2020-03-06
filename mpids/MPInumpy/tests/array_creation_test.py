@@ -133,16 +133,16 @@ class ArrayDefaultTest(unittest.TestCase):
             self.assertEqual(mpi_np_array.dist, self.dist)
 
 
-class ArrayUndistributedTest(ArrayDefaultTest):
+class ArrayReplicatedTest(ArrayDefaultTest):
 
     def create_setUp_parms(self):
         parms = {}
         parms['np_data'] = np.arange(20).reshape(5,4)
         parms['array_like_data'] = parms['np_data'].tolist()
         parms['comm'] = MPI.COMM_WORLD
-        # Undistributed distribution
-        parms['dist'] = 'u'
-        parms['dist_class'] = Undistributed
+        # Replicated distribution
+        parms['dist'] = 'r'
+        parms['dist_class'] = Replicated
         return parms
 
 
@@ -292,14 +292,14 @@ class ArangeDefaultTest(unittest.TestCase):
             self.assertTrue(np.alltrue(mpi_np_arange[:] == np_arange))
 
 
-class ArangeUndistributedTest(ArangeDefaultTest):
+class ArangeReplicatedTest(ArangeDefaultTest):
 
     def create_setUp_parms(self):
         parms = {}
         parms['comm'] = MPI.COMM_WORLD
-        # Undistributed distribution
-        parms['dist'] = 'u'
-        parms['dist_class'] = Undistributed
+        # Replicated distribution
+        parms['dist'] = 'r'
+        parms['dist_class'] = Replicated
         return parms
 
 
@@ -378,16 +378,16 @@ class EmptyDefaultTest(unittest.TestCase):
                 mpi_np.empty(1)
 
 
-class EmptyUndistributedTest(EmptyDefaultTest):
+class EmptyReplicatedTest(EmptyDefaultTest):
 
     def create_setUp_parms(self):
         parms = {}
         parms['int_shape'] = 4
         parms['tuple_shape'] = (5, 4)
         parms['comm'] = MPI.COMM_WORLD
-        # Undistributed distribution
-        parms['dist'] = 'u'
-        parms['dist_class'] = Undistributed
+        # Replicated distribution
+        parms['dist'] = 'r'
+        parms['dist_class'] = Replicated
         return parms
 
 
@@ -468,16 +468,16 @@ class OnesDefaultTest(unittest.TestCase):
                 mpi_np.ones(1)
 
 
-class OnesUndistributedTest(OnesDefaultTest):
+class OnesReplicatedTest(OnesDefaultTest):
 
     def create_setUp_parms(self):
         parms = {}
         parms['int_shape'] = 4
         parms['tuple_shape'] = (5, 4)
         parms['comm'] = MPI.COMM_WORLD
-        # Undistributed distribution
-        parms['dist'] = 'u'
-        parms['dist_class'] = Undistributed
+        # Replicated distribution
+        parms['dist'] = 'r'
+        parms['dist_class'] = Replicated
         return parms
 
 
@@ -558,16 +558,16 @@ class ZerosDefaultTest(unittest.TestCase):
                 mpi_np.zeros(1)
 
 
-class ZerosUndistributedTest(ZerosDefaultTest):
+class ZerosReplicatedTest(ZerosDefaultTest):
 
     def create_setUp_parms(self):
         parms = {}
         parms['int_shape'] = 4
         parms['tuple_shape'] = (5, 4)
         parms['comm'] = MPI.COMM_WORLD
-        # Undistributed distribution
-        parms['dist'] = 'u'
-        parms['dist_class'] = Undistributed
+        # Replicated distribution
+        parms['dist'] = 'r'
+        parms['dist_class'] = Replicated
         return parms
 
 

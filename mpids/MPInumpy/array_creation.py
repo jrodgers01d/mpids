@@ -36,7 +36,7 @@ def arange(start, stop=None, step=None, dtype=None, comm=MPI.COMM_WORLD,
         Default value 'b' : Block
         Supported types:
             'b' : Block
-            'u' : Undistributed
+            'r' : Replicated
 
     Returns
     -------
@@ -90,7 +90,7 @@ def array(array_data, dtype=None, copy=True, order=None, subok=False, ndmin=0,
         Default value 'b' : Block
         Supported types:
             'b' : Block
-            'u' : Undistributed
+            'r' : Replicated
 
     Returns
     -------
@@ -138,7 +138,7 @@ def empty(*args, dtype=np.float64, order='C',
         Default value 'b' : Block
         Supported types:
             'b' : Block
-            'u' : Undistributed
+            'r' : Replicated
 
     Returns
     -------
@@ -182,7 +182,7 @@ def ones(*args, dtype=np.float64, order='C',
         Default value 'b' : Block
         Supported types:
             'b' : Block
-            'u' : Undistributed
+            'r' : Replicated
 
     Returns
     -------
@@ -226,7 +226,7 @@ def zeros(*args, dtype=np.float64, order='C',
         Default value 'b' : Block
         Supported types:
             'b' : Block
-            'u' : Undistributed
+            'r' : Replicated
 
     Returns
     -------

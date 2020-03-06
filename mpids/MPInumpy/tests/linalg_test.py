@@ -18,9 +18,9 @@ class LinAlgTest(unittest.TestCase):
             mpi_np.matmul(self.np_array_a, self.np_array_b, out=mpi_out)
 
 
-    def test_undistributed_matmul(self):
-        mpi_array_a = mpi_np.array(self.np_array_a, dist='u')
-        mpi_array_b = mpi_np.array(self.np_array_b, dist='u')
+    def test_Replicated_matmul(self):
+        mpi_array_a = mpi_np.array(self.np_array_a, dist='r')
+        mpi_array_b = mpi_np.array(self.np_array_b, dist='r')
 
         #Check return type
         self.assertTrue(isinstance(
