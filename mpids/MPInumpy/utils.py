@@ -11,9 +11,9 @@ from mpids.MPInumpy.mpi_utils import all_gather_v,                \
 
 __all__ = ['determine_local_shape_and_mapping',
            'determine_redistribution_counts_from_shape',
-           'determine_global_offset', 'distribute_array', 'distribute_shape',
-           'get_block_index', 'get_cart_coords', 'get_comm_dims',
-           'global_to_local_key', 'distribution_to_dimensions',
+           'determine_global_offset', 'distribute_array', 'distribute_range',
+           'distribute_shape', 'get_block_index', 'get_cart_coords',
+           'get_comm_dims', 'global_to_local_key', 'distribution_to_dimensions',
            'is_undistributed', 'is_block_distributed',
            'slice_local_data_and_determine_mapping']
 
@@ -266,6 +266,75 @@ def distribute_array(array_data, dist, comm=MPI.COMM_WORLD, root=0):
                                root=root)
 
     return local_data, comm_dims, comm_coord, local_to_global
+
+
+def distribute_range(start, stop, step, dist, comm=MPI.COMM_WORLD, root=0):
+    """ Distribute global array like object among MPI processes base on
+    specified distribution.
+
+    Parameters
+    ----------
+    start : int, optional
+        Start of interval
+    stop : int
+        End of interval
+    step : int, optional
+        Spacing between values. Default step size is 1.
+    dist : str
+        Specified distribution of data among processes.
+        Default value 'b' : Block
+        Supported types:
+            'b' : Block
+            'u' : Undistributed
+    comm : MPI Communicator, optional
+        MPI process communication object.  If none specified
+        defaults to MPI.COMM_WORLD
+    root : int, optional
+        Rank of root process that has the local array data. If none specified
+        defaults to 0.
+
+    Returns
+    -------
+    local_range : tuple
+        Local start, stop, and step determined for process(rank)
+    comm_dims : list, None
+        Dimensions of cartesian grid
+    coordinates : list, None
+        Coordinates of rank in grid
+    local_to_global : dictionary
+        Dictionary specifying global index start/end of data by axis.
+        Format:
+            key, value = axis, [inclusive start, exclusive end)
+            {0: (start_index, end_index),
+             1: (start_index, end_index),
+             ...}
+    """
+    stop  = start if stop is None else stop
+    start = 0 if stop == start else start
+    step  = 1 if step is None else step
+
+    global_range_info = np.array([start, stop, step])
+    global_start, global_stop, global_step = \
+        broadcast_array(global_range_info, comm=comm, root=root)
+
+    if dist == 'b':
+        global_shape = \
+            tuple([int(np.ceil((global_stop - global_start) / global_step))])
+
+        local_shape, comm_dims, comm_coord, local_to_global = \
+            distribute_shape(global_shape, dist, comm=comm, root=root)
+
+        local_start = global_start + local_to_global[0][0] * global_step
+        local_stop  = global_start + local_to_global[0][1] * global_step
+    else:
+        local_start = global_start
+        local_stop  = global_stop
+        comm_dims   = None
+        comm_coord  = None
+        local_to_global = None
+
+    local_range = (local_start, local_stop, global_step)
+    return local_range, comm_dims, comm_coord, local_to_global
 
 
 def distribute_shape(shape, dist, comm=MPI.COMM_WORLD, root=0):

@@ -166,20 +166,130 @@ class ArangeDefaultTest(unittest.TestCase):
         self.size = self.comm.Get_size()
 
 
-    def test_return_behavior_from_all_ranks(self):
+    def test_return_behavior_from_all_ranks_int_stop(self):
+        np_arange = np.arange(20)
         for root in range(self.size):
             stop = None
             self.assertTrue(stop is None)
             if self.rank == root:
                 stop = 20
-            mpi_np_empty = mpi_np.arange(stop,
-                                         comm=self.comm,
-                                         root=root,
-                                         dist=self.dist)
-            self.assertTrue(isinstance(mpi_np_empty, mpi_np.MPIArray))
-            self.assertTrue(isinstance(mpi_np_empty, self.dist_class))
-            self.assertEqual(mpi_np_empty.comm, self.comm)
-            self.assertEqual(mpi_np_empty.dist, self.dist)
+            mpi_np_arange = mpi_np.arange(stop,
+                                          comm=self.comm,
+                                          root=root,
+                                          dist=self.dist)
+            self.assertTrue(isinstance(mpi_np_arange, mpi_np.MPIArray))
+            self.assertTrue(isinstance(mpi_np_arange, self.dist_class))
+            self.assertEqual(mpi_np_arange.comm, self.comm)
+            self.assertEqual(mpi_np_arange.dist, self.dist)
+            self.assertTrue(np.alltrue(mpi_np_arange[:] == np_arange))
+
+
+    def test_return_behavior_from_all_ranks_float_stop(self):
+        np_arange = np.arange(20.0)
+        for root in range(self.size):
+            stop = None
+            self.assertTrue(stop is None)
+            if self.rank == root:
+                stop = 20.0
+            mpi_np_arange = mpi_np.arange(stop,
+                                          comm=self.comm,
+                                          root=root,
+                                          dist=self.dist)
+            self.assertTrue(isinstance(mpi_np_arange, mpi_np.MPIArray))
+            self.assertTrue(isinstance(mpi_np_arange, self.dist_class))
+            self.assertEqual(mpi_np_arange.comm, self.comm)
+            self.assertEqual(mpi_np_arange.dist, self.dist)
+            self.assertTrue(np.alltrue(mpi_np_arange[:] == np_arange))
+
+
+    def test_return_behavior_from_all_ranks_int_start_stop(self):
+        np_arange = np.arange(1, 20)
+        for root in range(self.size):
+            start = None
+            stop = None
+            self.assertTrue(start is None)
+            self.assertTrue(stop is None)
+            if self.rank == root:
+                start = 1
+                stop = 20
+            mpi_np_arange = mpi_np.arange(start, stop,
+                                          comm=self.comm,
+                                          root=root,
+                                          dist=self.dist)
+            self.assertTrue(isinstance(mpi_np_arange, mpi_np.MPIArray))
+            self.assertTrue(isinstance(mpi_np_arange, self.dist_class))
+            self.assertEqual(mpi_np_arange.comm, self.comm)
+            self.assertEqual(mpi_np_arange.dist, self.dist)
+            self.assertTrue(np.alltrue(mpi_np_arange[:] == np_arange))
+
+
+    def test_return_behavior_from_all_ranks_float_start_stop(self):
+        np_arange = np.arange(1.0, 20.0)
+        for root in range(self.size):
+            start = None
+            stop = None
+            self.assertTrue(start is None)
+            self.assertTrue(stop is None)
+            if self.rank == root:
+                start = 1.0
+                stop = 20.0
+            mpi_np_arange = mpi_np.arange(start, stop,
+                                          comm=self.comm,
+                                          root=root,
+                                          dist=self.dist)
+            self.assertTrue(isinstance(mpi_np_arange, mpi_np.MPIArray))
+            self.assertTrue(isinstance(mpi_np_arange, self.dist_class))
+            self.assertEqual(mpi_np_arange.comm, self.comm)
+            self.assertEqual(mpi_np_arange.dist, self.dist)
+            self.assertTrue(np.alltrue(mpi_np_arange[:] == np_arange))
+
+
+    def test_return_behavior_from_all_ranks_int_start_stop_step(self):
+        np_arange = np.arange(1, 20, 2)
+        for root in range(self.size):
+            start = None
+            stop = None
+            step = None
+            self.assertTrue(start is None)
+            self.assertTrue(stop is None)
+            self.assertTrue(step is None)
+            if self.rank == root:
+                start = 1
+                stop = 20
+                step = 2
+            mpi_np_arange = mpi_np.arange(start, stop, step,
+                                          comm=self.comm,
+                                          root=root,
+                                          dist=self.dist)
+            self.assertTrue(isinstance(mpi_np_arange, mpi_np.MPIArray))
+            self.assertTrue(isinstance(mpi_np_arange, self.dist_class))
+            self.assertEqual(mpi_np_arange.comm, self.comm)
+            self.assertEqual(mpi_np_arange.dist, self.dist)
+            self.assertTrue(np.alltrue(mpi_np_arange[:] == np_arange))
+
+
+    def test_return_behavior_from_all_ranks_float_start_stop(self):
+        np_arange = np.arange(1.0, 20.0, 2.0)
+        for root in range(self.size):
+            start = None
+            stop = None
+            step = None
+            self.assertTrue(start is None)
+            self.assertTrue(stop is None)
+            self.assertTrue(step is None)
+            if self.rank == root:
+                start = 1.0
+                stop = 20.0
+                step = 2.0
+            mpi_np_arange = mpi_np.arange(start, stop, step,
+                                          comm=self.comm,
+                                          root=root,
+                                          dist=self.dist)
+            self.assertTrue(isinstance(mpi_np_arange, mpi_np.MPIArray))
+            self.assertTrue(isinstance(mpi_np_arange, self.dist_class))
+            self.assertEqual(mpi_np_arange.comm, self.comm)
+            self.assertEqual(mpi_np_arange.dist, self.dist)
+            self.assertTrue(np.alltrue(mpi_np_arange[:] == np_arange))
 
 
 class ArangeUndistributedTest(ArangeDefaultTest):

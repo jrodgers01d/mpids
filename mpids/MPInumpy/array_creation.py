@@ -3,11 +3,14 @@ import numpy as np
 
 from mpids.MPInumpy.distributions import Distribution_Dict
 from mpids.MPInumpy.errors import TypeError, ValueError
-from mpids.MPInumpy.utils import distribute_array, distribute_shape
+from mpids.MPInumpy.utils import distribute_array, \
+                                 distribute_range, \
+                                 distribute_shape
 
 __all__ = ['arange', 'array', 'empty', 'ones', 'zeros']
 
-def arange(*args, dtype=None, comm=MPI.COMM_WORLD, root=0, dist='b'):
+def arange(start, stop=None, step=None, dtype=None, comm=MPI.COMM_WORLD,
+           root=0, dist='b'):
     """ Create a MPIArray Object with evenly spaced values within specified
         interval on all procs in comm.
         See docstring for mpids.MPInumpy.MPIArray
@@ -40,13 +43,11 @@ def arange(*args, dtype=None, comm=MPI.COMM_WORLD, root=0, dist='b'):
     MPIArray : numpy.ndarray sub class
         Distributed array of evenly spaced arguments among processes.
     """
-#TODO: There's got to be a more elegant way to do this
-    array_data = np.arange(*args, dtype=dtype) if comm.rank == root else None
+    local_range, comm_dims, comm_coord, local_to_global = \
+        distribute_range(start, stop, step, dist, comm=comm, root=root)
+    local_start, local_stop, local_step = local_range
 
-    local_data, comm_dims, comm_coord, local_to_global = \
-        distribute_array(array_data, dist, comm=comm, root=root)
-
-    np_local_data = np.array(local_data, dtype=dtype)
+    np_local_data = np.arange(local_start, local_stop, local_step, dtype=dtype)
 
     return Distribution_Dict[dist](np_local_data,
                                    comm=comm,
