@@ -93,7 +93,7 @@ class Block(MPIArray):
         return self._globalsize
 
     def __globalsize(self):
-        comm_size = np.empty(1, dtype='int')
+        comm_size = np.empty(1, dtype=np.int64)
         self.comm.Allreduce(np.array(self.size), comm_size, op=MPI.SUM)
         self._globalsize = int(comm_size)
 
@@ -105,7 +105,7 @@ class Block(MPIArray):
         return self._globalnbytes
 
     def __globalnbytes(self):
-        comm_nbytes = np.empty(1, dtype='int')
+        comm_nbytes = np.empty(1, dtype=np.int64)
         self.comm.Allreduce(np.array(self.nbytes), comm_nbytes, op=MPI.SUM)
         self._globalnbytes = int(comm_nbytes)
 
