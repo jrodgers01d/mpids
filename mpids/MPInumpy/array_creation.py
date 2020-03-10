@@ -49,11 +49,18 @@ def arange(start, stop=None, step=None, dtype=None, comm=MPI.COMM_WORLD,
 
     np_local_data = np.arange(local_start, local_stop, local_step, dtype=dtype)
 
-    return Distribution_Dict[dist](np_local_data,
-                                   comm=comm,
-                                   comm_dims=comm_dims,
-                                   comm_coord=comm_coord,
-                                   local_to_global=local_to_global)
+    distributed_data = Distribution_Dict[dist](np_local_data,
+                                               comm=comm,
+                                               comm_dims=comm_dims,
+                                               comm_coord=comm_coord,
+                                               local_to_global=local_to_global)
+    #Resolve global properties
+    distributed_data.globalshape
+    distributed_data.globalsize
+    distributed_data.globalnbytes
+    distributed_data.globalndim
+
+    return distributed_data
 
 
 def array(array_data, dtype=None, copy=True, order=None, subok=False, ndmin=0,
@@ -107,11 +114,18 @@ def array(array_data, dtype=None, copy=True, order=None, subok=False, ndmin=0,
                              subok=subok,
                              ndmin=ndmin)
 
-    return Distribution_Dict[dist](np_local_data,
-                                   comm=comm,
-                                   comm_dims=comm_dims,
-                                   comm_coord=comm_coord,
-                                   local_to_global=local_to_global)
+    distributed_data = Distribution_Dict[dist](np_local_data,
+                                               comm=comm,
+                                               comm_dims=comm_dims,
+                                               comm_coord=comm_coord,
+                                               local_to_global=local_to_global)
+    #Resolve global properties
+    distributed_data.globalshape
+    distributed_data.globalsize
+    distributed_data.globalnbytes
+    distributed_data.globalndim
+
+    return distributed_data
 
 
 def empty(*args, dtype=np.float64, order='C',
@@ -151,11 +165,18 @@ def empty(*args, dtype=np.float64, order='C',
 
     np_local_data = np.empty(local_shape, dtype=dtype, order=order)
 
-    return Distribution_Dict[dist](np_local_data,
-                                   comm=comm,
-                                   comm_dims=comm_dims,
-                                   comm_coord=comm_coord,
-                                   local_to_global=local_to_global)
+    distributed_data = Distribution_Dict[dist](np_local_data,
+                                               comm=comm,
+                                               comm_dims=comm_dims,
+                                               comm_coord=comm_coord,
+                                               local_to_global=local_to_global)
+    #Resolve global properties
+    distributed_data.globalshape
+    distributed_data.globalsize
+    distributed_data.globalnbytes
+    distributed_data.globalndim
+
+    return distributed_data
 
 
 def ones(*args, dtype=np.float64, order='C',
@@ -195,11 +216,18 @@ def ones(*args, dtype=np.float64, order='C',
 
     np_local_data = np.ones(local_shape, dtype=dtype, order=order)
 
-    return Distribution_Dict[dist](np_local_data,
-                                   comm=comm,
-                                   comm_dims=comm_dims,
-                                   comm_coord=comm_coord,
-                                   local_to_global=local_to_global)
+    distributed_data = Distribution_Dict[dist](np_local_data,
+                                               comm=comm,
+                                               comm_dims=comm_dims,
+                                               comm_coord=comm_coord,
+                                               local_to_global=local_to_global)
+    #Resolve global properties
+    distributed_data.globalshape
+    distributed_data.globalsize
+    distributed_data.globalnbytes
+    distributed_data.globalndim
+
+    return distributed_data
 
 
 def zeros(*args, dtype=np.float64, order='C',
@@ -239,11 +267,18 @@ def zeros(*args, dtype=np.float64, order='C',
 
     np_local_data = np.zeros(local_shape, dtype=dtype, order=order)
 
-    return Distribution_Dict[dist](np_local_data,
-                                   comm=comm,
-                                   comm_dims=comm_dims,
-                                   comm_coord=comm_coord,
-                                   local_to_global=local_to_global)
+    distributed_data = Distribution_Dict[dist](np_local_data,
+                                               comm=comm,
+                                               comm_dims=comm_dims,
+                                               comm_coord=comm_coord,
+                                               local_to_global=local_to_global)
+    #Resolve global properties
+    distributed_data.globalshape
+    distributed_data.globalsize
+    distributed_data.globalnbytes
+    distributed_data.globalndim
+
+    return distributed_data
 
 
 def _validate_shape(*args):
