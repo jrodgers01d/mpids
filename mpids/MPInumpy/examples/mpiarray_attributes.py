@@ -32,6 +32,7 @@ if __name__ == "__main__":
     output += '\t mpi_array.comm = {} \n'.format(mpi_array.comm)
     output += '\t mpi_array.comm_dims = {} \n'.format(mpi_array.comm_dims)
     output += '\t mpi_array.comm_coord = {} \n'.format(mpi_array.comm_coord)
+    output += '\t mpi_array.local = {} \n'.format(mpi_array.local)
     output += \
         '\t mpi_array.local_to_global = {} \n'.format(mpi_array.local_to_global)
     print(output)

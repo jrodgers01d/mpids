@@ -1,7 +1,8 @@
+from mpi4py import MPI
 import numpy as np
 import mpids.MPInumpy as mpi_np
+
 import mpids.MPIscipy.cluster as mpi_scipy_cluster
-from mpi4py import MPI
 
 if __name__ == "__main__":
 
