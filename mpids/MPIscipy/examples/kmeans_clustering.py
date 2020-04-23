@@ -21,7 +21,18 @@ if __name__ == "__main__":
     mpi_np_1D_obs_features = mpi_np.array(np_1D_obs_features, dist='b')
 
     #Compute K-Means Clustering Result
-    centroids, labels = mpi_scipy_cluster.kmeans(mpi_np_1D_obs_features, k)
+    centroids, labels = mpi_scipy_cluster.kmeans(mpi_np_1D_obs_features,
+                                                 k,
+                                                 #Below are the default kwargs
+                                                 thresh=1e-5,
+                                                 comm=MPI.COMM_WORLD)
+
+    #Compute K-Means Clustering Result using Non-Distributed Input
+    centroids_2, labels_2 = mpi_scipy_cluster.kmeans(np_1D_obs_features, k)
+
+    #Check Distributed & Non-Distributed inputs generate the same result
+    assert np.allclose(centroids, centroids_2)
+    assert np.allclose(labels, labels_2)
 
     if rank == 0:
         print('Observations: {}\n'.format(np_1D_obs_features))
