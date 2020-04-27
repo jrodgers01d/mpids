@@ -5,4 +5,4 @@ mpiexec -n <NUM_PROCS> python3 example.py
 
 
 ## Additional Information
-See method doc strings and packages tests
+See method doc strings and package tests
