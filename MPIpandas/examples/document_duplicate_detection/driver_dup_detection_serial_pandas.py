@@ -1,3 +1,6 @@
+'''
+Details on how to run this are located in the ReadMe file
+'''
 import sys
 sys.path.append("..") # Adds higher directory to python modules path.
 

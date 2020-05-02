@@ -1,3 +1,6 @@
+'''
+Details on how to run this are located in the ReadMe file
+'''
 import time
 import gc
 import argparse
