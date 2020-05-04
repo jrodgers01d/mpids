@@ -1,0 +1,4 @@
+#!/bin/bash
+#script to be run after running microbenchmarks
+rm -r ./MPIpandas/examples/microbenchmarks/test_data1_microbenchmarks
+rm -r ./MPIpandas/examples/microbenchmarks/test_data2_microbenchmarks

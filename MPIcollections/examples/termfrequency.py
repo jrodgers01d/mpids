@@ -28,7 +28,7 @@ if __name__ == "__main__":
 
     comm.Barrier() 
     startprocesstime = MPI.Wtime()
-    wcount = mpids.MPICounter.Counter_all ( tokens)
+    wcount = mpids.MPICounter.Counter_all ( tokens, tokens_per_iter=400000 )
     endprocesstime = MPI.Wtime() - startprocesstime
 
     comm.Barrier() 
