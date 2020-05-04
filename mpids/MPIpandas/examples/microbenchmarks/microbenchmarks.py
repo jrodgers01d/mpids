@@ -19,7 +19,7 @@ sys.path.append(".") # Adds higher directory to python modules path.
 sys.path.append("..") # Adds higher directory to python modules path.
 
 import pandas as pd
-from  mpids.MPIpandas.src.ParallelDataFrame import ParallelDataFrame
+from  mpids.MPIpandas.ParallelDataFrame import ParallelDataFrame
 
 def main():
   parser = argparse.ArgumentParser()

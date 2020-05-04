@@ -8,8 +8,8 @@ import pandas as pd
 import numpy as np
 
 
-import mpids.MPIpandas.src.ParallelDataFrame as dpd
-from  mpids.MPIpandas.src.ParallelSeries import ParallelSeries
+import mpids.MPIpandas.ParallelDataFrame as dpd
+from  mpids.MPIpandas.ParallelSeries import ParallelSeries
 
 from sys import argv
 import gc

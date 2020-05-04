@@ -5,7 +5,7 @@ Details on how to run this are located in the ReadMe file
 import sys
 sys.path.append("..") # Adds higher directory to python modules path.
 
-import mpids.MPIpandas.src.ParallelDataFrame as dpd
+import mpids.MPIpandas.ParallelDataFrame as dpd
 #import pandas as pd
 
 from mpi_code_using_MPIpandas import *
