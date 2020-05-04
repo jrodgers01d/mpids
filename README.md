@@ -25,7 +25,10 @@ Currently only Python3 fully supported
 ## Running tests
 
 ### Locally
-> /bin/bash mpids_unittest.sh #Results saved in mpids_local_unit.out
+Results saved in `mpids_local_unit.out`
+> /bin/bash mpids_unittest.sh
 
 ### On a cluster
-> sbatch mpids_unittest_batch.sh #Results saved in mpids_crill_unit.out
+Results saved in `mpids_crill_unit.out`
+Note: Script configured for UH PSTL Crill Cluster
+> sbatch mpids_unittest_batch.sh
