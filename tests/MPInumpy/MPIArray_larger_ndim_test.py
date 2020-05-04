@@ -2,7 +2,7 @@ import numpy as np
 from mpi4py import MPI
 from mpids.MPInumpy.errors import NotSupportedError
 from mpids.MPInumpy.distributions.Replicated import Replicated
-from mpids.MPInumpy.tests.MPIArray_test import MPIArrayDefaultTest
+from .MPIArray_test import MPIArrayDefaultTest
 
 
 class MPIArray3DDefaultTest(MPIArrayDefaultTest):
