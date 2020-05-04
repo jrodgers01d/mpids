@@ -24,10 +24,8 @@ Currently only Python3 fully supported
 
 ## Running tests
 
-###Locally
-
+### Locally
 > /bin/bash mpids_unittest.sh #Results saved in mpids_local_unit.out
 
-###On a cluster
-
+### On a cluster
 > sbatch mpids_unittest_batch.sh #Results saved in mpids_crill_unit.out
