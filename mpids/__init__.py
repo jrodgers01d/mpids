@@ -1,8 +1,10 @@
+import mpids.MPIcollections
 import mpids.MPInumpy
 import mpids.MPIpandas
 import mpids.MPIscipy
 
-__all__ = ['MPInumpy',
+__all__ = ['MPIcollections',
+           'MPInumpy',
            'MPIpandas',
            'MPIscipy',
            'utils']
