@@ -1,0 +1,4 @@
+#!/bin/bash
+#script to be run before running microbenchmarks
+tar -C ./MPIpandas/examples/microbenchmarks/ -zxvf ./MPIpandas/examples/microbenchmarks/test_data1_microbenchmarks.tgz
+tar -C ./MPIpandas/examples/microbenchmarks/ -zxvf ./MPIpandas/examples/microbenchmarks/test_data2_microbenchmarks.tgz
