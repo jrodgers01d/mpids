@@ -4,4 +4,5 @@ import mpids.MPIscipy
 
 __all__ = ['MPInumpy',
            'MPIpandas',
-           'MPIscipy']
+           'MPIscipy',
+           'utils']
