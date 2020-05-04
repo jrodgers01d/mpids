@@ -18,7 +18,7 @@ if __name__ == "__main__":
     outputfile = sys.argv[2]
 
     starttime = MPI.Wtime()    
-    text = mpids.ParallelIO.read_all (inputfile)
+    text = mpids.utils.ParallelIO.read_all (inputfile)
     endreadtime = MPI.Wtime() - starttime
 
     starttokenizetime = MPI.Wtime()
@@ -28,12 +28,12 @@ if __name__ == "__main__":
 
     comm.Barrier() 
     startprocesstime = MPI.Wtime()
-    wcount = mpids.MPICounter.Counter_all ( tokens, tokens_per_iter=400000 )
+    wcount = mpids.MPIcollections.MPICounter.Counter_all ( tokens, tokens_per_iter=400000 )
     endprocesstime = MPI.Wtime() - startprocesstime
 
     comm.Barrier() 
     startfilewritetime = MPI.Wtime()
-    mpids.ParallelIO.write_all (wcount, outputfile)
+    mpids.utils.ParallelIO.write_all (wcount, outputfile)
     endtime = MPI.Wtime()
 
     endfilewritetime = endtime - startfilewritetime
