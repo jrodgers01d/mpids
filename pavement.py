@@ -8,7 +8,8 @@ import shutil
 
 @task
 def test_mpids_numpy_scipy():
-    sh("nosetests --exe --with-coverage --cover-erase --cover-branches --cover-package=mpids.MPInumpy --cover-package=mpids.MPIscipy ")
+    test_mpinumpy()
+    test_mpiscipy()
     pass
 
 @task
@@ -18,22 +19,32 @@ def test_mpids_numpy_scipy_html():
 
 @task
 def test_mpinumpy():
-    sh('nosetests --exe --with-coverage --cover-erase --cover-branches --cover-package=mpids.MPInumpy')
+    sh('nosetests --where=./tests/MPInumpy/ --exe --with-coverage --cover-erase --cover-branches --cover-package=mpids.MPInumpy')
     pass
 
 @task
 def test_mpinumpy_html():
-    sh('nosetests --exe --with-coverage --cover-erase --cover-branches --cover-html --cover-package=mpids.MPInumpy')
+    sh('nosetests --where=./tests/MPInumpy/ --exe --with-coverage --cover-erase --cover-branches --cover-html --cover-package=mpids.MPInumpy')
+    pass
+
+@task
+def test_mpipandas():
+    sh('nosetests --where=./tests/MPIpandas/ --exe --with-coverage --cover-erase --cover-branches --cover-package=mpids.MPIpandas')
+    pass
+
+@task
+def test_mpipandas_html():
+    sh('nosetests --where=./tests/MPIpandas/ --exe --with-coverage --cover-erase --cover-branches --cover-html --cover-package=mpids.MPIpandas')
     pass
 
 @task
 def test_mpiscipy():
-    sh('nosetests --exe --with-coverage --cover-erase --cover-branches --cover-package=mpids.MPIscipy')
+    sh('nosetests --where=./tests/MPIscipy/ --exe --with-coverage --cover-erase --cover-branches --cover-package=mpids.MPIscipy')
     pass
 
 @task
 def test_mpiscipy_html():
-    sh('nosetests --exe --with-coverage --cover-erase --cover-branches --cover-html --cover-package=mpids.MPIscipy')
+    sh('nosetests --where=./tests/MPIscipy/ --exe --with-coverage --cover-erase --cover-branches --cover-html --cover-package=mpids.MPIscipy')
     pass
 
 
