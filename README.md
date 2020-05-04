@@ -23,8 +23,11 @@ Currently only Python3 fully supported
 - paver (https://github.com/paver/paver)
 
 ## Running tests
+
 ###Locally
+
 > /bin/bash mpids_unittest.sh #Results saved in mpids_local_unit.out
 
 ###On a cluster
+
 > sbatch mpids_unittest_batch.sh #Results saved in mpids_crill_unit.out
